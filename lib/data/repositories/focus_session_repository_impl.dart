@@ -11,8 +11,11 @@ class FocusSessionRepositoryImpl implements FocusSessionRepository {
 
   @override
   Stream<FocusSession?> watchActiveSession() {
-    final query = _db.select(_db.focusSessions)..where((s) => s.completedAt.isNull());
-    return query.watchSingleOrNull().map((row) => row == null ? null : _map(row));
+    final query = _db.select(_db.focusSessions)
+      ..where((s) => s.completedAt.isNull());
+    return query
+        .watchSingleOrNull()
+        .map((row) => row == null ? null : _map(row));
   }
 
   @override
@@ -30,15 +33,20 @@ class FocusSessionRepositoryImpl implements FocusSessionRepository {
     final dayEnd = dayStart.add(const Duration(days: 1));
     final query = _db.select(_db.focusSessions)
       ..where(
-        (s) => s.startedAt.isBiggerOrEqualValue(dayStart) & s.startedAt.isSmallerThanValue(dayEnd),
+        (s) =>
+            s.startedAt.isBiggerOrEqualValue(dayStart) &
+            s.startedAt.isSmallerThanValue(dayEnd),
       );
     return query.watch().map((rows) => rows.map(_map).toList());
   }
 
   @override
-  Stream<List<FocusSession>> watchSessionsInRange(DateTime start, DateTime end) {
+  Stream<List<FocusSession>> watchSessionsInRange(
+      DateTime start, DateTime end) {
     final query = _db.select(_db.focusSessions)
-      ..where((s) => s.startedAt.isBiggerOrEqualValue(start) & s.startedAt.isSmallerThanValue(end));
+      ..where((s) =>
+          s.startedAt.isBiggerOrEqualValue(start) &
+          s.startedAt.isSmallerThanValue(end));
     return query.watch().map((rows) => rows.map(_map).toList());
   }
 
@@ -53,9 +61,9 @@ class FocusSessionRepositoryImpl implements FocusSessionRepository {
     // session (watchActiveSession relies on that), but if one was
     // somehow left dangling, close it out as ended-early rather than
     // letting watchSingleOrNull throw.
-    final existing =
-        await (_db.select(_db.focusSessions)..where((s) => s.completedAt.isNull()))
-            .getSingleOrNull();
+    final existing = await (_db.select(_db.focusSessions)
+          ..where((s) => s.completedAt.isNull()))
+        .getSingleOrNull();
     if (existing != null) {
       await completeSession(existing.id, endedEarly: true);
     }
@@ -102,7 +110,8 @@ class FocusSessionRepositoryImpl implements FocusSessionRepository {
     final row = await _rowById(id);
     await (_db.update(_db.focusSessions)..where((s) => s.id.equals(id))).write(
       FocusSessionsCompanion(
-        remainingSecAtSegmentStart: Value(row.remainingSecAtSegmentStart + addSeconds),
+        remainingSecAtSegmentStart:
+            Value(row.remainingSecAtSegmentStart + addSeconds),
       ),
     );
   }
@@ -111,8 +120,8 @@ class FocusSessionRepositoryImpl implements FocusSessionRepository {
   Future<void> completeSession(int id, {required bool endedEarly}) async {
     final row = await _rowById(id);
     final session = _map(row);
-    final actual =
-        (session.plannedDurationSec - session.remainingSec).clamp(0, session.plannedDurationSec);
+    final actual = (session.plannedDurationSec - session.remainingSec)
+        .clamp(0, session.plannedDurationSec);
     await (_db.update(_db.focusSessions)..where((s) => s.id.equals(id))).write(
       FocusSessionsCompanion(
         completedAt: Value(DateTime.now()),
@@ -124,7 +133,8 @@ class FocusSessionRepositoryImpl implements FocusSessionRepository {
   }
 
   Future<FocusSessionRow> _rowById(int id) {
-    return (_db.select(_db.focusSessions)..where((s) => s.id.equals(id))).getSingle();
+    return (_db.select(_db.focusSessions)..where((s) => s.id.equals(id)))
+        .getSingle();
   }
 
   FocusSession _map(FocusSessionRow row) {

@@ -19,14 +19,17 @@ class TaskRepositoryImpl implements TaskRepository {
 
   @override
   Stream<List<Task>> watchUnscheduledTasks() {
-    final query = _db.select(_db.tasks)..where((t) => t.scheduleBlockId.isNull());
+    final query = _db.select(_db.tasks)
+      ..where((t) => t.scheduleBlockId.isNull());
     return query.watch().map((rows) => rows.map(_mapTask).toList());
   }
 
   @override
   Stream<Task?> watchTask(int id) {
     final query = _db.select(_db.tasks)..where((t) => t.id.equals(id));
-    return query.watchSingleOrNull().map((row) => row == null ? null : _mapTask(row));
+    return query
+        .watchSingleOrNull()
+        .map((row) => row == null ? null : _mapTask(row));
   }
 
   @override
@@ -111,9 +114,11 @@ class TaskRepositoryImpl implements TaskRepository {
 
   @override
   Future<void> incrementSubtaskCompletedSprints(int subtaskId) async {
-    final row =
-        await (_db.select(_db.subtasks)..where((s) => s.id.equals(subtaskId))).getSingle();
-    await (_db.update(_db.subtasks)..where((s) => s.id.equals(subtaskId))).write(
+    final row = await (_db.select(_db.subtasks)
+          ..where((s) => s.id.equals(subtaskId)))
+        .getSingle();
+    await (_db.update(_db.subtasks)..where((s) => s.id.equals(subtaskId)))
+        .write(
       SubtasksCompanion(completedSprints: Value(row.completedSprints + 1)),
     );
   }

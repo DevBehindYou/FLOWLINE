@@ -8,6 +8,7 @@ class ScheduleBlocks extends Table {
   TextColumn get title => text()();
   DateTimeColumn get startTime => dateTime()();
   DateTimeColumn get endTime => dateTime()();
-  IntColumn get source => intEnum<ScheduleBlockSource>().withDefault(const Constant(0))();
+  IntColumn get source =>
+      intEnum<ScheduleBlockSource>().withDefault(const Constant(0))();
   BoolColumn get isLocked => boolean().withDefault(const Constant(false))();
 }

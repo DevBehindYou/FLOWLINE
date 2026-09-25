@@ -21,7 +21,8 @@ class _AddEditTaskSheetState extends ConsumerState<AddEditTaskSheet> {
       TextEditingController(text: widget.existingTask?.title ?? '');
   late final TextEditingController _notesController =
       TextEditingController(text: widget.existingTask?.notes ?? '');
-  late TaskPriority _priority = widget.existingTask?.priority ?? TaskPriority.medium;
+  late TaskPriority _priority =
+      widget.existingTask?.priority ?? TaskPriority.medium;
   bool _saving = false;
   String? _titleError;
 
@@ -97,7 +98,8 @@ class _AddEditTaskSheetState extends ConsumerState<AddEditTaskSheet> {
             TextField(
               controller: _titleController,
               autofocus: !_isEditing,
-              decoration: InputDecoration(labelText: 'Title', errorText: _titleError),
+              decoration:
+                  InputDecoration(labelText: 'Title', errorText: _titleError),
               onChanged: (_) {
                 if (_titleError != null) setState(() => _titleError = null);
               },
@@ -115,11 +117,13 @@ class _AddEditTaskSheetState extends ConsumerState<AddEditTaskSheet> {
             SegmentedButton<TaskPriority>(
               segments: const [
                 ButtonSegment(value: TaskPriority.low, label: Text('Low')),
-                ButtonSegment(value: TaskPriority.medium, label: Text('Medium')),
+                ButtonSegment(
+                    value: TaskPriority.medium, label: Text('Medium')),
                 ButtonSegment(value: TaskPriority.high, label: Text('High')),
               ],
               selected: {_priority},
-              onSelectionChanged: (selection) => setState(() => _priority = selection.first),
+              onSelectionChanged: (selection) =>
+                  setState(() => _priority = selection.first),
             ),
             const SizedBox(height: 24),
             ElevatedButton(

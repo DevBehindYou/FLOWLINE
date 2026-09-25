@@ -43,7 +43,8 @@ class TaskDetailScreen extends ConsumerWidget {
                 context: context,
                 builder: (context) => AlertDialog(
                   title: const Text('Delete task?'),
-                  content: const Text('This removes the task and its subtasks permanently.'),
+                  content: const Text(
+                      'This removes the task and its subtasks permanently.'),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(context, false),
@@ -66,7 +67,8 @@ class TaskDetailScreen extends ConsumerWidget {
       ),
       body: taskAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text('Something went wrong: $error')),
+        error: (error, _) =>
+            Center(child: Text('Something went wrong: $error')),
         data: (task) {
           if (task == null) {
             return const Center(child: Text('This task no longer exists.'));
@@ -82,14 +84,16 @@ class TaskDetailScreen extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              Text(task.title, style: Theme.of(context).textTheme.headlineSmall),
+              Text(task.title,
+                  style: Theme.of(context).textTheme.headlineSmall),
               if (task.notes.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Text(task.notes, style: Theme.of(context).textTheme.bodyMedium),
               ],
               const SizedBox(height: 16),
               OutlinedButton.icon(
-                onPressed: () => _startFocus(context, ref, taskId: task.id, label: task.title),
+                onPressed: () => _startFocus(context, ref,
+                    taskId: task.id, label: task.title),
                 icon: const Icon(Icons.play_arrow),
                 label: const Text('Start Focus Session'),
               ),
@@ -122,7 +126,9 @@ class TaskDetailScreen extends ConsumerWidget {
           decoration: const InputDecoration(labelText: 'Title'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
             child: const Text('Add'),
@@ -131,7 +137,9 @@ class TaskDetailScreen extends ConsumerWidget {
       ),
     );
     if (title != null && title.isNotEmpty) {
-      await ref.read(taskDetailActionsProvider.notifier).addSubtask(taskId, title);
+      await ref
+          .read(taskDetailActionsProvider.notifier)
+          .addSubtask(taskId, title);
     }
   }
 }
@@ -166,7 +174,8 @@ class _SubtaskList extends ConsumerWidget {
       error: (error, _) => Text("Couldn't load subtasks: $error"),
       data: (subtasks) {
         if (subtasks.isEmpty) {
-          return Text('No subtasks yet.', style: Theme.of(context).textTheme.bodySmall);
+          return Text('No subtasks yet.',
+              style: Theme.of(context).textTheme.bodySmall);
         }
         return Column(
           children: [

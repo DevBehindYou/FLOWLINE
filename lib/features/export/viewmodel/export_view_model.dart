@@ -17,22 +17,28 @@ class ExportViewModel extends _$ExportViewModel {
     state = true;
     try {
       final now = DateTime.now();
-      final rangeStart =
-          DateTime(now.year, now.month, now.day).subtract(const Duration(days: 6));
-      final rangeEnd = DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+      final rangeStart = DateTime(now.year, now.month, now.day)
+          .subtract(const Duration(days: 6));
+      final rangeEnd =
+          DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
 
-      final sessions =
-          await ref.read(focusSessionRepositoryProvider).watchSessionsInRange(rangeStart, rangeEnd).first;
+      final sessions = await ref
+          .read(focusSessionRepositoryProvider)
+          .watchSessionsInRange(rangeStart, rangeEnd)
+          .first;
       final streak = const FocusStatsCalculator().currentStreak(sessions);
       final service = ref.read(exportServiceProvider);
 
       switch (format) {
         case ExportFormat.pdf:
-          await service.sharePdf(sessions, rangeStart: rangeStart, rangeEnd: rangeEnd, streak: streak);
+          await service.sharePdf(sessions,
+              rangeStart: rangeStart, rangeEnd: rangeEnd, streak: streak);
         case ExportFormat.csv:
-          await service.shareCsv(sessions, rangeStart: rangeStart, rangeEnd: rangeEnd);
+          await service.shareCsv(sessions,
+              rangeStart: rangeStart, rangeEnd: rangeEnd);
         case ExportFormat.json:
-          await service.shareJson(sessions, rangeStart: rangeStart, rangeEnd: rangeEnd);
+          await service.shareJson(sessions,
+              rangeStart: rangeStart, rangeEnd: rangeEnd);
       }
     } finally {
       state = false;

@@ -21,10 +21,15 @@ class WeeklyPdfExporter {
     required int streak,
   }) async {
     final doc = pw.Document();
-    final dailyTotals = const FocusStatsCalculator().dailyTotals(sessions, days: 7);
-    final weekTotalSeconds = dailyTotals.fold<int>(0, (sum, d) => sum + d.totalSeconds);
-    final weekSessionCount = dailyTotals.fold<int>(0, (sum, d) => sum + d.sessionCount);
-    final focusSessions = sessions.where((s) => s.sessionType == FocusSessionType.focus).toList()
+    final dailyTotals =
+        const FocusStatsCalculator().dailyTotals(sessions, days: 7);
+    final weekTotalSeconds =
+        dailyTotals.fold<int>(0, (sum, d) => sum + d.totalSeconds);
+    final weekSessionCount =
+        dailyTotals.fold<int>(0, (sum, d) => sum + d.sessionCount);
+    final focusSessions = sessions
+        .where((s) => s.sessionType == FocusSessionType.focus)
+        .toList()
       ..sort((a, b) => a.startedAt.compareTo(b.startedAt));
 
     doc.addPage(
@@ -48,20 +53,29 @@ class WeeklyPdfExporter {
               ],
             ),
             pw.SizedBox(height: 20),
-            pw.Text('Daily Breakdown', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+            pw.Text('Daily Breakdown',
+                style:
+                    pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
             pw.SizedBox(height: 8),
             pw.TableHelper.fromTextArray(
               headers: ['Date', 'Focus Time', 'Sessions'],
               data: [
                 for (final day in dailyTotals)
-                  [_fmtDate(day.date), _fmtDuration(day.totalSeconds), '${day.sessionCount}'],
+                  [
+                    _fmtDate(day.date),
+                    _fmtDuration(day.totalSeconds),
+                    '${day.sessionCount}'
+                  ],
               ],
             ),
             pw.SizedBox(height: 20),
-            pw.Text('Session Log', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+            pw.Text('Session Log',
+                style:
+                    pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
             pw.SizedBox(height: 8),
             if (focusSessions.isEmpty)
-              pw.Text('No focus sessions logged this week.', style: const pw.TextStyle(fontSize: 10))
+              pw.Text('No focus sessions logged this week.',
+                  style: const pw.TextStyle(fontSize: 10))
             else
               pw.TableHelper.fromTextArray(
                 headers: ['Date', 'Time', 'Planned', 'Actual', 'Status'],
@@ -97,8 +111,10 @@ class WeeklyPdfExporter {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Text(value, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
-        pw.Text(label, style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+        pw.Text(value,
+            style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+        pw.Text(label,
+            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
       ],
     );
   }

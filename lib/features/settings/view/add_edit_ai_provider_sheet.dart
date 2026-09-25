@@ -10,10 +10,12 @@ class AddEditAiProviderSheet extends ConsumerStatefulWidget {
   final AIProviderConfig config;
 
   @override
-  ConsumerState<AddEditAiProviderSheet> createState() => _AddEditAiProviderSheetState();
+  ConsumerState<AddEditAiProviderSheet> createState() =>
+      _AddEditAiProviderSheetState();
 }
 
-class _AddEditAiProviderSheetState extends ConsumerState<AddEditAiProviderSheet> {
+class _AddEditAiProviderSheetState
+    extends ConsumerState<AddEditAiProviderSheet> {
   late final TextEditingController _apiKeyController = TextEditingController();
   late final TextEditingController _modelController =
       TextEditingController(text: widget.config.defaultModel);
@@ -38,14 +40,18 @@ class _AddEditAiProviderSheetState extends ConsumerState<AddEditAiProviderSheet>
           id: widget.config.id,
           apiKey: _apiKeyController.text.trim(),
           model: _modelController.text.trim(),
-          baseUrl: _baseUrlController.text.trim().isEmpty ? null : _baseUrlController.text.trim(),
+          baseUrl: _baseUrlController.text.trim().isEmpty
+              ? null
+              : _baseUrlController.text.trim(),
         );
     if (mounted) Navigator.of(context).pop();
   }
 
   Future<void> _remove() async {
     setState(() => _saving = true);
-    await ref.read(aiProvidersViewModelProvider.notifier).removeKey(widget.config.id);
+    await ref
+        .read(aiProvidersViewModelProvider.notifier)
+        .removeKey(widget.config.id);
     if (mounted) Navigator.of(context).pop();
   }
 
@@ -63,7 +69,8 @@ class _AddEditAiProviderSheetState extends ConsumerState<AddEditAiProviderSheet>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.config.displayName, style: Theme.of(context).textTheme.titleLarge),
+            Text(widget.config.displayName,
+                style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
             if (_requiresKey)
               TextField(
@@ -73,7 +80,9 @@ class _AddEditAiProviderSheetState extends ConsumerState<AddEditAiProviderSheet>
                   labelText: 'API key',
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscureKey ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                      _obscureKey
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
                     ),
                     onPressed: () => setState(() => _obscureKey = !_obscureKey),
                   ),
@@ -84,7 +93,8 @@ class _AddEditAiProviderSheetState extends ConsumerState<AddEditAiProviderSheet>
                 controller: _baseUrlController,
                 decoration: const InputDecoration(
                   labelText: 'Server URL',
-                  helperText: "On a phone, \"localhost\" means the phone itself \u2014 "
+                  helperText:
+                      "On a phone, \"localhost\" means the phone itself \u2014 "
                       "use your computer's LAN IP if Ollama runs there.",
                   helperMaxLines: 2,
                 ),

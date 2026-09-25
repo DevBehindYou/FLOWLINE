@@ -10,6 +10,7 @@ import 'package:flowline/data/local/drift/app_database.dart';
 /// test that ends with a timer still pending.
 AppDatabase createTestDatabase() {
   return AppDatabase.forTesting(
-    DatabaseConnection(NativeDatabase.memory(), closeStreamsSynchronously: true),
+    DatabaseConnection(NativeDatabase.memory(),
+        closeStreamsSynchronously: true),
   );
 }

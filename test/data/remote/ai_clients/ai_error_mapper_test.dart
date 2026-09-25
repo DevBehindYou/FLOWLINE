@@ -6,13 +6,16 @@ DioException _withStatus(int? status) {
   final options = RequestOptions(path: '/test');
   return DioException(
     requestOptions: options,
-    response: status == null ? null : Response(requestOptions: options, statusCode: status),
+    response: status == null
+        ? null
+        : Response(requestOptions: options, statusCode: status),
     type: DioExceptionType.badResponse,
   );
 }
 
 DioException _withType(DioExceptionType type) {
-  return DioException(requestOptions: RequestOptions(path: '/test'), type: type);
+  return DioException(
+      requestOptions: RequestOptions(path: '/test'), type: type);
 }
 
 void main() {
@@ -38,22 +41,28 @@ void main() {
     });
 
     test('a connection timeout reads as a network problem', () {
-      final message = describeDioError(_withType(DioExceptionType.connectionTimeout), 'Anthropic');
+      final message = describeDioError(
+          _withType(DioExceptionType.connectionTimeout), 'Anthropic');
       expect(message, "Couldn't reach Anthropic — check your connection.");
     });
 
     test('a receive timeout reads as a network problem', () {
-      final message = describeDioError(_withType(DioExceptionType.receiveTimeout), 'OpenAI');
+      final message = describeDioError(
+          _withType(DioExceptionType.receiveTimeout), 'OpenAI');
       expect(message, "Couldn't reach OpenAI — check your connection.");
     });
 
     test('a connection error reads as a network problem', () {
-      final message = describeDioError(_withType(DioExceptionType.connectionError), 'Gemini');
+      final message = describeDioError(
+          _withType(DioExceptionType.connectionError), 'Gemini');
       expect(message, "Couldn't reach Gemini — check your connection.");
     });
 
-    test('an unrecognized failure with no status still returns an honest fallback', () {
-      final message = describeDioError(_withType(DioExceptionType.unknown), 'Ollama');
+    test(
+        'an unrecognized failure with no status still returns an honest fallback',
+        () {
+      final message =
+          describeDioError(_withType(DioExceptionType.unknown), 'Ollama');
       expect(message, "Couldn't reach Ollama.");
     });
 

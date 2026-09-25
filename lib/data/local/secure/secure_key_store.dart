@@ -14,10 +14,12 @@ class SecureKeyStore {
 
   String _storageKey(AIProviderId id) => 'flowline_ai_api_key_${id.name}';
 
-  Future<String?> getKey(AIProviderId id) => _storage.read(key: _storageKey(id));
+  Future<String?> getKey(AIProviderId id) =>
+      _storage.read(key: _storageKey(id));
 
   Future<void> setKey(AIProviderId id, String value) =>
       _storage.write(key: _storageKey(id), value: value);
 
-  Future<void> deleteKey(AIProviderId id) => _storage.delete(key: _storageKey(id));
+  Future<void> deleteKey(AIProviderId id) =>
+      _storage.delete(key: _storageKey(id));
 }

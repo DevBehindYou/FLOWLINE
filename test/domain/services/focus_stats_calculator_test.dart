@@ -27,13 +27,15 @@ FocusSession _session({
 void main() {
   const calculator = FocusStatsCalculator();
   final now = DateTime.now();
-  DateTime daysAgo(int n) => DateTime(now.year, now.month, now.day).subtract(Duration(days: n));
+  DateTime daysAgo(int n) =>
+      DateTime(now.year, now.month, now.day).subtract(Duration(days: n));
 
   group('dailyTotals', () {
     test('returns one zeroed entry per day when there are no sessions', () {
       final totals = calculator.dailyTotals(const [], days: 7);
       expect(totals, hasLength(7));
-      expect(totals.every((d) => d.totalSeconds == 0 && d.sessionCount == 0), isTrue);
+      expect(totals.every((d) => d.totalSeconds == 0 && d.sessionCount == 0),
+          isTrue);
       expect(totals.last.date, daysAgo(0));
       expect(totals.first.date, daysAgo(6));
     });
@@ -41,7 +43,11 @@ void main() {
     test('buckets a completed session under the day it completed on', () {
       final today = daysAgo(0);
       final sessions = [
-        _session(id: 1, startedAt: today, completedAt: today, actualDurationSec: 900),
+        _session(
+            id: 1,
+            startedAt: today,
+            completedAt: today,
+            actualDurationSec: 900),
       ];
       final totals = calculator.dailyTotals(sessions, days: 7);
       expect(totals.last.totalSeconds, 900);
@@ -51,15 +57,24 @@ void main() {
     test('sums multiple sessions completed on the same day', () {
       final today = daysAgo(0);
       final sessions = [
-        _session(id: 1, startedAt: today, completedAt: today, actualDurationSec: 600),
-        _session(id: 2, startedAt: today, completedAt: today, actualDurationSec: 300),
+        _session(
+            id: 1,
+            startedAt: today,
+            completedAt: today,
+            actualDurationSec: 600),
+        _session(
+            id: 2,
+            startedAt: today,
+            completedAt: today,
+            actualDurationSec: 300),
       ];
       final totals = calculator.dailyTotals(sessions, days: 7);
       expect(totals.last.totalSeconds, 900);
       expect(totals.last.sessionCount, 2);
     });
 
-    test('excludes sessions with no completedAt (in-progress or abandoned)', () {
+    test('excludes sessions with no completedAt (in-progress or abandoned)',
+        () {
       final today = daysAgo(0);
       final sessions = [_session(id: 1, startedAt: today, completedAt: null)];
       final totals = calculator.dailyTotals(sessions, days: 7);
@@ -86,13 +101,19 @@ void main() {
     test('excludes sessions completed outside the requested window', () {
       final tooOld = daysAgo(10);
       final sessions = [
-        _session(id: 1, startedAt: tooOld, completedAt: tooOld, actualDurationSec: 900),
+        _session(
+            id: 1,
+            startedAt: tooOld,
+            completedAt: tooOld,
+            actualDurationSec: 900),
       ];
       final totals = calculator.dailyTotals(sessions, days: 7);
       expect(totals.every((d) => d.totalSeconds == 0), isTrue);
     });
 
-    test('counts an ended-early session toward its day total, same as a full one', () {
+    test(
+        'counts an ended-early session toward its day total, same as a full one',
+        () {
       final today = daysAgo(0);
       final sessions = [
         _session(
@@ -155,13 +176,19 @@ void main() {
     });
 
     test('is zero when the most recent session was two days ago', () {
-      final sessions = [_session(id: 1, startedAt: daysAgo(2), completedAt: daysAgo(2))];
+      final sessions = [
+        _session(id: 1, startedAt: daysAgo(2), completedAt: daysAgo(2))
+      ];
       expect(calculator.currentStreak(sessions), 0);
     });
 
     test('an ended-early session still extends the streak', () {
       final sessions = [
-        _session(id: 1, startedAt: daysAgo(0), completedAt: daysAgo(0), endedEarly: true),
+        _session(
+            id: 1,
+            startedAt: daysAgo(0),
+            completedAt: daysAgo(0),
+            endedEarly: true),
       ];
       expect(calculator.currentStreak(sessions), 1);
     });

@@ -26,7 +26,10 @@ class ScheduleIntelligenceViewModel extends _$ScheduleIntelligenceViewModel {
     required DateTime endTime,
     int? excludeBlockId,
   }) async {
-    final blocksForDay = await ref.read(scheduleRepositoryProvider).watchBlocksForDay(date).first;
+    final blocksForDay = await ref
+        .read(scheduleRepositoryProvider)
+        .watchBlocksForDay(date)
+        .first;
     return const ScheduleConflictChecker().findConflicts(
       startTime: startTime,
       endTime: endTime,

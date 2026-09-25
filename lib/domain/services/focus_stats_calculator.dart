@@ -28,11 +28,13 @@ class FocusStatsCalculator {
   /// One entry per day for the last [days] days, oldest first, ending
   /// today — every day gets an entry even with zero sessions, so a chart
   /// never has to guess at a missing bar.
-  List<DailyFocusTotal> dailyTotals(List<FocusSession> sessions, {int days = 7}) {
+  List<DailyFocusTotal> dailyTotals(List<FocusSession> sessions,
+      {int days = 7}) {
     final today = _dateOnly(DateTime.now());
     final byDay = <DateTime, List<FocusSession>>{};
     for (final session in sessions) {
-      if (session.sessionType != FocusSessionType.focus || session.completedAt == null) {
+      if (session.sessionType != FocusSessionType.focus ||
+          session.completedAt == null) {
         continue;
       }
       final day = _dateOnly(session.completedAt!);
@@ -42,8 +44,10 @@ class FocusStatsCalculator {
     return List.generate(days, (i) {
       final day = today.subtract(Duration(days: days - 1 - i));
       final daySessions = byDay[day] ?? const [];
-      final total = daySessions.fold<int>(0, (sum, s) => sum + (s.actualDurationSec ?? 0));
-      return DailyFocusTotal(date: day, totalSeconds: total, sessionCount: daySessions.length);
+      final total = daySessions.fold<int>(
+          0, (sum, s) => sum + (s.actualDurationSec ?? 0));
+      return DailyFocusTotal(
+          date: day, totalSeconds: total, sessionCount: daySessions.length);
     });
   }
 
@@ -54,11 +58,14 @@ class FocusStatsCalculator {
   int currentStreak(List<FocusSession> sessions) {
     final qualifyingDays = <DateTime>{
       for (final s in sessions)
-        if (s.sessionType == FocusSessionType.focus && s.completedAt != null) _dateOnly(s.completedAt!),
+        if (s.sessionType == FocusSessionType.focus && s.completedAt != null)
+          _dateOnly(s.completedAt!),
     };
 
     final today = _dateOnly(DateTime.now());
-    var cursor = qualifyingDays.contains(today) ? today : today.subtract(const Duration(days: 1));
+    var cursor = qualifyingDays.contains(today)
+        ? today
+        : today.subtract(const Duration(days: 1));
 
     var streak = 0;
     while (qualifyingDays.contains(cursor)) {

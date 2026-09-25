@@ -38,7 +38,9 @@ void main() {
     test('emits only the header row for an empty session list', () {
       final csv = formatter.toCsv(const []);
       final lines = const LineSplitter().convert(csv.trim());
-      expect(lines, ['Date,Start Time,Type,Planned Minutes,Actual Minutes,Completed,Ended Early']);
+      expect(lines, [
+        'Date,Start Time,Type,Planned Minutes,Actual Minutes,Completed,Ended Early'
+      ]);
     });
 
     test('formats a completed session as one comma-separated row', () {
@@ -53,7 +55,8 @@ void main() {
     });
 
     test('leaves Actual Minutes blank rather than printing "null"', () {
-      final session = _session(startedAt: start, completedAt: null, actualDurationSec: null);
+      final session = _session(
+          startedAt: start, completedAt: null, actualDurationSec: null);
       final csv = formatter.toCsv([session]);
       final lines = const LineSplitter().convert(csv.trim());
       expect(lines[1], '2026-01-05,09:30,Focus,25,,false,false');
@@ -100,8 +103,11 @@ void main() {
       expect(entry['subtaskId'], 3);
     });
 
-    test('serializes a null actualDurationSec/completedAt as JSON null, not a crash', () {
-      final session = _session(startedAt: start, completedAt: null, actualDurationSec: null);
+    test(
+        'serializes a null actualDurationSec/completedAt as JSON null, not a crash',
+        () {
+      final session = _session(
+          startedAt: start, completedAt: null, actualDurationSec: null);
       final jsonStr = formatter.toJson(
         [session],
         rangeStart: start,
@@ -114,7 +120,8 @@ void main() {
     });
 
     test('produces valid JSON for an empty session list', () {
-      final jsonStr = formatter.toJson(const [], rangeStart: start, rangeEnd: start);
+      final jsonStr =
+          formatter.toJson(const [], rangeStart: start, rangeEnd: start);
       final decoded = jsonDecode(jsonStr) as Map<String, dynamic>;
       expect(decoded['sessions'], isEmpty);
       expect(decoded['rangeStart'], start.toIso8601String());

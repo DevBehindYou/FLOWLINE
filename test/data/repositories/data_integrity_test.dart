@@ -27,8 +27,10 @@ void main() {
     expect(row.data.values.single, 1);
   });
 
-  test('deleting a task deletes its subtasks instead of orphaning them', () async {
-    final taskId = await tasks.createTask(title: 'Parent', priority: TaskPriority.low);
+  test('deleting a task deletes its subtasks instead of orphaning them',
+      () async {
+    final taskId =
+        await tasks.createTask(title: 'Parent', priority: TaskPriority.low);
     await tasks.createSubtask(taskId: taskId, title: 'Child A');
     await tasks.createSubtask(taskId: taskId, title: 'Child B');
 
@@ -38,8 +40,10 @@ void main() {
     expect(remaining, isEmpty);
   });
 
-  test('deleting a task keeps its focus-session history but unlinks it', () async {
-    final taskId = await tasks.createTask(title: 'Linked', priority: TaskPriority.low);
+  test('deleting a task keeps its focus-session history but unlinks it',
+      () async {
+    final taskId =
+        await tasks.createTask(title: 'Linked', priority: TaskPriority.low);
     final sessionId = await sessions.startSession(
       sessionType: FocusSessionType.focus,
       plannedDurationSec: 1500,
@@ -49,10 +53,12 @@ void main() {
 
     await tasks.deleteTask(taskId);
 
-    final row = await (db.select(db.focusSessions)..where((s) => s.id.equals(sessionId)))
+    final row = await (db.select(db.focusSessions)
+          ..where((s) => s.id.equals(sessionId)))
         .getSingle();
     expect(row.taskId, isNull);
-    expect(row.completedAt, isNotNull, reason: 'history must survive the task delete');
+    expect(row.completedAt, isNotNull,
+        reason: 'history must survive the task delete');
   });
 
   test('deleting a schedule block moves its tasks to Unscheduled', () async {
@@ -73,7 +79,8 @@ void main() {
     expect(unscheduled.map((t) => t.id), contains(taskId));
   });
 
-  test('starting a session while one is active closes the old one first', () async {
+  test('starting a session while one is active closes the old one first',
+      () async {
     final first = await sessions.startSession(
       sessionType: FocusSessionType.focus,
       plannedDurationSec: 1500,
@@ -86,7 +93,8 @@ void main() {
     final active = await sessions.watchActiveSession().first;
     expect(active?.id, second);
 
-    final old = await (db.select(db.focusSessions)..where((s) => s.id.equals(first)))
+    final old = await (db.select(db.focusSessions)
+          ..where((s) => s.id.equals(first)))
         .getSingle();
     expect(old.completedAt, isNotNull);
     expect(old.endedEarly, isTrue);

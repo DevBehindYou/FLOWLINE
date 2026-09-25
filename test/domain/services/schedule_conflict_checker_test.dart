@@ -107,7 +107,9 @@ void main() {
       expect(result, isNot(contains(unrelated)));
     });
 
-    test('excludes the block being edited from conflicting with its own pre-edit self', () {
+    test(
+        'excludes the block being edited from conflicting with its own pre-edit self',
+        () {
       final self = _block(1, _t(9), _t(10));
       final result = checker.findConflicts(
         startTime: _t(9),
@@ -133,7 +135,8 @@ void main() {
       expect(result, {1, 2});
     });
 
-    test('a locked external block still participates in conflict detection', () {
+    test('a locked external block still participates in conflict detection',
+        () {
       final locked = _block(
         1,
         _t(9),

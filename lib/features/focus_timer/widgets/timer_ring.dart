@@ -14,7 +14,8 @@ class TimerRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final progress = plannedSec == 0 ? 0.0 : (remainingSec / plannedSec).clamp(0.0, 1.0);
+    final progress =
+        plannedSec == 0 ? 0.0 : (remainingSec / plannedSec).clamp(0.0, 1.0);
 
     return SizedBox(
       width: 240,

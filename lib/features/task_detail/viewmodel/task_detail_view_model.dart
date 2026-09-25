@@ -23,11 +23,15 @@ class TaskDetailActions extends _$TaskDetailActions {
   void build() {}
 
   Future<void> addSubtask(int taskId, String title) {
-    return ref.read(taskRepositoryProvider).createSubtask(taskId: taskId, title: title);
+    return ref
+        .read(taskRepositoryProvider)
+        .createSubtask(taskId: taskId, title: title);
   }
 
   Future<void> toggleSubtask(Subtask subtask) {
-    final next = subtask.status == SubtaskStatus.done ? SubtaskStatus.todo : SubtaskStatus.done;
+    final next = subtask.status == SubtaskStatus.done
+        ? SubtaskStatus.todo
+        : SubtaskStatus.done;
     return ref.read(taskRepositoryProvider).setSubtaskStatus(subtask.id, next);
   }
 

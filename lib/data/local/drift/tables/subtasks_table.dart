@@ -6,7 +6,8 @@ import 'tasks_table.dart';
 @DataClassName('SubtaskRow')
 class Subtasks extends Table {
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get taskId => integer().references(Tasks, #id, onDelete: KeyAction.cascade)();
+  IntColumn get taskId =>
+      integer().references(Tasks, #id, onDelete: KeyAction.cascade)();
   TextColumn get title => text()();
   IntColumn get status => intEnum<SubtaskStatus>()();
   IntColumn get plannedSprints => integer().withDefault(const Constant(1))();

@@ -26,7 +26,8 @@ void main() {
 
     // A second repository over the same DB must not seed duplicates.
     final again = AIRepositoryImpl(db, const SecureKeyStore(), const {});
-    expect(await again.watchProviders().first, hasLength(AIProviderId.values.length));
+    expect(await again.watchProviders().first,
+        hasLength(AIProviderId.values.length));
   });
 
   test('setActiveProvider leaves exactly one provider active', () async {
@@ -40,7 +41,8 @@ void main() {
     expect((await repo.watchActiveProvider().first)?.id, AIProviderId.gemini);
   });
 
-  test('createConversation defaults the title and keeps the provider', () async {
+  test('createConversation defaults the title and keeps the provider',
+      () async {
     final id = await repo.createConversation(providerId: AIProviderId.ollama);
 
     final conversations = await repo.watchConversations().first;

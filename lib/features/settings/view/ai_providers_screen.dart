@@ -17,17 +17,20 @@ class AiProvidersScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('AI Providers')),
       body: providersAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text('Something went wrong: $error')),
+        error: (error, _) =>
+            Center(child: Text('Something went wrong: $error')),
         data: (providers) => RadioGroup<AIProviderId>(
           groupValue: providers.where((p) => p.isActive).firstOrNull?.id,
           onChanged: (id) {
-            if (id != null) ref.read(aiProvidersViewModelProvider.notifier).setActive(id);
+            if (id == null) return;
+            ref.read(aiProvidersViewModelProvider.notifier).setActive(id);
           },
           child: ListView.separated(
             padding: const EdgeInsets.all(16),
             itemCount: providers.length,
             separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, index) => _ProviderCard(config: providers[index]),
+            itemBuilder: (context, index) =>
+                _ProviderCard(config: providers[index]),
           ),
         ),
       ),
@@ -48,10 +51,13 @@ class _ProviderCard extends ConsumerWidget {
 
     final String subtitle;
     if (isOllama) {
-      subtitle = '${config.baseUrl ?? 'http://localhost:11434'} \u2022 ${config.defaultModel}';
+      subtitle =
+          '${config.baseUrl ?? 'http://localhost:11434'} \u2022 ${config.defaultModel}';
     } else {
       subtitle = hasKeyAsync.when(
-        data: (hasKey) => hasKey ? 'Connected \u2022 ${config.defaultModel}' : 'Not connected',
+        data: (hasKey) => hasKey
+            ? 'Connected \u2022 ${config.defaultModel}'
+            : 'Not connected',
         loading: () => '\u2026',
         error: (_, __) => 'Unknown',
       );
@@ -67,7 +73,8 @@ class _ProviderCard extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(config.displayName, style: Theme.of(context).textTheme.titleMedium),
+                  Text(config.displayName,
+                      style: Theme.of(context).textTheme.titleMedium),
                   Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
                 ],
               ),

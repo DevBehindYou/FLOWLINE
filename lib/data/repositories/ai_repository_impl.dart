@@ -18,10 +18,13 @@ class _DefaultProvider {
 }
 
 const _defaultProviders = [
-  _DefaultProvider(AIProviderId.anthropic, 'Anthropic', 'claude-3-5-sonnet-20241022', null),
+  _DefaultProvider(
+      AIProviderId.anthropic, 'Anthropic', 'claude-3-5-sonnet-20241022', null),
   _DefaultProvider(AIProviderId.openai, 'OpenAI', 'gpt-4o-mini', null),
-  _DefaultProvider(AIProviderId.gemini, 'Google Gemini', 'gemini-1.5-flash', null),
-  _DefaultProvider(AIProviderId.ollama, 'Ollama (Local)', 'llama3.2', 'http://localhost:11434'),
+  _DefaultProvider(
+      AIProviderId.gemini, 'Google Gemini', 'gemini-1.5-flash', null),
+  _DefaultProvider(AIProviderId.ollama, 'Ollama (Local)', 'llama3.2',
+      'http://localhost:11434'),
 ];
 
 class AIRepositoryImpl implements AIRepository {
@@ -40,7 +43,9 @@ class AIRepositoryImpl implements AIRepository {
     for (final defaultProvider in _defaultProviders) {
       await _db.into(_db.aiProviderConfigs).insert(
             AiProviderConfigsCompanion.insert(
-              providerId: defaultProvider.id,
+              // A lone INTEGER PRIMARY KEY is SQLite's rowid alias, so
+              // drift treats it as optional in insert companions.
+              providerId: Value(defaultProvider.id),
               displayName: defaultProvider.displayName,
               defaultModel: defaultProvider.model,
               baseUrl: Value(defaultProvider.baseUrl),
@@ -60,8 +65,11 @@ class AIRepositoryImpl implements AIRepository {
   @override
   Stream<AIProviderConfig?> watchActiveProvider() async* {
     await _seedFuture;
-    final query = _db.select(_db.aiProviderConfigs)..where((p) => p.isActive.equals(true));
-    yield* query.watchSingleOrNull().map((row) => row == null ? null : _mapProvider(row));
+    final query = _db.select(_db.aiProviderConfigs)
+      ..where((p) => p.isActive.equals(true));
+    yield* query
+        .watchSingleOrNull()
+        .map((row) => row == null ? null : _mapProvider(row));
   }
 
   @override
@@ -75,7 +83,9 @@ class AIRepositoryImpl implements AIRepository {
     if (apiKey.isNotEmpty) {
       await _secureStore.setKey(id, apiKey);
     }
-    await (_db.update(_db.aiProviderConfigs)..where((p) => p.providerId.equalsValue(id))).write(
+    await (_db.update(_db.aiProviderConfigs)
+          ..where((p) => p.providerId.equalsValue(id)))
+        .write(
       AiProviderConfigsCompanion(
         defaultModel: Value(model),
         baseUrl: Value(baseUrl),
@@ -90,7 +100,8 @@ class AIRepositoryImpl implements AIRepository {
       await _db
           .update(_db.aiProviderConfigs)
           .write(const AiProviderConfigsCompanion(isActive: Value(false)));
-      await (_db.update(_db.aiProviderConfigs)..where((p) => p.providerId.equalsValue(id)))
+      await (_db.update(_db.aiProviderConfigs)
+            ..where((p) => p.providerId.equalsValue(id)))
           .write(const AiProviderConfigsCompanion(isActive: Value(true)));
     });
   }
@@ -99,7 +110,8 @@ class AIRepositoryImpl implements AIRepository {
   Future<void> removeProviderKey(AIProviderId id) async {
     await _seedFuture;
     await _secureStore.deleteKey(id);
-    await (_db.update(_db.aiProviderConfigs)..where((p) => p.providerId.equalsValue(id)))
+    await (_db.update(_db.aiProviderConfigs)
+          ..where((p) => p.providerId.equalsValue(id)))
         .write(const AiProviderConfigsCompanion(isActive: Value(false)));
   }
 
@@ -126,7 +138,8 @@ class AIRepositoryImpl implements AIRepository {
   }
 
   @override
-  Future<int> createConversation({required AIProviderId providerId, String? title}) {
+  Future<int> createConversation(
+      {required AIProviderId providerId, String? title}) {
     return _db.into(_db.aiConversations).insert(
           AiConversationsCompanion.insert(
             providerId: providerId,
@@ -137,11 +150,13 @@ class AIRepositoryImpl implements AIRepository {
 
   @override
   Future<void> deleteConversation(int id) {
-    return (_db.delete(_db.aiConversations)..where((c) => c.id.equals(id))).go();
+    return (_db.delete(_db.aiConversations)..where((c) => c.id.equals(id)))
+        .go();
   }
 
   @override
-  Future<void> sendMessage({required int conversationId, required String prompt}) async {
+  Future<void> sendMessage(
+      {required int conversationId, required String prompt}) async {
     // History BEFORE inserting the new user message, so it isn't
     // duplicated when the client builds its request.
     final historyRows = await (_db.select(_db.aiMessages)
@@ -151,11 +166,15 @@ class AIRepositoryImpl implements AIRepository {
     final history = historyRows.map(_mapMessage).toList();
 
     await _db.into(_db.aiMessages).insert(
-          AiMessagesCompanion.insert(conversationId: conversationId, role: AIMessageRole.user, content: prompt),
+          AiMessagesCompanion.insert(
+              conversationId: conversationId,
+              role: AIMessageRole.user,
+              content: prompt),
         );
 
-    final conversationRow =
-        await (_db.select(_db.aiConversations)..where((c) => c.id.equals(conversationId))).getSingle();
+    final conversationRow = await (_db.select(_db.aiConversations)
+          ..where((c) => c.id.equals(conversationId)))
+        .getSingle();
     final providerId = conversationRow.providerId;
     final configRow = await (_db.select(_db.aiProviderConfigs)
           ..where((p) => p.providerId.equalsValue(providerId)))
@@ -166,7 +185,8 @@ class AIRepositoryImpl implements AIRepository {
     if (config.requiresApiKey && apiKey.isEmpty) {
       await _insertAssistantReply(
         conversationId,
-        content: 'No API key saved for ${config.displayName} yet \u2014 add one in Settings.',
+        content:
+            'No API key saved for ${config.displayName} yet \u2014 add one in Settings.',
         isError: true,
       );
       return;
@@ -180,7 +200,8 @@ class AIRepositoryImpl implements AIRepository {
       history: history,
     );
 
-    await _insertAssistantReply(conversationId, content: response.content, isError: response.isError);
+    await _insertAssistantReply(conversationId,
+        content: response.content, isError: response.isError);
   }
 
   Future<void> _insertAssistantReply(
@@ -201,18 +222,22 @@ class AIRepositoryImpl implements AIRepository {
   @override
   Future<AIResponse> completeOnce({required String prompt}) async {
     await _seedFuture;
-    final activeRow = await (_db.select(_db.aiProviderConfigs)..where((p) => p.isActive.equals(true)))
+    final activeRow = await (_db.select(_db.aiProviderConfigs)
+          ..where((p) => p.isActive.equals(true)))
         .getSingleOrNull();
     if (activeRow == null) {
-      return const AIResponse.error('No AI provider is active \u2014 connect one in Settings.');
+      return const AIResponse.error(
+          'No AI provider is active \u2014 connect one in Settings.');
     }
     final config = _mapProvider(activeRow);
     final apiKey = await _secureStore.getKey(config.id) ?? '';
     if (config.requiresApiKey && apiKey.isEmpty) {
-      return AIResponse.error('No API key saved for ${config.displayName} yet.');
+      return AIResponse.error(
+          'No API key saved for ${config.displayName} yet.');
     }
     final client = _clients[config.id]!;
-    return client.sendMessage(config: config, apiKey: apiKey, prompt: prompt, history: const []);
+    return client.sendMessage(
+        config: config, apiKey: apiKey, prompt: prompt, history: const []);
   }
 
   AIProviderConfig _mapProvider(AiProviderConfigRow row) {

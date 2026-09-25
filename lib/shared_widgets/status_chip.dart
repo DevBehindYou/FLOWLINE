@@ -12,7 +12,10 @@ class StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final (label, color) = switch (status) {
       TaskStatus.todo => ('Todo', FlowlineSemanticColors.statusTodo),
-      TaskStatus.inProgress => ('In Progress', FlowlineSemanticColors.statusInProgress),
+      TaskStatus.inProgress => (
+          'In Progress',
+          FlowlineSemanticColors.statusInProgress
+        ),
       TaskStatus.done => ('Done', FlowlineSemanticColors.statusDone),
     };
 

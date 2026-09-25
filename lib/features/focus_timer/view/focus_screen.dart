@@ -18,7 +18,8 @@ class FocusScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Focus')),
       body: sessionAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text('Something went wrong: $error')),
+        error: (error, _) =>
+            Center(child: Text('Something went wrong: $error')),
         data: (session) {
           if (session != null && session.isRunning) {
             // Ticks once a second purely to force this subtree to
@@ -34,7 +35,9 @@ class FocusScreen extends ConsumerWidget {
               );
             }
           }
-          return session == null ? const _IdleView() : _RunningView(session: session);
+          return session == null
+              ? const _IdleView()
+              : _RunningView(session: session);
         },
       ),
     );
@@ -61,23 +64,31 @@ class _IdleView extends ConsumerWidget {
                 alignment: Alignment.centerLeft,
                 child: Chip(
                   avatar: const Icon(Icons.link, size: 16),
-                  label: Text(pendingLink.label, overflow: TextOverflow.ellipsis),
-                  onDeleted: () => ref.read(pendingFocusLinkProvider.notifier).clear(),
+                  label:
+                      Text(pendingLink.label, overflow: TextOverflow.ellipsis),
+                  onDeleted: () =>
+                      ref.read(pendingFocusLinkProvider.notifier).clear(),
                 ),
               ),
             ),
           SegmentedButton<FocusSessionType>(
             segments: const [
-              ButtonSegment(value: FocusSessionType.focus, label: Text('Focus (25m)')),
-              ButtonSegment(value: FocusSessionType.shortBreak, label: Text('Short (5m)')),
-              ButtonSegment(value: FocusSessionType.longBreak, label: Text('Long (15m)')),
+              ButtonSegment(
+                  value: FocusSessionType.focus, label: Text('Focus (25m)')),
+              ButtonSegment(
+                  value: FocusSessionType.shortBreak,
+                  label: Text('Short (5m)')),
+              ButtonSegment(
+                  value: FocusSessionType.longBreak, label: Text('Long (15m)')),
             ],
             selected: {selectedType},
-            onSelectionChanged: (selection) =>
-                ref.read(selectedSessionTypeProvider.notifier).set(selection.first),
+            onSelectionChanged: (selection) => ref
+                .read(selectedSessionTypeProvider.notifier)
+                .set(selection.first),
           ),
           const Spacer(),
-          Icon(Icons.hourglass_empty, size: 64, color: Theme.of(context).colorScheme.outline),
+          Icon(Icons.hourglass_empty,
+              size: 64, color: Theme.of(context).colorScheme.outline),
           const SizedBox(height: 24),
           FilledButton.icon(
             onPressed: () => viewModel.startSession(
@@ -143,8 +154,9 @@ class _RunningView extends ConsumerWidget {
                 icon: session.isPaused ? Icons.play_arrow : Icons.pause,
                 label: session.isPaused ? 'Resume' : 'Pause',
                 filled: true,
-                onPressed: () =>
-                    session.isPaused ? viewModel.resume(session) : viewModel.pause(session),
+                onPressed: () => session.isPaused
+                    ? viewModel.resume(session)
+                    : viewModel.pause(session),
               ),
               const SizedBox(width: 24),
               _ControlButton(
@@ -254,7 +266,8 @@ class _TodaysFocusFooter extends ConsumerWidget {
             children: [
               Row(
                 children: [
-                  Icon(Icons.bolt, size: 18, color: Theme.of(context).colorScheme.primary),
+                  Icon(Icons.bolt,
+                      size: 18, color: Theme.of(context).colorScheme.primary),
                   const SizedBox(width: 8),
                   const Text("Today's Focus"),
                 ],

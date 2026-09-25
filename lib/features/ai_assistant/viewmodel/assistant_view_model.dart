@@ -31,8 +31,12 @@ Stream<AIConversation?> latestConversationForProvider(
   Ref ref,
   AIProviderId providerId,
 ) {
-  return ref.watch(aiRepositoryProvider).watchConversations().map((conversations) {
-    final matching = conversations.where((c) => c.providerId == providerId).toList();
+  return ref
+      .watch(aiRepositoryProvider)
+      .watchConversations()
+      .map((conversations) {
+    final matching =
+        conversations.where((c) => c.providerId == providerId).toList();
     return matching.isEmpty ? null : matching.first;
   });
 }
@@ -55,8 +59,12 @@ class AssistantViewModel extends _$AssistantViewModel {
     state = true;
     try {
       final conversationId = existingConversationId ??
-          await ref.read(aiRepositoryProvider).createConversation(providerId: providerId);
-      await ref.read(aiRepositoryProvider).sendMessage(conversationId: conversationId, prompt: prompt);
+          await ref
+              .read(aiRepositoryProvider)
+              .createConversation(providerId: providerId);
+      await ref
+          .read(aiRepositoryProvider)
+          .sendMessage(conversationId: conversationId, prompt: prompt);
     } finally {
       state = false;
     }

@@ -10,7 +10,8 @@ import 'package:timezone/timezone.dart' as tz;
 /// than one of these in flight, and starting a new one implicitly
 /// replaces the last.
 class NotificationService {
-  final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _plugin =
+      FlutterLocalNotificationsPlugin();
   bool _initialized = false;
 
   static const _sessionNotificationId = 1001;
@@ -25,11 +26,14 @@ class NotificationService {
     final timezoneInfo = await FlutterTimezone.getLocalTimezone();
     tz.setLocalLocation(tz.getLocation(timezoneInfo.identifier));
 
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    await _plugin.initialize(const InitializationSettings(android: androidSettings));
+    const androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    await _plugin
+        .initialize(const InitializationSettings(android: androidSettings));
 
     await _plugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
 
     _initialized = true;
@@ -61,9 +65,11 @@ class NotificationService {
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       // Required by v17's signature (iOS-only semantics); fireAt is an
       // absolute instant, not a wall-clock time to re-interpret.
-      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
     );
   }
 
-  Future<void> cancelSessionNotification() => _plugin.cancel(_sessionNotificationId);
+  Future<void> cancelSessionNotification() =>
+      _plugin.cancel(_sessionNotificationId);
 }

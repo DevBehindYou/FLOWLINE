@@ -63,7 +63,8 @@ String patchManifest(String manifest) {
   if (!out.contains('usesCleartextTraffic')) {
     final match = RegExp(r'<application\b').firstMatch(out);
     if (match == null) {
-      throw AndroidPatchException('No <application> tag in AndroidManifest.xml');
+      throw AndroidPatchException(
+          'No <application> tag in AndroidManifest.xml');
     }
     out = out.replaceRange(
       match.end,

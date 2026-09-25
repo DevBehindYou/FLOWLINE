@@ -27,7 +27,8 @@ class AssistantScreen extends ConsumerWidget {
       ),
       body: activeProviderAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text('Something went wrong: $error')),
+        error: (error, _) =>
+            Center(child: Text('Something went wrong: $error')),
         data: (provider) {
           if (provider == null) {
             return EmptyState(
@@ -88,14 +89,16 @@ class _ChatBodyState extends ConsumerState<_ChatBody> {
             alignment: Alignment.centerLeft,
             child: Chip(
               avatar: const Icon(Icons.smart_toy_outlined, size: 16),
-              label: Text('${widget.provider.displayName} \u2022 ${widget.provider.defaultModel}'),
+              label: Text(
+                  '${widget.provider.displayName} \u2022 ${widget.provider.defaultModel}'),
             ),
           ),
         ),
         Expanded(
           child: conversationAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => Center(child: Text('Something went wrong: $error')),
+            error: (error, _) =>
+                Center(child: Text('Something went wrong: $error')),
             data: (conversation) {
               if (conversation == null) {
                 return const EmptyState(
@@ -108,8 +111,7 @@ class _ChatBodyState extends ConsumerState<_ChatBody> {
             },
           ),
         ),
-        if (isSending)
-          const LinearProgressIndicator(minHeight: 2),
+        if (isSending) const LinearProgressIndicator(minHeight: 2),
         SafeArea(
           top: false,
           child: Padding(
@@ -119,17 +121,21 @@ class _ChatBodyState extends ConsumerState<_ChatBody> {
                 Expanded(
                   child: TextField(
                     controller: _controller,
-                    decoration: const InputDecoration(hintText: 'Ask the assistant\u2026'),
+                    decoration: const InputDecoration(
+                        hintText: 'Ask the assistant\u2026'),
                     minLines: 1,
                     maxLines: 4,
                     textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => _send(conversationAsync.valueOrNull?.id),
+                    onSubmitted: (_) =>
+                        _send(conversationAsync.valueOrNull?.id),
                   ),
                 ),
                 const SizedBox(width: 8),
                 IconButton.filled(
                   icon: const Icon(Icons.arrow_upward),
-                  onPressed: isSending ? null : () => _send(conversationAsync.valueOrNull?.id),
+                  onPressed: isSending
+                      ? null
+                      : () => _send(conversationAsync.valueOrNull?.id),
                 ),
               ],
             ),
@@ -147,7 +153,8 @@ class _MessageList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final messagesAsync = ref.watch(conversationMessagesProvider(conversationId));
+    final messagesAsync =
+        ref.watch(conversationMessagesProvider(conversationId));
 
     return messagesAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),

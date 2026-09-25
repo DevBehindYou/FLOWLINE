@@ -31,7 +31,8 @@ class ConflictWarningSheet extends ConsumerStatefulWidget {
   final ScheduleBlock? existingBlock;
 
   @override
-  ConsumerState<ConflictWarningSheet> createState() => _ConflictWarningSheetState();
+  ConsumerState<ConflictWarningSheet> createState() =>
+      _ConflictWarningSheetState();
 }
 
 class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
@@ -49,7 +50,9 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
       _aiError = null;
     });
 
-    final response = await ref.read(scheduleIntelligenceViewModelProvider.notifier).suggestResolution(
+    final response = await ref
+        .read(scheduleIntelligenceViewModelProvider.notifier)
+        .suggestResolution(
           pendingTitle: widget.pendingTitle,
           pendingStart: widget.pendingStart,
           pendingEnd: widget.pendingEnd,
@@ -92,10 +95,12 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
     final viewModel = ref.read(addEditScheduleBlockViewModelProvider.notifier);
     if (widget.existingBlock != null) {
       await viewModel.updateBlock(
-        widget.existingBlock!.copyWith(title: widget.pendingTitle, startTime: start, endTime: end),
+        widget.existingBlock!.copyWith(
+            title: widget.pendingTitle, startTime: start, endTime: end),
       );
     } else {
-      await viewModel.createBlock(title: widget.pendingTitle, startTime: start, endTime: end);
+      await viewModel.createBlock(
+          title: widget.pendingTitle, startTime: start, endTime: end);
     }
     if (mounted) Navigator.of(context).pop();
   }
@@ -117,7 +122,8 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
               children: [
                 Icon(Icons.warning_amber_rounded, color: scheme.error),
                 const SizedBox(width: 8),
-                Text('Schedule conflict', style: Theme.of(context).textTheme.titleLarge),
+                Text('Schedule conflict',
+                    style: Theme.of(context).textTheme.titleLarge),
               ],
             ),
             const SizedBox(height: 12),
@@ -136,7 +142,8 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
                 ),
               ),
             const SizedBox(height: 20),
-            if (_suggestion != null) _SuggestionCard(suggestion: _suggestion!, formatTime: _fmt),
+            if (_suggestion != null)
+              _SuggestionCard(suggestion: _suggestion!, formatTime: _fmt),
             if (_aiRawText != null) _RawAiTextCard(text: _aiRawText!),
             if (_aiError != null) _ErrorCard(message: _aiError!),
             const SizedBox(height: 12),

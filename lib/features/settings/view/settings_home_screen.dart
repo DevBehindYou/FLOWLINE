@@ -13,7 +13,8 @@ class SettingsHomeScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.smart_toy_outlined),
             title: const Text('AI Providers'),
-            subtitle: const Text('Connect Anthropic, OpenAI, Gemini, or a local Ollama server'),
+            subtitle: const Text(
+                'Connect Anthropic, OpenAI, Gemini, or a local Ollama server'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/settings/ai-providers'),
           ),

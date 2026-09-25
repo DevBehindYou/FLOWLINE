@@ -19,7 +19,10 @@ Stream<FocusSession?> activeFocusSession(Ref ref) {
 
 @riverpod
 Stream<({int totalSeconds, int sessionCount})> todaysFocusSummary(Ref ref) {
-  return ref.watch(focusSessionRepositoryProvider).watchTodaysSessions().map((sessions) {
+  return ref
+      .watch(focusSessionRepositoryProvider)
+      .watchTodaysSessions()
+      .map((sessions) {
     final completedFocusSessions = sessions.where(
       (s) => s.sessionType == FocusSessionType.focus && s.completedAt != null,
     );
@@ -95,13 +98,17 @@ class FocusTimerViewModel extends _$FocusTimerViewModel {
   }
 
   Future<void> extend(FocusSession session, {int addSeconds = 300}) async {
-    await ref.read(focusSessionRepositoryProvider).extendSession(session.id, addSeconds);
+    await ref
+        .read(focusSessionRepositoryProvider)
+        .extendSession(session.id, addSeconds);
     if (session.isRunning) {
-      await _scheduleNotification(session.sessionType, session.remainingSec + addSeconds);
+      await _scheduleNotification(
+          session.sessionType, session.remainingSec + addSeconds);
     }
   }
 
-  Future<void> complete(FocusSession session, {required bool endedEarly}) async {
+  Future<void> complete(FocusSession session,
+      {required bool endedEarly}) async {
     await ref
         .read(focusSessionRepositoryProvider)
         .completeSession(session.id, endedEarly: endedEarly);
@@ -113,11 +120,14 @@ class FocusTimerViewModel extends _$FocusTimerViewModel {
         session.sessionType == FocusSessionType.focus &&
         session.subtaskId != null;
     if (shouldCountSprint) {
-      await ref.read(taskRepositoryProvider).incrementSubtaskCompletedSprints(session.subtaskId!);
+      await ref
+          .read(taskRepositoryProvider)
+          .incrementSubtaskCompletedSprints(session.subtaskId!);
     }
   }
 
-  Future<void> _scheduleNotification(FocusSessionType type, int inSeconds) async {
+  Future<void> _scheduleNotification(
+      FocusSessionType type, int inSeconds) async {
     final notifier = await ref.read(notificationServiceProvider.future);
     await notifier.scheduleSessionComplete(
       fireAt: DateTime.now().add(Duration(seconds: inSeconds)),

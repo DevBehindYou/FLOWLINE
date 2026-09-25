@@ -38,10 +38,12 @@ class AddEditScheduleBlockSheet extends ConsumerStatefulWidget {
   final ScheduleBlock? existingBlock;
 
   @override
-  ConsumerState<AddEditScheduleBlockSheet> createState() => _AddEditScheduleBlockSheetState();
+  ConsumerState<AddEditScheduleBlockSheet> createState() =>
+      _AddEditScheduleBlockSheetState();
 }
 
-class _AddEditScheduleBlockSheetState extends ConsumerState<AddEditScheduleBlockSheet> {
+class _AddEditScheduleBlockSheetState
+    extends ConsumerState<AddEditScheduleBlockSheet> {
   late final TextEditingController _titleController =
       TextEditingController(text: widget.existingBlock?.title ?? '');
   late TimeOfDay _startTime = widget.existingBlock != null
@@ -97,7 +99,9 @@ class _AddEditScheduleBlockSheetState extends ConsumerState<AddEditScheduleBlock
       _saving = true;
     });
 
-    final conflicts = await ref.read(scheduleIntelligenceViewModelProvider.notifier).findConflicts(
+    final conflicts = await ref
+        .read(scheduleIntelligenceViewModelProvider.notifier)
+        .findConflicts(
           date: widget.initialDate,
           startTime: start,
           endTime: end,
@@ -125,7 +129,8 @@ class _AddEditScheduleBlockSheetState extends ConsumerState<AddEditScheduleBlock
     final viewModel = ref.read(addEditScheduleBlockViewModelProvider.notifier);
     if (_isEditing) {
       await viewModel.updateBlock(
-        widget.existingBlock!.copyWith(title: title, startTime: start, endTime: end),
+        widget.existingBlock!
+            .copyWith(title: title, startTime: start, endTime: end),
       );
     } else {
       await viewModel.createBlock(title: title, startTime: start, endTime: end);
@@ -156,7 +161,8 @@ class _AddEditScheduleBlockSheetState extends ConsumerState<AddEditScheduleBlock
             TextField(
               controller: _titleController,
               autofocus: !_isEditing,
-              decoration: InputDecoration(labelText: 'Block title', errorText: _error),
+              decoration:
+                  InputDecoration(labelText: 'Block title', errorText: _error),
             ),
             const SizedBox(height: 12),
             Row(

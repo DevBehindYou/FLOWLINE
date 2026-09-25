@@ -35,20 +35,25 @@ class InsightsScreen extends ConsumerWidget {
       ),
       body: weeklyAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text('Something went wrong: $error')),
+        error: (error, _) =>
+            Center(child: Text('Something went wrong: $error')),
         data: (dailyTotals) {
           final hasAnyData = dailyTotals.any((d) => d.sessionCount > 0);
           if (!hasAnyData) {
             return const EmptyState(
               icon: Icons.bar_chart_outlined,
               title: 'Complete a session to see stats',
-              message: 'Focus-time trends and streaks show up here once you\u2019ve logged a session.',
+              message:
+                  'Focus-time trends and streaks show up here once you\u2019ve logged a session.',
             );
           }
 
-          final weekTotalSeconds = dailyTotals.fold<int>(0, (sum, d) => sum + d.totalSeconds);
-          final weekSessionCount = dailyTotals.fold<int>(0, (sum, d) => sum + d.sessionCount);
-          final todaySeconds = todaysSummaryAsync.valueOrNull?.totalSeconds ?? 0;
+          final weekTotalSeconds =
+              dailyTotals.fold<int>(0, (sum, d) => sum + d.totalSeconds);
+          final weekSessionCount =
+              dailyTotals.fold<int>(0, (sum, d) => sum + d.sessionCount);
+          final todaySeconds =
+              todaysSummaryAsync.valueOrNull?.totalSeconds ?? 0;
           final streak = streakAsync.valueOrNull ?? 0;
 
           return ListView(
@@ -57,7 +62,8 @@ class InsightsScreen extends ConsumerWidget {
               Row(
                 children: [
                   Expanded(
-                    child: _StatCard(label: 'Today', value: _formatDuration(todaySeconds)),
+                    child: _StatCard(
+                        label: 'Today', value: _formatDuration(todaySeconds)),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -69,14 +75,18 @@ class InsightsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _StatCard(label: 'This week', value: _formatDuration(weekTotalSeconds)),
+                    child: _StatCard(
+                        label: 'This week',
+                        value: _formatDuration(weekTotalSeconds)),
                   ),
                 ],
               ),
               const SizedBox(height: 24),
-              Text('Last 7 days', style: Theme.of(context).textTheme.titleMedium),
+              Text('Last 7 days',
+                  style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 12),
-              SizedBox(height: 180, child: _WeeklyBarChart(totals: dailyTotals)),
+              SizedBox(
+                  height: 180, child: _WeeklyBarChart(totals: dailyTotals)),
               const SizedBox(height: 12),
               Text(
                 '$weekSessionCount focus session${weekSessionCount == 1 ? '' : 's'} this week',
@@ -120,7 +130,10 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             value,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(context)
+                .textTheme
+                .headlineSmall
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           Text(label, style: Theme.of(context).textTheme.bodySmall),
         ],
@@ -150,19 +163,25 @@ class _WeeklyBarChart extends StatelessWidget {
         gridData: const FlGridData(show: false),
         borderData: FlBorderData(show: false),
         titlesData: FlTitlesData(
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          leftTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
-                if (index < 0 || index >= totals.length) return const SizedBox.shrink();
-                final label = DateFormat('E').format(totals[index].date).substring(0, 1);
+                if (index < 0 || index >= totals.length)
+                  return const SizedBox.shrink();
+                final label =
+                    DateFormat('E').format(totals[index].date).substring(0, 1);
                 return Padding(
                   padding: const EdgeInsets.only(top: 6),
-                  child: Text(label, style: TextStyle(color: onSurfaceVariant, fontSize: 12)),
+                  child: Text(label,
+                      style: TextStyle(color: onSurfaceVariant, fontSize: 12)),
                 );
               },
             ),

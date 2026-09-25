@@ -51,7 +51,9 @@ class TaskCard extends ConsumerWidget {
           ),
           title: Text(
             task.title,
-            style: isDone ? const TextStyle(decoration: TextDecoration.lineThrough) : null,
+            style: isDone
+                ? const TextStyle(decoration: TextDecoration.lineThrough)
+                : null,
           ),
           subtitle: PriorityChip(priority: task.priority),
           trailing: isDone

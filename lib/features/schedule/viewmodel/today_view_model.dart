@@ -45,7 +45,8 @@ class TodayActions extends _$TodayActions {
   void build() {}
 
   Future<void> toggleTaskDone(Task task) {
-    final next = task.status == TaskStatus.done ? TaskStatus.todo : TaskStatus.done;
+    final next =
+        task.status == TaskStatus.done ? TaskStatus.todo : TaskStatus.done;
     return ref.read(taskRepositoryProvider).setTaskStatus(task.id, next);
   }
 

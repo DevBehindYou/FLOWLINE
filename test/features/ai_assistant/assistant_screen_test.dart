@@ -13,19 +13,24 @@ void main() {
   tearDown(() => db.close());
 
   for (final mode in [ThemeMode.light, ThemeMode.dark]) {
-    testWidgets('prompts to connect a provider when none is configured (${mode.name})',
+    testWidgets(
+        'prompts to connect a provider when none is configured (${mode.name})',
         (tester) async {
-      await pumpScreen(tester, db: db, themeMode: mode, child: const AssistantScreen());
+      await pumpScreen(tester,
+          db: db, themeMode: mode, child: const AssistantScreen());
 
       expect(find.text('Connect an AI provider'), findsOneWidget);
-      expect(find.text('Add an API key in Settings to start chatting.'), findsOneWidget);
-      expect(find.widgetWithText(ElevatedButton, 'Go to AI Providers'), findsOneWidget);
+      expect(find.text('Add an API key in Settings to start chatting.'),
+          findsOneWidget);
+      expect(find.widgetWithText(ElevatedButton, 'Go to AI Providers'),
+          findsOneWidget);
       // No provider means no chat composer should be reachable yet.
       expect(find.byType(TextField), findsNothing);
     });
   }
 
-  testWidgets('reading the empty state never touches secure storage', (tester) async {
+  testWidgets('reading the empty state never touches secure storage',
+      (tester) async {
     // Regression guard: activeAiProviderProvider only reads the Drift
     // "which provider is active" flag; providerHasKeyProvider (the one
     // that hits flutter_secure_storage) must not be watched just to show

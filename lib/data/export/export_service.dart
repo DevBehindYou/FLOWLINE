@@ -52,14 +52,16 @@ class ExportService {
     required DateTime rangeStart,
     required DateTime rangeEnd,
   }) {
-    final json = const ExportFormatter().toJson(sessions, rangeStart: rangeStart, rangeEnd: rangeEnd);
+    final json = const ExportFormatter()
+        .toJson(sessions, rangeStart: rangeStart, rangeEnd: rangeEnd);
     return _shareText(
       content: json,
       filename: 'flowline-focus-${_fileStamp(rangeStart, rangeEnd)}.json',
     );
   }
 
-  Future<void> _shareText({required String content, required String filename}) async {
+  Future<void> _shareText(
+      {required String content, required String filename}) async {
     final dir = await getTemporaryDirectory();
     final file = File('${dir.path}/$filename');
     await file.writeAsString(content);

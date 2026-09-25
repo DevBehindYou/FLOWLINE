@@ -27,13 +27,15 @@ class DayTimeline extends StatelessWidget {
     // provider of its own — this is the same pure checker used to gate
     // saving a new block, just run over what's already on screen so a
     // "Save anyway" overlap doesn't quietly disappear from view.
-    final conflictingIds = const ScheduleConflictChecker().findConflictingBlockIds(blocks);
+    final conflictingIds =
+        const ScheduleConflictChecker().findConflictingBlockIds(blocks);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
       children: [
         for (final block in blocks)
-          _ScheduleBlockSection(block: block, isConflicting: conflictingIds.contains(block.id)),
+          _ScheduleBlockSection(
+              block: block, isConflicting: conflictingIds.contains(block.id)),
         OutlinedButton.icon(
           onPressed: onAddBlock,
           icon: const Icon(Icons.add),
@@ -51,7 +53,8 @@ class DayTimeline extends StatelessWidget {
 }
 
 class _ScheduleBlockSection extends ConsumerWidget {
-  const _ScheduleBlockSection({required this.block, required this.isConflicting});
+  const _ScheduleBlockSection(
+      {required this.block, required this.isConflicting});
 
   final ScheduleBlock block;
   final bool isConflicting;
@@ -86,10 +89,12 @@ class _ScheduleBlockSection extends ConsumerWidget {
                 if (isConflicting)
                   Padding(
                     padding: const EdgeInsets.only(right: 6),
-                    child: Icon(Icons.warning_amber_rounded, size: 16, color: scheme.error),
+                    child: Icon(Icons.warning_amber_rounded,
+                        size: 16, color: scheme.error),
                   ),
                 Expanded(
-                  child: Text(timeLabel, style: Theme.of(context).textTheme.bodySmall),
+                  child: Text(timeLabel,
+                      style: Theme.of(context).textTheme.bodySmall),
                 ),
                 IconButton(
                   icon: const Icon(Icons.add, size: 20),
@@ -108,7 +113,10 @@ class _ScheduleBlockSection extends ConsumerWidget {
               const SizedBox(height: 2),
               Text(
                 'Overlaps another block',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.error),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: scheme.error),
               ),
             ],
             const SizedBox(height: 12),
@@ -120,7 +128,9 @@ class _ScheduleBlockSection extends ConsumerWidget {
                       'No tasks in this block yet.',
                       style: Theme.of(context).textTheme.bodySmall,
                     )
-                  : Column(children: [for (final task in tasks) TaskCard(task: task)]),
+                  : Column(children: [
+                      for (final task in tasks) TaskCard(task: task)
+                    ]),
             ),
           ],
         ),

@@ -36,11 +36,14 @@ class TodayScreen extends ConsumerWidget {
           Expanded(
             child: blocksAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => Center(child: Text('Something went wrong: $error')),
+              error: (error, _) =>
+                  Center(child: Text('Something went wrong: $error')),
               data: (blocks) {
                 return unscheduledAsync.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (error, _) => Center(child: Text('Something went wrong: $error')),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (error, _) =>
+                      Center(child: Text('Something went wrong: $error')),
                   data: (unscheduled) {
                     if (blocks.isEmpty && unscheduled.isEmpty) {
                       return EmptyState(

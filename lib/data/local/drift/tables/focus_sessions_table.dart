@@ -7,10 +7,12 @@ import 'tasks_table.dart';
 @DataClassName('FocusSessionRow')
 class FocusSessions extends Table {
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get taskId =>
-      integer().nullable().references(Tasks, #id, onDelete: KeyAction.setNull)();
-  IntColumn get subtaskId =>
-      integer().nullable().references(Subtasks, #id, onDelete: KeyAction.setNull)();
+  IntColumn get taskId => integer()
+      .nullable()
+      .references(Tasks, #id, onDelete: KeyAction.setNull)();
+  IntColumn get subtaskId => integer()
+      .nullable()
+      .references(Subtasks, #id, onDelete: KeyAction.setNull)();
   IntColumn get sessionType => intEnum<FocusSessionType>()();
   IntColumn get plannedDurationSec => integer()();
   DateTimeColumn get startedAt => dateTime()();

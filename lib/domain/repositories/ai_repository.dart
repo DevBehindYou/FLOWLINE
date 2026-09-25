@@ -22,13 +22,15 @@ abstract interface class AIRepository {
 
   Stream<List<AIConversation>> watchConversations();
   Stream<List<AIMessage>> watchMessages(int conversationId);
-  Future<int> createConversation({required AIProviderId providerId, String? title});
+  Future<int> createConversation(
+      {required AIProviderId providerId, String? title});
   Future<void> deleteConversation(int id);
 
   /// Persists the user's message, calls the active client, and persists
   /// the reply (or a visible error message) — see
   /// `AIRepositoryImpl.sendMessage` for the exact sequencing.
-  Future<void> sendMessage({required int conversationId, required String prompt});
+  Future<void> sendMessage(
+      {required int conversationId, required String prompt});
 
   /// A single request/response with no conversation history and nothing
   /// persisted to Drift — for features (like schedule conflict

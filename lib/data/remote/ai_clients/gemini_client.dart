@@ -56,7 +56,8 @@ class GeminiClient implements AIClient {
       final candidates = (response.data?['candidates'] as List?) ?? const [];
       final parts = candidates.isEmpty
           ? const []
-          : ((candidates.first as Map)['content']?['parts'] as List?) ?? const [];
+          : ((candidates.first as Map)['content']?['parts'] as List?) ??
+              const [];
       final text = parts.map((p) => (p as Map)['text'] as String? ?? '').join();
 
       if (text.isEmpty) {

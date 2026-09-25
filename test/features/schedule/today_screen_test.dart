@@ -15,20 +15,25 @@ void main() {
   tearDown(() => db.close());
 
   for (final mode in [ThemeMode.light, ThemeMode.dark]) {
-    testWidgets('shows the empty state when there are no tasks or blocks (${mode.name})',
+    testWidgets(
+        'shows the empty state when there are no tasks or blocks (${mode.name})',
         (tester) async {
-      await pumpScreen(tester, db: db, themeMode: mode, child: const TodayScreen());
+      await pumpScreen(tester,
+          db: db, themeMode: mode, child: const TodayScreen());
 
       expect(find.text('No tasks yet'), findsOneWidget);
-      expect(find.text('Add your first task to start planning today.'), findsOneWidget);
-      expect(find.widgetWithText(FloatingActionButton, 'Add Task'), findsOneWidget);
+      expect(find.text('Add your first task to start planning today.'),
+          findsOneWidget);
+      expect(find.widgetWithText(FloatingActionButton, 'Add Task'),
+          findsOneWidget);
       // The empty state's own action button duplicates the FAB's label —
       // both should be reachable, neither should throw on tap.
       expect(find.text('Add Task'), findsNWidgets(2));
     });
   }
 
-  testWidgets('shows an unscheduled task in the timeline instead of the empty state',
+  testWidgets(
+      'shows an unscheduled task in the timeline instead of the empty state',
       (tester) async {
     final taskRepo = TaskRepositoryImpl(db);
     await taskRepo.createTask(
@@ -42,7 +47,8 @@ void main() {
     expect(find.text('Write the QA report'), findsOneWidget);
   });
 
-  testWidgets('date header shows "Jump to today" only when viewing another day', (tester) async {
+  testWidgets('date header shows "Jump to today" only when viewing another day',
+      (tester) async {
     await pumpScreen(tester, db: db, child: const TodayScreen());
     expect(find.text('Jump to today'), findsNothing);
 

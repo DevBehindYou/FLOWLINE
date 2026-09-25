@@ -71,7 +71,8 @@ flutter {
 }
 ''';
 
-int _count(String haystack, String needle) => needle.allMatches(haystack).length;
+int _count(String haystack, String needle) =>
+    needle.allMatches(haystack).length;
 
 void main() {
   group('patchManifest', () {
@@ -88,14 +89,15 @@ void main() {
     });
 
     test('allows cleartext traffic on the <application> tag for Ollama', () {
-      final applicationTag =
-          patched.substring(patched.indexOf('<application'), patched.indexOf('<activity'));
+      final applicationTag = patched.substring(
+          patched.indexOf('<application'), patched.indexOf('<activity'));
       expect(applicationTag, contains('android:usesCleartextTraffic="true"'));
     });
 
-    test('registers both scheduled-notification receivers inside <application>', () {
-      final applicationBody =
-          patched.substring(patched.indexOf('<application'), patched.indexOf('</application>'));
+    test('registers both scheduled-notification receivers inside <application>',
+        () {
+      final applicationBody = patched.substring(
+          patched.indexOf('<application'), patched.indexOf('</application>'));
       expect(applicationBody, contains('ScheduledNotificationReceiver"'));
       expect(applicationBody, contains('ScheduledNotificationBootReceiver"'));
     });
@@ -126,7 +128,8 @@ void main() {
 
     test('adds the desugar_jdk_libs dependency at top level', () {
       expect(patched, contains('coreLibraryDesugaring("$desugarJdkLibs")'));
-      expect(patched.indexOf('dependencies {'), greaterThan(patched.indexOf('flutter {')));
+      expect(patched.indexOf('dependencies {'),
+          greaterThan(patched.indexOf('flutter {')));
     });
 
     test('is idempotent', () {

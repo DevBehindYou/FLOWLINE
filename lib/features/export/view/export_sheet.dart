@@ -23,7 +23,8 @@ class ExportSheet extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Export this week', style: Theme.of(context).textTheme.titleLarge),
+          Text('Export this week',
+              style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 4),
           Text(
             'Focus session history for the last 7 days, generated on-device \u2014 '
@@ -62,7 +63,8 @@ class ExportSheet extends ConsumerWidget {
 }
 
 class _ExportOption extends StatelessWidget {
-  const _ExportOption({required this.icon, required this.label, required this.onTap});
+  const _ExportOption(
+      {required this.icon, required this.label, required this.onTap});
 
   final IconData icon;
   final String label;

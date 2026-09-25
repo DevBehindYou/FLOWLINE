@@ -27,7 +27,8 @@ String buildConflictResolutionPrompt({
 }) {
   final duration = pendingEnd.difference(pendingStart).inMinutes;
   final conflictLines = conflicts
-      .map((c) => '- "${c.title}" from ${c.startTime.toIso8601String()} to ${c.endTime.toIso8601String()}')
+      .map((c) =>
+          '- "${c.title}" from ${c.startTime.toIso8601String()} to ${c.endTime.toIso8601String()}')
       .join('\n');
 
   return '''

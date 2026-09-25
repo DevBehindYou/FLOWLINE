@@ -18,7 +18,8 @@ class ScheduleConflictChecker {
   }) {
     return existingBlocks.where((block) {
       if (block.id == excludeBlockId) return false;
-      return startTime.isBefore(block.endTime) && endTime.isAfter(block.startTime);
+      return startTime.isBefore(block.endTime) &&
+          endTime.isAfter(block.startTime);
     }).toList();
   }
 

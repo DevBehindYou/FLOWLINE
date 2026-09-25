@@ -14,7 +14,9 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     final start = DateTime(day.year, day.month, day.day);
     final end = start.add(const Duration(days: 1));
     final query = _db.select(_db.scheduleBlocks)
-      ..where((b) => b.startTime.isBiggerOrEqualValue(start) & b.startTime.isSmallerThanValue(end))
+      ..where((b) =>
+          b.startTime.isBiggerOrEqualValue(start) &
+          b.startTime.isSmallerThanValue(end))
       ..orderBy([(b) => OrderingTerm.asc(b.startTime)]);
     return query.watch().map((rows) => rows.map(_mapBlock).toList());
   }
@@ -36,7 +38,8 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
 
   @override
   Future<void> updateBlock(ScheduleBlock block) {
-    return (_db.update(_db.scheduleBlocks)..where((b) => b.id.equals(block.id))).write(
+    return (_db.update(_db.scheduleBlocks)..where((b) => b.id.equals(block.id)))
+        .write(
       ScheduleBlocksCompanion(
         title: Value(block.title),
         startTime: Value(block.startTime),
@@ -53,7 +56,8 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     return _db.transaction(() async {
       await (_db.update(_db.tasks)..where((t) => t.scheduleBlockId.equals(id)))
           .write(const TasksCompanion(scheduleBlockId: Value(null)));
-      await (_db.delete(_db.scheduleBlocks)..where((b) => b.id.equals(id))).go();
+      await (_db.delete(_db.scheduleBlocks)..where((b) => b.id.equals(id)))
+          .go();
     });
   }
 

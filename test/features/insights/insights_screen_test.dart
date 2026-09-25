@@ -15,8 +15,11 @@ void main() {
   tearDown(() => db.close());
 
   for (final mode in [ThemeMode.light, ThemeMode.dark]) {
-    testWidgets('shows the empty state with zero logged sessions (${mode.name})', (tester) async {
-      await pumpScreen(tester, db: db, themeMode: mode, child: const InsightsScreen());
+    testWidgets(
+        'shows the empty state with zero logged sessions (${mode.name})',
+        (tester) async {
+      await pumpScreen(tester,
+          db: db, themeMode: mode, child: const InsightsScreen());
 
       expect(find.text('Complete a session to see stats'), findsOneWidget);
       expect(find.byIcon(Icons.bar_chart_outlined), findsOneWidget);
@@ -25,10 +28,12 @@ void main() {
     });
   }
 
-  testWidgets('shows stat cards and the weekly total once a session has completed',
+  testWidgets(
+      'shows stat cards and the weekly total once a session has completed',
       (tester) async {
     final repo = FocusSessionRepositoryImpl(db);
-    final id = await repo.startSession(sessionType: FocusSessionType.focus, plannedDurationSec: 1500);
+    final id = await repo.startSession(
+        sessionType: FocusSessionType.focus, plannedDurationSec: 1500);
     await repo.completeSession(id, endedEarly: false);
 
     await pumpScreen(tester, db: db, child: const InsightsScreen());
@@ -41,9 +46,11 @@ void main() {
     expect(find.text('1 focus session this week'), findsOneWidget);
   });
 
-  testWidgets('an ended-early session still counts toward the weekly total', (tester) async {
+  testWidgets('an ended-early session still counts toward the weekly total',
+      (tester) async {
     final repo = FocusSessionRepositoryImpl(db);
-    final id = await repo.startSession(sessionType: FocusSessionType.focus, plannedDurationSec: 1500);
+    final id = await repo.startSession(
+        sessionType: FocusSessionType.focus, plannedDurationSec: 1500);
     await repo.completeSession(id, endedEarly: true);
 
     await pumpScreen(tester, db: db, child: const InsightsScreen());

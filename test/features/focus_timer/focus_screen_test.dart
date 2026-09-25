@@ -13,9 +13,11 @@ void main() {
   tearDown(() => db.close());
 
   for (final mode in [ThemeMode.light, ThemeMode.dark]) {
-    testWidgets('shows the idle start screen when there is no active session (${mode.name})',
+    testWidgets(
+        'shows the idle start screen when there is no active session (${mode.name})',
         (tester) async {
-      await pumpScreen(tester, db: db, themeMode: mode, child: const FocusScreen());
+      await pumpScreen(tester,
+          db: db, themeMode: mode, child: const FocusScreen());
 
       expect(find.text('Focus (25m)'), findsOneWidget);
       expect(find.text('Short (5m)'), findsOneWidget);
@@ -27,7 +29,8 @@ void main() {
     });
   }
 
-  testWidgets('does not start a repeating ticker while idle (pumpAndSettle would hang if it did)',
+  testWidgets(
+      'does not start a repeating ticker while idle (pumpAndSettle would hang if it did)',
       (tester) async {
     // pumpScreen already calls pumpAndSettle internally; reaching this
     // line at all is the regression check for a Stream.periodic leaking

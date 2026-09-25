@@ -14,7 +14,8 @@ class ExportFormatter {
 
   String toCsv(List<FocusSession> sessions) {
     final buffer = StringBuffer()
-      ..writeln('Date,Start Time,Type,Planned Minutes,Actual Minutes,Completed,Ended Early');
+      ..writeln(
+          'Date,Start Time,Type,Planned Minutes,Actual Minutes,Completed,Ended Early');
     for (final session in sessions) {
       buffer.writeln(
         [
@@ -22,7 +23,9 @@ class ExportFormatter {
           _timeStr(session.startedAt),
           _typeLabel(session.sessionType),
           (session.plannedDurationSec / 60).round(),
-          session.actualDurationSec == null ? '' : (session.actualDurationSec! / 60).round(),
+          session.actualDurationSec == null
+              ? ''
+              : (session.actualDurationSec! / 60).round(),
           session.completedAt != null,
           session.endedEarly,
         ].join(','),
