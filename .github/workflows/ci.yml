@@ -13,19 +13,26 @@ concurrency:
 permissions:
   contents: read
 
-# Pinned for determinism (see docs/README.md's "no local Flutter SDK"
-# constraint — CI is the only place this project builds/tests). Bump
-# deliberately, not automatically, and re-check pubspec.yaml's
-# `environment: sdk:` constraint when you do.
+# Pinned for determinism — CI is the only place this project builds and
+# tests (no local Flutter SDK). 3.35.x is deliberate, not stale: its Dart
+# 3.9 is the newest SDK the pinned codegen stack's `analyzer` 7.x can
+# parse. Flutter 3.38+ ships Dart 3.10, whose own SDK source uses dot
+# shorthands; analyzer 7.x crashes on those ("Missing implementation of
+# visitDotShorthandPropertyAccess") and build_runner then hangs. Only bump
+# this together with riverpod_generator/drift_dev/build_runner.
 env:
-  FLUTTER_VERSION: "3.47.5"
+  FLUTTER_VERSION: "3.35.7"
 
 jobs:
   analyze:
     name: Format, analyze, test
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install host sqlite3 (Drift in-memory DB for widget tests)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq libsqlite3-dev
 
       - uses: subosito/flutter-action@v2
         with:
@@ -33,23 +40,38 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
 
+      - name: Flutter / Dart versions
+        run: flutter --version
+
       - name: flutter pub get
         run: flutter pub get
 
       - name: Generate Drift + Riverpod code
+        id: codegen
+        timeout-minutes: 10
         run: dart run build_runner build --delete-conflicting-outputs
 
-      - name: dart format (fails on unformatted files)
-        run: dart format --output=none --set-exit-if-changed .
+      # Tracked files only: build_runner output is formatted by its own
+      # bundled dart_style and must not fail this check.
+      - name: dart format (tracked files)
+        id: format
+        run: dart format --output=none --set-exit-if-changed $(git ls-files '*.dart')
 
-      - name: dart analyze
+      # Analyze and test still run after a format failure so one CI run
+      # reports every problem, while the job as a whole still fails.
+      - name: flutter analyze
+        id: analyze
+        if: ${{ !cancelled() && steps.codegen.outcome == 'success' }}
         run: flutter analyze
 
       - name: flutter test --coverage
-        run: flutter test --coverage
+        id: test
+        if: ${{ !cancelled() && steps.codegen.outcome == 'success' }}
+        timeout-minutes: 10
+        run: flutter test --coverage --reporter expanded
 
       - name: Upload coverage
-        if: always()
+        if: ${{ !cancelled() && steps.test.outcome != 'skipped' }}
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
@@ -57,20 +79,27 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
-      - name: Upload test/build logs
-        if: failure()
+      # There is no local formatter, so hand back the exact fix instead
+      # of only a list of files: `git apply format.patch`.
+      - name: Build formatter patch
+        if: ${{ !cancelled() && steps.format.outcome == 'failure' }}
+        run: |
+          dart format $(git ls-files '*.dart') > /dev/null
+          git diff > format.patch
+          git --no-pager diff --stat
+
+      - name: Upload formatter patch
+        if: ${{ !cancelled() && steps.format.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
-          name: analyze-job-flutter-doctor
-          path: |
-            **/*.log
+          name: format-patch
+          path: format.patch
           retention-days: 7
-          if-no-files-found: ignore
 
   android-build:
     name: Android release APK
     runs-on: ubuntu-latest
-    needs: analyze
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -88,8 +117,8 @@ jobs:
 
       - name: Generate android/ platform folder
         # android/ is intentionally gitignored (see README "Before you
-        # build") so it always comes from the current pinned Flutter's
-        # template rather than hand-maintained/stale Gradle+AGP files.
+        # build") so it always comes from the pinned Flutter's template
+        # rather than hand-maintained, stale Gradle/AGP files.
         run: flutter create --platforms android --org com.devbehindyou .
 
       - name: Apply Flowline's manifest requirements
@@ -99,6 +128,7 @@ jobs:
         run: flutter pub get
 
       - name: Generate Drift + Riverpod code
+        timeout-minutes: 10
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: flutter build apk --release --split-per-abi
@@ -121,6 +151,18 @@ jobs:
           name: flowline-release-apks-${{ github.sha }}
           path: build/app/outputs/flutter-apk/flowline-*-release-*.apk
           retention-days: 30
+
+      - name: Job summary
+        if: ${{ !cancelled() }}
+        run: |
+          {
+            echo "## Flowline Android build"
+            echo "- Commit: \`${GITHUB_SHA}\`"
+            echo "- Flutter: ${FLUTTER_VERSION}"
+            echo "- Build type: release (signed with the template's debug key — sideload only, not Play Store)"
+            echo "- APKs:"
+            ls build/app/outputs/flutter-apk/flowline-*.apk 2>/dev/null | sed 's#.*/#  - #' || echo "  - none (build failed)"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload Android build logs
         if: failure()
