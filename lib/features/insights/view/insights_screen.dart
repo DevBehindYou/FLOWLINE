@@ -174,8 +174,9 @@ class _WeeklyBarChart extends StatelessWidget {
               showTitles: true,
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
-                if (index < 0 || index >= totals.length)
+                if (index < 0 || index >= totals.length) {
                   return const SizedBox.shrink();
+                }
                 final label =
                     DateFormat('E').format(totals[index].date).substring(0, 1);
                 return Padding(

@@ -19,6 +19,14 @@ class FocusSessionRepositoryImpl implements FocusSessionRepository {
   }
 
   @override
+  Future<FocusSession?> getActiveSession() async {
+    final row = await (_db.select(_db.focusSessions)
+          ..where((s) => s.completedAt.isNull()))
+        .getSingleOrNull();
+    return row == null ? null : _map(row);
+  }
+
+  @override
   Stream<List<FocusSession>> watchSessionsForTask(int taskId) {
     final query = _db.select(_db.focusSessions)
       ..where((s) => s.taskId.equals(taskId))
@@ -58,14 +66,15 @@ class FocusSessionRepositoryImpl implements FocusSessionRepository {
     int? subtaskId,
   }) async {
     // Defensive self-heal: there should never be more than one active
-    // session (watchActiveSession relies on that), but if one was
-    // somehow left dangling, close it out as ended-early rather than
-    // letting watchSingleOrNull throw.
-    final existing = await (_db.select(_db.focusSessions)
-          ..where((s) => s.completedAt.isNull()))
-        .getSingleOrNull();
+    // session (watchActiveSession relies on that), but if one was left
+    // dangling, close it out rather than letting watchSingleOrNull throw.
+    // It only counts as ended early if it still had time left.
+    final existing = await getActiveSession();
     if (existing != null) {
-      await completeSession(existing.id, endedEarly: true);
+      await completeSession(
+        existing.id,
+        endedEarly: existing.remainingSec > 0,
+      );
     }
 
     final now = DateTime.now();
@@ -105,11 +114,15 @@ class FocusSessionRepositoryImpl implements FocusSessionRepository {
     );
   }
 
+  // The planned duration grows with the extension; otherwise a naturally
+  // finished extended session records actual = planned (clamped) and the
+  // extra minutes vanish from stats and exports.
   @override
   Future<void> extendSession(int id, int addSeconds) async {
     final row = await _rowById(id);
     await (_db.update(_db.focusSessions)..where((s) => s.id.equals(id))).write(
       FocusSessionsCompanion(
+        plannedDurationSec: Value(row.plannedDurationSec + addSeconds),
         remainingSecAtSegmentStart:
             Value(row.remainingSecAtSegmentStart + addSeconds),
       ),
@@ -117,19 +130,37 @@ class FocusSessionRepositoryImpl implements FocusSessionRepository {
   }
 
   @override
-  Future<void> completeSession(int id, {required bool endedEarly}) async {
-    final row = await _rowById(id);
-    final session = _map(row);
+  Future<bool> completeSession(int id, {required bool endedEarly}) async {
+    final session = _map(await _rowById(id));
+    if (session.completedAt != null) return false;
+
+    final now = DateTime.now();
     final actual = (session.plannedDurationSec - session.remainingSec)
         .clamp(0, session.plannedDurationSec);
-    await (_db.update(_db.focusSessions)..where((s) => s.id.equals(id))).write(
+    // The `completedAt IS NULL` guard makes a concurrent second call a
+    // no-op at the SQL level, not just in the check above.
+    final updated = await (_db.update(_db.focusSessions)
+          ..where((s) => s.id.equals(id) & s.completedAt.isNull()))
+        .write(
       FocusSessionsCompanion(
-        completedAt: Value(DateTime.now()),
+        completedAt: Value(endedEarly ? now : _naturalEnd(session, now)),
         actualDurationSec: Value(actual),
         endedEarly: Value(endedEarly),
         segmentStartedAt: const Value(null),
       ),
     );
+    return updated > 0;
+  }
+
+  // A session that ran out while nothing was watching (app backgrounded,
+  // Focus tab never built, process killed) ended at anchor + remaining,
+  // not whenever it was noticed — which may be a different day.
+  DateTime _naturalEnd(FocusSession session, DateTime now) {
+    final anchor = session.segmentStartedAt;
+    if (anchor == null) return now;
+    final end =
+        anchor.add(Duration(seconds: session.remainingSecAtSegmentStart));
+    return end.isBefore(now) ? end : now;
   }
 
   Future<FocusSessionRow> _rowById(int id) {

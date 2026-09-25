@@ -4,6 +4,7 @@ abstract interface class FocusSessionRepository {
   /// At most one session is ever active (not completed) at a time —
   /// enforced by [startSession].
   Stream<FocusSession?> watchActiveSession();
+  Future<FocusSession?> getActiveSession();
 
   Stream<List<FocusSession>> watchSessionsForTask(int taskId);
   Stream<List<FocusSession>> watchTodaysSessions();
@@ -19,5 +20,8 @@ abstract interface class FocusSessionRepository {
   Future<void> pauseSession(int id);
   Future<void> resumeSession(int id);
   Future<void> extendSession(int id, int addSeconds);
-  Future<void> completeSession(int id, {required bool endedEarly});
+
+  /// Completes [id] if it is still active. Returns false when it was
+  /// already completed, so a repeated call can't double-credit anything.
+  Future<bool> completeSession(int id, {required bool endedEarly});
 }

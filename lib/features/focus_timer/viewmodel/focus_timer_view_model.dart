@@ -109,9 +109,12 @@ class FocusTimerViewModel extends _$FocusTimerViewModel {
 
   Future<void> complete(FocusSession session,
       {required bool endedEarly}) async {
-    await ref
+    final completedNow = await ref
         .read(focusSessionRepositoryProvider)
         .completeSession(session.id, endedEarly: endedEarly);
+    // Already completed by an earlier call (the Focus screen can ask more
+    // than once around zero): crediting again would double-count sprints.
+    if (!completedNow) return;
 
     final notifier = await ref.read(notificationServiceProvider.future);
     await notifier.cancelSessionNotification();
@@ -124,6 +127,18 @@ class FocusTimerViewModel extends _$FocusTimerViewModel {
           .read(taskRepositoryProvider)
           .incrementSubtaskCompletedSprints(session.subtaskId!);
     }
+  }
+
+  /// Completes the active session if its time already ran out while
+  /// nothing was watching it: app backgrounded, Focus tab not yet built,
+  /// or process killed. Safe to call at any time.
+  Future<void> completeIfElapsed() async {
+    final session =
+        await ref.read(focusSessionRepositoryProvider).getActiveSession();
+    if (session == null || !session.isRunning || session.remainingSec > 0) {
+      return;
+    }
+    await complete(session, endedEarly: false);
   }
 
   Future<void> _scheduleNotification(

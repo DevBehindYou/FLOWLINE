@@ -272,7 +272,10 @@ class _TodaysFocusFooter extends ConsumerWidget {
                   const Text("Today's Focus"),
                 ],
               ),
-              Text('$label \u2022 ${summary.sessionCount} sessions'),
+              Text(
+                '$label \u2022 ${summary.sessionCount} '
+                'session${summary.sessionCount == 1 ? '' : 's'}',
+              ),
             ],
           ),
         );
