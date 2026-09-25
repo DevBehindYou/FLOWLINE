@@ -1,0 +1,134 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+# Pinned for determinism (see docs/README.md's "no local Flutter SDK"
+# constraint — CI is the only place this project builds/tests). Bump
+# deliberately, not automatically, and re-check pubspec.yaml's
+# `environment: sdk:` constraint when you do.
+env:
+  FLUTTER_VERSION: "3.47.5"
+
+jobs:
+  analyze:
+    name: Format, analyze, test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: flutter pub get
+        run: flutter pub get
+
+      - name: Generate Drift + Riverpod code
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: dart format (fails on unformatted files)
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: dart analyze
+        run: flutter analyze
+
+      - name: flutter test --coverage
+        run: flutter test --coverage
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload test/build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: analyze-job-flutter-doctor
+          path: |
+            **/*.log
+          retention-days: 7
+          if-no-files-found: ignore
+
+  android-build:
+    name: Android release APK
+    runs-on: ubuntu-latest
+    needs: analyze
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Generate android/ platform folder
+        # android/ is intentionally gitignored (see README "Before you
+        # build") so it always comes from the current pinned Flutter's
+        # template rather than hand-maintained/stale Gradle+AGP files.
+        run: flutter create --platforms android --org com.devbehindyou .
+
+      - name: Apply Flowline's manifest requirements
+        run: dart run tool/ci/patch_android_manifest.dart android/app/src/main/AndroidManifest.xml
+
+      - name: flutter pub get
+        run: flutter pub get
+
+      - name: Generate Drift + Riverpod code
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: flutter build apk --release --split-per-abi
+        run: flutter build apk --release --split-per-abi
+
+      - name: Rename APKs with commit SHA
+        run: |
+          set -euo pipefail
+          sha="${GITHUB_SHA:0:7}"
+          outdir="build/app/outputs/flutter-apk"
+          for apk in "$outdir"/app-*-release.apk; do
+            base="$(basename "$apk" .apk)"
+            cp "$apk" "$outdir/flowline-${base#app-}-${sha}.apk"
+          done
+          ls -la "$outdir"
+
+      - name: Upload APK artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: flowline-release-apks-${{ github.sha }}
+          path: build/app/outputs/flutter-apk/flowline-*-release-*.apk
+          retention-days: 30
+
+      - name: Upload Android build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-logs
+          path: |
+            android/app/build/outputs/logs/**
+            **/*.log
+          retention-days: 7
+          if-no-files-found: ignore

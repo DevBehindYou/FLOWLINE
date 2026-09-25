@@ -183,16 +183,26 @@ project (not specific to this one):
    dart run build_runner build --delete-conflicting-outputs
    ```
 
-3. **Add one manifest permission for Phase 2's session-complete
-   notification.** In `android/app/src/main/AndroidManifest.xml`, inside
-   the `<manifest>` tag (as a sibling of `<application>`, not inside it):
+3. **Add two manifest permissions.** In
+   `android/app/src/main/AndroidManifest.xml`, inside the `<manifest>` tag
+   (as a sibling of `<application>`, not inside it):
    ```xml
+   <uses-permission android:name="android.permission.INTERNET"/>
    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
    ```
+   `flutter create`'s template only adds `INTERNET` to the **debug** and
+   **profile** manifests, not the release one — `flutter run` (debug)
+   would work fine while every AI-provider request silently failed in a
+   release APK, since Anthropic/OpenAI/Gemini/Ollama all go over HTTP(S).
+   `POST_NOTIFICATIONS` is for Phase 2's session-complete notification
+   (Android 13+/API 33+) — the runtime permission prompt itself is
+   triggered in code, the first time a focus session starts.
    `flutter_local_notifications` merges its own manifest requirements in
-   automatically as a plugin — this permission line is the one thing
-   that's on the app, not the plugin. The runtime permission prompt
-   itself is triggered in code, the first time a focus session starts.
+   automatically as a plugin; these two lines are on the app, not it.
+
+   CI applies both of these automatically — see
+   `tool/ci/patch_android_manifest.dart` and `.github/workflows/ci.yml` —
+   so this step is only needed if you generate `android/` by hand.
 
 4. **Allow cleartext traffic, for Phase 3's Ollama support.** Android
    blocks plain HTTP by default (API 28+) — fine for Anthropic/OpenAI/

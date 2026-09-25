@@ -50,7 +50,7 @@ class WeeklyPdfExporter {
             pw.SizedBox(height: 20),
             pw.Text('Daily Breakdown', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
             pw.SizedBox(height: 8),
-            pw.Table.fromTextArray(
+            pw.TableHelper.fromTextArray(
               headers: ['Date', 'Focus Time', 'Sessions'],
               data: [
                 for (final day in dailyTotals)
@@ -63,7 +63,7 @@ class WeeklyPdfExporter {
             if (focusSessions.isEmpty)
               pw.Text('No focus sessions logged this week.', style: const pw.TextStyle(fontSize: 10))
             else
-              pw.Table.fromTextArray(
+              pw.TableHelper.fromTextArray(
                 headers: ['Date', 'Time', 'Planned', 'Actual', 'Status'],
                 data: [
                   for (final session in focusSessions)
