@@ -20,8 +20,10 @@ class NotificationService {
     if (_initialized) return;
 
     tz_data.initializeTimeZones();
-    final timeZoneName = await FlutterTimezone.getLocalTimezone();
-    tz.setLocalLocation(tz.getLocation(timeZoneName));
+    // v5's getLocalTimezone() returns a TimezoneInfo, not a bare String
+    // (pinned constraint was ^1.1.0, which no longer resolves on pub.dev).
+    final timezoneInfo = await FlutterTimezone.getLocalTimezone();
+    tz.setLocalLocation(tz.getLocation(timezoneInfo.identifier));
 
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     await _plugin.initialize(const InitializationSettings(android: androidSettings));
