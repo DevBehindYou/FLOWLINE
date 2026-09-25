@@ -75,7 +75,7 @@ class AIRepositoryImpl implements AIRepository {
     if (apiKey.isNotEmpty) {
       await _secureStore.setKey(id, apiKey);
     }
-    await (_db.update(_db.aiProviderConfigs)..where((p) => p.providerId.equals(id))).write(
+    await (_db.update(_db.aiProviderConfigs)..where((p) => p.providerId.equalsValue(id))).write(
       AiProviderConfigsCompanion(
         defaultModel: Value(model),
         baseUrl: Value(baseUrl),
@@ -90,7 +90,7 @@ class AIRepositoryImpl implements AIRepository {
       await _db
           .update(_db.aiProviderConfigs)
           .write(const AiProviderConfigsCompanion(isActive: Value(false)));
-      await (_db.update(_db.aiProviderConfigs)..where((p) => p.providerId.equals(id)))
+      await (_db.update(_db.aiProviderConfigs)..where((p) => p.providerId.equalsValue(id)))
           .write(const AiProviderConfigsCompanion(isActive: Value(true)));
     });
   }
@@ -99,7 +99,7 @@ class AIRepositoryImpl implements AIRepository {
   Future<void> removeProviderKey(AIProviderId id) async {
     await _seedFuture;
     await _secureStore.deleteKey(id);
-    await (_db.update(_db.aiProviderConfigs)..where((p) => p.providerId.equals(id)))
+    await (_db.update(_db.aiProviderConfigs)..where((p) => p.providerId.equalsValue(id)))
         .write(const AiProviderConfigsCompanion(isActive: Value(false)));
   }
 
@@ -130,7 +130,7 @@ class AIRepositoryImpl implements AIRepository {
     return _db.into(_db.aiConversations).insert(
           AiConversationsCompanion.insert(
             providerId: providerId,
-            title: Value(title ?? 'New conversation'),
+            title: title ?? 'New conversation',
           ),
         );
   }
@@ -158,7 +158,7 @@ class AIRepositoryImpl implements AIRepository {
         await (_db.select(_db.aiConversations)..where((c) => c.id.equals(conversationId))).getSingle();
     final providerId = conversationRow.providerId;
     final configRow = await (_db.select(_db.aiProviderConfigs)
-          ..where((p) => p.providerId.equals(providerId)))
+          ..where((p) => p.providerId.equalsValue(providerId)))
         .getSingle();
     final config = _mapProvider(configRow);
 

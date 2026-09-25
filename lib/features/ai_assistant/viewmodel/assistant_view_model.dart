@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart' show Ref;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/providers.dart';
@@ -8,17 +9,17 @@ import '../../../domain/entities/ai_provider_config.dart';
 part 'assistant_view_model.g.dart';
 
 @riverpod
-Stream<List<AIProviderConfig>> aiProviders(AiProvidersRef ref) {
+Stream<List<AIProviderConfig>> aiProviders(Ref ref) {
   return ref.watch(aiRepositoryProvider).watchProviders();
 }
 
 @riverpod
-Stream<AIProviderConfig?> activeAiProvider(ActiveAiProviderRef ref) {
+Stream<AIProviderConfig?> activeAiProvider(Ref ref) {
   return ref.watch(aiRepositoryProvider).watchActiveProvider();
 }
 
 @riverpod
-Future<bool> providerHasKey(ProviderHasKeyRef ref, AIProviderId id) {
+Future<bool> providerHasKey(Ref ref, AIProviderId id) {
   return ref.watch(aiRepositoryProvider).hasKey(id);
 }
 
@@ -27,7 +28,7 @@ Future<bool> providerHasKey(ProviderHasKeyRef ref, AIProviderId id) {
 /// is in use) — this picks the most recent one, if any.
 @riverpod
 Stream<AIConversation?> latestConversationForProvider(
-  LatestConversationForProviderRef ref,
+  Ref ref,
   AIProviderId providerId,
 ) {
   return ref.watch(aiRepositoryProvider).watchConversations().map((conversations) {
@@ -37,7 +38,7 @@ Stream<AIConversation?> latestConversationForProvider(
 }
 
 @riverpod
-Stream<List<AIMessage>> conversationMessages(ConversationMessagesRef ref, int conversationId) {
+Stream<List<AIMessage>> conversationMessages(Ref ref, int conversationId) {
   return ref.watch(aiRepositoryProvider).watchMessages(conversationId);
 }
 

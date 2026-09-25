@@ -59,6 +59,9 @@ class NotificationService {
       // real Play Store scrutiny for most apps, and a session-end alert
       // doesn't need split-second timing to still be useful.
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      // Required by v17's signature (iOS-only semantics); fireAt is an
+      // absolute instant, not a wall-clock time to re-interpret.
+      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
     );
   }
 

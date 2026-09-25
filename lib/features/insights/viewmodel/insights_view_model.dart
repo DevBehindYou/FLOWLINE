@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart' show Ref;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/providers.dart';
@@ -9,7 +10,7 @@ part 'insights_view_model.g.dart';
 const _statsWindowDays = 30; // enough history for a real streak, not just the visible week
 
 @riverpod
-Stream<List<FocusSession>> recentFocusSessions(RecentFocusSessionsRef ref) {
+Stream<List<FocusSession>> recentFocusSessions(Ref ref) {
   final now = DateTime.now();
   final start = DateTime(now.year, now.month, now.day)
       .subtract(const Duration(days: _statsWindowDays - 1));
@@ -17,16 +18,19 @@ Stream<List<FocusSession>> recentFocusSessions(RecentFocusSessionsRef ref) {
   return ref.watch(focusSessionRepositoryProvider).watchSessionsInRange(start, end);
 }
 
+// Derived synchronously from the one session stream (Riverpod 2.6
+// deprecates watching `.stream`), so both stats always come from the
+// same snapshot and never flash a loading state of their own.
 @riverpod
-Stream<List<DailyFocusTotal>> weeklyFocusTotals(WeeklyFocusTotalsRef ref) {
+AsyncValue<List<DailyFocusTotal>> weeklyFocusTotals(Ref ref) {
   return ref
-      .watch(recentFocusSessionsProvider.stream)
-      .map((sessions) => const FocusStatsCalculator().dailyTotals(sessions, days: 7));
+      .watch(recentFocusSessionsProvider)
+      .whenData((sessions) => const FocusStatsCalculator().dailyTotals(sessions, days: 7));
 }
 
 @riverpod
-Stream<int> currentStreak(CurrentStreakRef ref) {
+AsyncValue<int> currentStreak(Ref ref) {
   return ref
-      .watch(recentFocusSessionsProvider.stream)
-      .map((sessions) => const FocusStatsCalculator().currentStreak(sessions));
+      .watch(recentFocusSessionsProvider)
+      .whenData((sessions) => const FocusStatsCalculator().currentStreak(sessions));
 }

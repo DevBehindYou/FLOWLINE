@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart' show Ref;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/providers.dart';
@@ -19,17 +20,17 @@ class SelectedDate extends _$SelectedDate {
 }
 
 @riverpod
-Stream<List<Task>> tasksForBlock(TasksForBlockRef ref, int blockId) {
+Stream<List<Task>> tasksForBlock(Ref ref, int blockId) {
   return ref.watch(taskRepositoryProvider).watchTasksForBlock(blockId);
 }
 
 @riverpod
-Stream<List<Task>> unscheduledTasks(UnscheduledTasksRef ref) {
+Stream<List<Task>> unscheduledTasks(Ref ref) {
   return ref.watch(taskRepositoryProvider).watchUnscheduledTasks();
 }
 
 @riverpod
-Stream<List<ScheduleBlock>> scheduleBlocksForSelectedDate(ScheduleBlocksForSelectedDateRef ref) {
+Stream<List<ScheduleBlock>> scheduleBlocksForSelectedDate(Ref ref) {
   final date = ref.watch(selectedDateProvider);
   return ref.watch(scheduleRepositoryProvider).watchBlocksForDay(date);
 }

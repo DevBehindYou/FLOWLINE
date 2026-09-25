@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' show Ref;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../data/local/drift/app_database.dart';
@@ -27,24 +28,24 @@ part 'providers.g.dart';
 // would be an extra layer of indirection with nothing to justify it yet.
 
 @Riverpod(keepAlive: true)
-AppDatabase appDatabase(AppDatabaseRef ref) {
+AppDatabase appDatabase(Ref ref) {
   final db = AppDatabase();
   ref.onDispose(db.close);
   return db;
 }
 
 @Riverpod(keepAlive: true)
-TaskRepository taskRepository(TaskRepositoryRef ref) {
+TaskRepository taskRepository(Ref ref) {
   return TaskRepositoryImpl(ref.watch(appDatabaseProvider));
 }
 
 @Riverpod(keepAlive: true)
-ScheduleRepository scheduleRepository(ScheduleRepositoryRef ref) {
+ScheduleRepository scheduleRepository(Ref ref) {
   return ScheduleRepositoryImpl(ref.watch(appDatabaseProvider));
 }
 
 @Riverpod(keepAlive: true)
-FocusSessionRepository focusSessionRepository(FocusSessionRepositoryRef ref) {
+FocusSessionRepository focusSessionRepository(Ref ref) {
   return FocusSessionRepositoryImpl(ref.watch(appDatabaseProvider));
 }
 
@@ -52,20 +53,20 @@ FocusSessionRepository focusSessionRepository(FocusSessionRepositoryRef ref) {
 // appear the first time the user actually starts a focus session, not
 // at app launch before they've done anything.
 @Riverpod(keepAlive: true)
-Future<NotificationService> notificationService(NotificationServiceRef ref) async {
+Future<NotificationService> notificationService(Ref ref) async {
   final service = NotificationService();
   await service.init();
   return service;
 }
 
 @Riverpod(keepAlive: true)
-Dio dio(DioRef ref) => Dio();
+Dio dio(Ref ref) => Dio();
 
 @Riverpod(keepAlive: true)
-SecureKeyStore secureKeyStore(SecureKeyStoreRef ref) => const SecureKeyStore();
+SecureKeyStore secureKeyStore(Ref ref) => const SecureKeyStore();
 
 @Riverpod(keepAlive: true)
-AIRepository aiRepository(AIRepositoryRef ref) {
+AIRepository aiRepository(Ref ref) {
   final dio = ref.watch(dioProvider);
   final clients = <AIProviderId, AIClient>{
     AIProviderId.anthropic: AnthropicClient(dio),
@@ -81,4 +82,4 @@ AIRepository aiRepository(AIRepositoryRef ref) {
 }
 
 @Riverpod(keepAlive: true)
-ExportService exportService(ExportServiceRef ref) => const ExportService();
+ExportService exportService(Ref ref) => const ExportService();

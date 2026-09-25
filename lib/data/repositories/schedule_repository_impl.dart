@@ -45,9 +45,16 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     );
   }
 
+  // Tasks.scheduleBlockId is a plain column, not a foreign key, so nothing
+  // else would clear it: a task left pointing at a deleted block is in no
+  // block and not "unscheduled" either, so it silently vanishes from Today.
   @override
   Future<void> deleteBlock(int id) {
-    return (_db.delete(_db.scheduleBlocks)..where((b) => b.id.equals(id))).go();
+    return _db.transaction(() async {
+      await (_db.update(_db.tasks)..where((t) => t.scheduleBlockId.equals(id)))
+          .write(const TasksCompanion(scheduleBlockId: Value(null)));
+      await (_db.delete(_db.scheduleBlocks)..where((b) => b.id.equals(id))).go();
+    });
   }
 
   ScheduleBlock _mapBlock(ScheduleBlockRow row) {

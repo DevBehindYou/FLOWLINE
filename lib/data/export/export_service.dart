@@ -63,9 +63,7 @@ class ExportService {
     final dir = await getTemporaryDirectory();
     final file = File('${dir.path}/$filename');
     await file.writeAsString(content);
-    await SharePlus.instance.share(
-      ShareParams(files: [XFile(file.path)], subject: 'Flowline export'),
-    );
+    await Share.shareXFiles([XFile(file.path)], subject: 'Flowline export');
   }
 
   String _fileStamp(DateTime start, DateTime end) {

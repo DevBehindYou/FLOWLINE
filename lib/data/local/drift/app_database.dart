@@ -6,6 +6,15 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+// The generated part file shares this library's imports, so every enum a
+// table stores via intEnum<T>() must be imported here, not only in the
+// table's own file.
+import '../../../domain/entities/ai_message.dart';
+import '../../../domain/entities/ai_provider_config.dart';
+import '../../../domain/entities/focus_session.dart';
+import '../../../domain/entities/schedule_block.dart';
+import '../../../domain/entities/subtask.dart';
+import '../../../domain/entities/task.dart';
 import 'tables/ai_conversations_table.dart';
 import 'tables/ai_messages_table.dart';
 import 'tables/ai_provider_configs_table.dart';
@@ -52,6 +61,12 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(aiConversations);
             await m.createTable(aiMessages);
           }
+        },
+        // SQLite ignores every `references(..., onDelete: ...)` above unless
+        // this is set per connection; without it deleting a task orphans
+        // its subtasks and leaves focus sessions pointing at a dead id.
+        beforeOpen: (details) async {
+          await customStatement('PRAGMA foreign_keys = ON');
         },
       );
 

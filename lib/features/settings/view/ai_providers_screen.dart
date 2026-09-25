@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/entities/ai_provider_config.dart';
 import '../../ai_assistant/viewmodel/assistant_view_model.dart';
+import '../viewmodel/ai_providers_view_model.dart';
 import 'add_edit_ai_provider_sheet.dart';
 
 class AiProvidersScreen extends ConsumerWidget {
@@ -17,11 +18,17 @@ class AiProvidersScreen extends ConsumerWidget {
       body: providersAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(child: Text('Something went wrong: $error')),
-        data: (providers) => ListView.separated(
-          padding: const EdgeInsets.all(16),
-          itemCount: providers.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, index) => _ProviderCard(config: providers[index]),
+        data: (providers) => RadioGroup<AIProviderId>(
+          groupValue: providers.where((p) => p.isActive).firstOrNull?.id,
+          onChanged: (id) {
+            if (id != null) ref.read(aiProvidersViewModelProvider.notifier).setActive(id);
+          },
+          child: ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: providers.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (context, index) => _ProviderCard(config: providers[index]),
+          ),
         ),
       ),
     );
@@ -55,13 +62,7 @@ class _ProviderCard extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: Row(
           children: [
-            Radio<bool>(
-              value: true,
-              groupValue: config.isActive ? true : null,
-              onChanged: canActivate
-                  ? (_) => ref.read(aiProvidersViewModelProvider.notifier).setActive(config.id)
-                  : null,
-            ),
+            Radio<AIProviderId>(value: config.id, enabled: canActivate),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

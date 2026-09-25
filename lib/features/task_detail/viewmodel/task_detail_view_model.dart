@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart' show Ref;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/providers.dart';
@@ -7,12 +8,12 @@ import '../../../domain/entities/task.dart';
 part 'task_detail_view_model.g.dart';
 
 @riverpod
-Stream<Task?> taskById(TaskByIdRef ref, int taskId) {
+Stream<Task?> taskById(Ref ref, int taskId) {
   return ref.watch(taskRepositoryProvider).watchTask(taskId);
 }
 
 @riverpod
-Stream<List<Subtask>> subtasksForTask(SubtasksForTaskRef ref, int taskId) {
+Stream<List<Subtask>> subtasksForTask(Ref ref, int taskId) {
   return ref.watch(taskRepositoryProvider).watchSubtasks(taskId);
 }
 

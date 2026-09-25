@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart' show Ref;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/providers.dart';
@@ -12,12 +13,12 @@ const _durationBySessionType = {
 };
 
 @riverpod
-Stream<FocusSession?> activeFocusSession(ActiveFocusSessionRef ref) {
+Stream<FocusSession?> activeFocusSession(Ref ref) {
   return ref.watch(focusSessionRepositoryProvider).watchActiveSession();
 }
 
 @riverpod
-Stream<({int totalSeconds, int sessionCount})> todaysFocusSummary(TodaysFocusSummaryRef ref) {
+Stream<({int totalSeconds, int sessionCount})> todaysFocusSummary(Ref ref) {
   return ref.watch(focusSessionRepositoryProvider).watchTodaysSessions().map((sessions) {
     final completedFocusSessions = sessions.where(
       (s) => s.sessionType == FocusSessionType.focus && s.completedAt != null,
@@ -35,7 +36,7 @@ Stream<({int totalSeconds, int sessionCount})> todaysFocusSummary(TodaysFocusSum
 /// value itself always comes from `FocusSession.remainingSec`, which is
 /// wall-clock derived, never from counting these ticks.
 @riverpod
-Stream<int> secondsTicker(SecondsTickerRef ref) {
+Stream<int> secondsTicker(Ref ref) {
   return Stream.periodic(const Duration(seconds: 1), (tick) => tick);
 }
 

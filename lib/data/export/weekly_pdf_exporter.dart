@@ -83,7 +83,7 @@ class WeeklyPdfExporter {
             pw.SizedBox(height: 20),
             pw.Text(
               'Generated on-device by Flowline. Nothing is sent anywhere to produce this file.',
-              style: pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
+              style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
             ),
           ],
         ),

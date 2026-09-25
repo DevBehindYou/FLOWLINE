@@ -163,8 +163,9 @@ cross-repository logic with nowhere honest to live except a Use Case.
 
 ## Before you build
 
-Two one-time setup steps, both standard for any Drift + Riverpod-codegen
-project (not specific to this one):
+CI (`.github/workflows/ci.yml`) performs every step below on each push,
+pinned to Flutter 3.35.7 — see the comment there for why not newer. You
+only need these to build outside CI.
 
 1. **Generate the native platform folders.** Hand-writing Gradle/AGP files
    without a way to verify current version numbers risks exactly the kind
@@ -183,43 +184,30 @@ project (not specific to this one):
    dart run build_runner build --delete-conflicting-outputs
    ```
 
-3. **Add two manifest permissions.** In
-   `android/app/src/main/AndroidManifest.xml`, inside the `<manifest>` tag
-   (as a sibling of `<application>`, not inside it):
-   ```xml
-   <uses-permission android:name="android.permission.INTERNET"/>
-   <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-   ```
-   `flutter create`'s template only adds `INTERNET` to the **debug** and
-   **profile** manifests, not the release one — `flutter run` (debug)
-   would work fine while every AI-provider request silently failed in a
-   release APK, since Anthropic/OpenAI/Gemini/Ollama all go over HTTP(S).
-   `POST_NOTIFICATIONS` is for Phase 2's session-complete notification
-   (Android 13+/API 33+) — the runtime permission prompt itself is
-   triggered in code, the first time a focus session starts.
-   `flutter_local_notifications` merges its own manifest requirements in
-   automatically as a plugin; these two lines are on the app, not it.
+3. **Patch the generated Android project.** The template is missing
+   several things Flowline needs. CI applies all of them with
+   `dart run tool/ci/patch_android.dart android` (logic and reasons in
+   `tool/ci/android_patches.dart`, covered by
+   `test/tool/android_patches_test.dart`); run the same command if you
+   generate `android/` by hand:
+   - `INTERNET` permission — `flutter create` only adds it to the
+     **debug**/**profile** manifests, so a release APK would silently
+     fail every AI-provider request while `flutter run` worked fine.
+   - `POST_NOTIFICATIONS` — the session-complete notification on Android
+     13+; the runtime prompt is triggered in code on the first session.
+   - `RECEIVE_BOOT_COMPLETED` plus `flutter_local_notifications`'
+     `ScheduledNotificationReceiver`/`ScheduledNotificationBootReceiver`.
+     Since plugin v16 the plugin no longer declares these itself; without
+     the receiver, `zonedSchedule` fires into nothing and the notification
+     never appears.
+   - Core library desugaring in `app/build.gradle.kts` — required by the
+     plugin; the release build fails without it.
+   - `android:usesCleartextTraffic="true"` on `<application>`, for Ollama's
+     plain-HTTP local server. A blanket allow: Android's network security
+     config can't express private-IP ranges, only fixed domains. The other
+     three providers are HTTPS.
 
-   CI applies both of these automatically — see
-   `tool/ci/patch_android_manifest.dart` and `.github/workflows/ci.yml` —
-   so this step is only needed if you generate `android/` by hand.
-
-4. **Allow cleartext traffic, for Phase 3's Ollama support.** Android
-   blocks plain HTTP by default (API 28+) — fine for Anthropic/OpenAI/
-   Gemini, which are all HTTPS, but Ollama's local server is plain HTTP.
-   In the same manifest, add the attribute to the `<application>` tag:
-   ```xml
-   <application
-       android:usesCleartextTraffic="true"
-       ...>
-   ```
-   This is a blanket allow (simplest correct fix, and the honest one to
-   ship rather than a network-security-config that only *looks* scoped
-   to "local" traffic — Android's XML config can't express private-IP
-   ranges, only fixed domains). If you don't plan to use Ollama, this
-   step is skippable — the other three providers don't need it.
-
-5. Then:
+4. Then:
    ```
    flutter run
    ```
