@@ -1,3 +1,5 @@
+import 'package:clock/clock.dart';
+
 enum FocusSessionType { focus, shortBreak, longBreak }
 
 /// A Pomodoro-style session, persisted from the moment it starts so it
@@ -28,7 +30,7 @@ class FocusSession {
   final DateTime startedAt;
 
   /// Wall-clock anchor for the *current run segment* — null while paused.
-  /// Reset to `DateTime.now()` every time the session starts or resumes.
+  /// Reset to `clock.now()` every time the session starts or resumes.
   final DateTime? segmentStartedAt;
 
   /// Remaining seconds as of the start of the current segment. This is
@@ -49,7 +51,7 @@ class FocusSession {
   /// computed from a wall-clock timestamp rather than an accumulated tick.
   int get remainingSec {
     if (isPaused || segmentStartedAt == null) return remainingSecAtSegmentStart;
-    final elapsed = DateTime.now().difference(segmentStartedAt!).inSeconds;
+    final elapsed = clock.now().difference(segmentStartedAt!).inSeconds;
     final remaining = remainingSecAtSegmentStart - elapsed;
     return remaining < 0 ? 0 : remaining;
   }

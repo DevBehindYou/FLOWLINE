@@ -26,6 +26,10 @@ dependencies:
   pdf: ^3.11.1
   printing: ^5.13.4
   share_plus: ^10.1.2
+  # Timer and date logic read time through `clock` so tests can drive it
+  # (testWidgets' FakeAsync overrides clock.now()). Already resolved
+  # transitively at 1.1.2; listed directly because lib/ imports it.
+  clock: ^1.1.1
 
 dev_dependencies:
   flutter_test:

@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' show Ref;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -32,15 +33,6 @@ Stream<({int totalSeconds, int sessionCount})> todaysFocusSummary(Ref ref) {
     );
     return (totalSeconds: total, sessionCount: completedFocusSessions.length);
   });
-}
-
-/// Ticks once a second. Watched only while a session is actually running,
-/// purely to force the countdown display to rebuild — the countdown
-/// value itself always comes from `FocusSession.remainingSec`, which is
-/// wall-clock derived, never from counting these ticks.
-@riverpod
-Stream<int> secondsTicker(Ref ref) {
-  return Stream.periodic(const Duration(seconds: 1), (tick) => tick);
 }
 
 @riverpod
@@ -145,7 +137,7 @@ class FocusTimerViewModel extends _$FocusTimerViewModel {
       FocusSessionType type, int inSeconds) async {
     final notifier = await ref.read(notificationServiceProvider.future);
     await notifier.scheduleSessionComplete(
-      fireAt: DateTime.now().add(Duration(seconds: inSeconds)),
+      fireAt: clock.now().add(Duration(seconds: inSeconds)),
       title: switch (type) {
         FocusSessionType.focus => 'Focus session complete',
         FocusSessionType.shortBreak => 'Short break over',

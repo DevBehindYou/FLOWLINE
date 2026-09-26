@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -20,25 +22,9 @@ class FocusScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) =>
             Center(child: Text('Something went wrong: $error')),
-        data: (session) {
-          if (session != null && session.isRunning) {
-            // Ticks once a second purely to force this subtree to
-            // rebuild so the wall-clock-derived countdown stays current,
-            // and to notice the moment it reaches zero. The displayed
-            // value always comes from `session.remainingSec` itself.
-            ref.watch(secondsTickerProvider);
-            if (session.remainingSec <= 0) {
-              Future.microtask(
-                () => ref
-                    .read(focusTimerViewModelProvider.notifier)
-                    .complete(session, endedEarly: false),
-              );
-            }
-          }
-          return session == null
-              ? const _IdleView()
-              : _RunningView(session: session);
-        },
+        data: (session) => session == null
+            ? const _IdleView()
+            : _RunningView(session: session),
       ),
     );
   }
@@ -127,11 +113,7 @@ class _RunningView extends ConsumerWidget {
         children: [
           if (session.taskId != null) _LinkedTaskChip(taskId: session.taskId!),
           const SizedBox(height: 24),
-          TimerRing(
-            remainingSec: session.remainingSec,
-            plannedSec: session.plannedDurationSec,
-            color: color,
-          ),
+          _Countdown(session: session, color: color),
           const SizedBox(height: 8),
           Text(
             session.isPaused ? 'PAUSED' : _typeLabel(session.sessionType),
@@ -178,6 +160,85 @@ class _RunningView extends ConsumerWidget {
         FocusSessionType.shortBreak => 'SHORT BREAK',
         FocusSessionType.longBreak => 'LONG BREAK',
       };
+}
+
+/// The only part of the Focus screen that changes every second. It owns
+/// its ticker (a plain [Timer] cancelled in [dispose]) rather than
+/// watching a Riverpod stream provider: Riverpod 2.6 defers cancelling a
+/// stream provider that is disposed before its first event, so an
+/// infinite periodic stream leaked a 1 Hz timer whenever the session was
+/// paused or ended within a second of (re)starting. The tick only
+/// triggers a redraw; the value shown always comes from the session's
+/// persisted wall-clock anchor.
+class _Countdown extends ConsumerStatefulWidget {
+  const _Countdown({required this.session, required this.color});
+
+  final FocusSession session;
+  final Color color;
+
+  @override
+  ConsumerState<_Countdown> createState() => _CountdownState();
+}
+
+class _CountdownState extends ConsumerState<_Countdown> {
+  Timer? _ticker;
+  bool _completionRequested = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncTicker();
+  }
+
+  @override
+  void didUpdateWidget(_Countdown oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.session.id != widget.session.id) {
+      _completionRequested = false;
+    }
+    _syncTicker();
+  }
+
+  void _syncTicker() {
+    if (widget.session.isRunning) {
+      _ticker ??= Timer.periodic(const Duration(seconds: 1), (_) => _tick());
+      _checkCompletion();
+    } else {
+      _ticker?.cancel();
+      _ticker = null;
+    }
+  }
+
+  void _tick() {
+    if (!mounted) return;
+    setState(() {});
+    _checkCompletion();
+  }
+
+  void _checkCompletion() {
+    if (_completionRequested || widget.session.remainingSec > 0) return;
+    _completionRequested = true;
+    // Idempotent: the app-resume reconciliation may race this, and the
+    // repository guarantees only one of them completes the session.
+    ref.read(focusTimerViewModelProvider.notifier).completeIfElapsed();
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: TimerRing(
+        remainingSec: widget.session.remainingSec,
+        plannedSec: widget.session.plannedDurationSec,
+        color: widget.color,
+      ),
+    );
+  }
 }
 
 class _LinkedTaskChip extends ConsumerWidget {

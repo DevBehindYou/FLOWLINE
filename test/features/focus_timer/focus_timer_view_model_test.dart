@@ -94,7 +94,8 @@ void main() {
   });
 
   test('completeIfElapsed leaves a paused session alone', () async {
-    final id = await insertSession(anchor: DateTime(2026, 1, 1, 9), paused: true);
+    final id =
+        await insertSession(anchor: DateTime(2026, 1, 1, 9), paused: true);
 
     await viewModel().completeIfElapsed();
 

@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:drift/drift.dart';
 
 import '../../domain/entities/focus_session.dart';
@@ -36,7 +37,7 @@ class FocusSessionRepositoryImpl implements FocusSessionRepository {
 
   @override
   Stream<List<FocusSession>> watchTodaysSessions() {
-    final now = DateTime.now();
+    final now = clock.now();
     final dayStart = DateTime(now.year, now.month, now.day);
     final dayEnd = dayStart.add(const Duration(days: 1));
     final query = _db.select(_db.focusSessions)
@@ -77,7 +78,7 @@ class FocusSessionRepositoryImpl implements FocusSessionRepository {
       );
     }
 
-    final now = DateTime.now();
+    final now = clock.now();
     return _db.into(_db.focusSessions).insert(
           FocusSessionsCompanion.insert(
             taskId: Value(taskId),
@@ -108,7 +109,7 @@ class FocusSessionRepositoryImpl implements FocusSessionRepository {
   Future<void> resumeSession(int id) {
     return (_db.update(_db.focusSessions)..where((s) => s.id.equals(id))).write(
       FocusSessionsCompanion(
-        segmentStartedAt: Value(DateTime.now()),
+        segmentStartedAt: Value(clock.now()),
         isPaused: const Value(false),
       ),
     );
@@ -134,7 +135,7 @@ class FocusSessionRepositoryImpl implements FocusSessionRepository {
     final session = _map(await _rowById(id));
     if (session.completedAt != null) return false;
 
-    final now = DateTime.now();
+    final now = clock.now();
     final actual = (session.plannedDurationSec - session.remainingSec)
         .clamp(0, session.plannedDurationSec);
     // The `completedAt IS NULL` guard makes a concurrent second call a
