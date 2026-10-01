@@ -30,10 +30,8 @@ class ScheduleIntelligenceViewModel extends _$ScheduleIntelligenceViewModel {
     required DateTime endTime,
     int? excludeBlockId,
   }) async {
-    final blocksForDay = await ref
-        .read(scheduleRepositoryProvider)
-        .watchBlocksForDay(date)
-        .first;
+    final blocksForDay =
+        await ref.read(scheduleRepositoryProvider).getBlocksForDay(date);
     return const ScheduleConflictChecker().findConflicts(
       startTime: startTime,
       endTime: endTime,
@@ -54,8 +52,7 @@ class ScheduleIntelligenceViewModel extends _$ScheduleIntelligenceViewModel {
     // validated against.
     final dayBlocks = (await ref
             .read(scheduleRepositoryProvider)
-            .watchBlocksForDay(pendingStart)
-            .first)
+            .getBlocksForDay(pendingStart))
         .where((b) => b.id != excludeBlockId)
         .toList();
     final prompt = buildConflictResolutionPrompt(
@@ -78,8 +75,7 @@ class ScheduleIntelligenceViewModel extends _$ScheduleIntelligenceViewModel {
   }) async {
     final blocksForDay = await ref
         .read(scheduleRepositoryProvider)
-        .watchBlocksForDay(pendingStart)
-        .first;
+        .getBlocksForDay(pendingStart);
     return validateConflictSuggestion(
       suggestion: suggestion,
       pendingStart: pendingStart,

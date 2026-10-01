@@ -16,6 +16,10 @@ abstract interface class FocusSessionRepository {
   Stream<List<FocusSession>> watchCompletedSessionsInRange(
       DateTime start, DateTime end);
 
+  /// One-shot read of the same set (see `getBlocksForDay` for why).
+  Future<List<FocusSession>> getCompletedSessionsInRange(
+      DateTime start, DateTime end);
+
   /// Starts a session and returns its id. Idempotent while one is active:
   /// if a session is already running (with time left) or paused, that
   /// session's id is returned and nothing changes. An active session whose

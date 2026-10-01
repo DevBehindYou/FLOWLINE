@@ -28,8 +28,7 @@ class ExportViewModel extends _$ExportViewModel {
 
       final sessions = await ref
           .read(focusSessionRepositoryProvider)
-          .watchCompletedSessionsInRange(rangeStart, rangeEnd)
-          .first;
+          .getCompletedSessionsInRange(rangeStart, rangeEnd);
       final streak = const FocusStatsCalculator().currentStreak(sessions);
       final service = ref.read(exportServiceProvider);
 

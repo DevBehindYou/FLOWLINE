@@ -33,10 +33,15 @@ class AddEditScheduleBlockSheet extends ConsumerStatefulWidget {
     super.key,
     required this.initialDate,
     this.existingBlock,
+    this.draft,
   });
 
   final DateTime initialDate;
   final ScheduleBlock? existingBlock;
+
+  /// Values to reopen the form with after "Edit times" on the conflict
+  /// sheet, so the user adjusts what they typed instead of starting over.
+  final ScheduleConflictPending? draft;
 
   @override
   ConsumerState<AddEditScheduleBlockSheet> createState() =>
@@ -45,14 +50,15 @@ class AddEditScheduleBlockSheet extends ConsumerStatefulWidget {
 
 class _AddEditScheduleBlockSheetState
     extends ConsumerState<AddEditScheduleBlockSheet> {
-  late final TextEditingController _titleController =
-      TextEditingController(text: widget.existingBlock?.title ?? '');
-  late TimeOfDay _startTime = widget.existingBlock != null
-      ? TimeOfDay.fromDateTime(widget.existingBlock!.startTime)
-      : const TimeOfDay(hour: 9, minute: 0);
-  late TimeOfDay _endTime = widget.existingBlock != null
-      ? TimeOfDay.fromDateTime(widget.existingBlock!.endTime)
-      : const TimeOfDay(hour: 10, minute: 30);
+  late final TextEditingController _titleController = TextEditingController(
+      text: widget.draft?.title ?? widget.existingBlock?.title ?? '');
+  late TimeOfDay _startTime = TimeOfDay.fromDateTime(
+      widget.draft?.start ?? widget.existingBlock?.startTime ?? _at(9, 0));
+  late TimeOfDay _endTime = TimeOfDay.fromDateTime(
+      widget.draft?.end ?? widget.existingBlock?.endTime ?? _at(10, 30));
+
+  DateTime _at(int hour, int minute) => DateTime(widget.initialDate.year,
+      widget.initialDate.month, widget.initialDate.day, hour, minute);
   String? _error;
   bool _saving = false;
 

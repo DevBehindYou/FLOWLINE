@@ -11,18 +11,25 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   final AppDatabase _db;
 
   @override
-  Stream<List<ScheduleBlock>> watchBlocksForDay(DateTime day) {
+  Stream<List<ScheduleBlock>> watchBlocksForDay(DateTime day) =>
+      _blocksForDay(day).watch().map((rows) => rows.map(_mapBlock).toList());
+
+  @override
+  Future<List<ScheduleBlock>> getBlocksForDay(DateTime day) async =>
+      (await _blocksForDay(day).get()).map(_mapBlock).toList();
+
+  // Every block that overlaps the day, not only those that start on it:
+  // a block running past midnight also occupies the next morning, and
+  // conflict checks for that morning must see it.
+  SimpleSelectStatement<$ScheduleBlocksTable, ScheduleBlockRow> _blocksForDay(
+      DateTime day) {
     final start = startOfDay(day);
     final end = addDays(day, 1);
-    // Every block that overlaps the day, not only those that start on it:
-    // a block running past midnight also occupies the next morning, and
-    // conflict checks for that morning must see it.
-    final query = _db.select(_db.scheduleBlocks)
+    return _db.select(_db.scheduleBlocks)
       ..where((b) =>
           b.startTime.isSmallerThanValue(end) &
           b.endTime.isBiggerThanValue(start))
       ..orderBy([(b) => OrderingTerm.asc(b.startTime)]);
-    return query.watch().map((rows) => rows.map(_mapBlock).toList());
   }
 
   @override

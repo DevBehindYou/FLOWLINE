@@ -5,6 +5,12 @@ abstract interface class ScheduleRepository {
   /// evening before and runs past midnight), ordered by start time.
   Stream<List<ScheduleBlock>> watchBlocksForDay(DateTime day);
 
+  /// One-shot read of the same set as [watchBlocksForDay]. Use this, not
+  /// `watchBlocksForDay(day).first`, for a single read: it doesn't open a
+  /// live query (and a watch stream's `.first` never completes under the
+  /// widget tester's fake clock).
+  Future<List<ScheduleBlock>> getBlocksForDay(DateTime day);
+
   Future<int> createBlock({
     required String title,
     required DateTime startTime,

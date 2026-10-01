@@ -29,4 +29,10 @@ class AddEditScheduleBlockViewModel extends _$AddEditScheduleBlockViewModel {
   Future<void> updateBlock(ScheduleBlock block) {
     return ref.read(scheduleRepositoryProvider).updateBlock(block);
   }
+
+  /// Deletes the block; its tasks become unscheduled (foreign key
+  /// ON DELETE SET NULL, and the repository does it explicitly too).
+  Future<void> deleteBlock(int id) {
+    return ref.read(scheduleRepositoryProvider).deleteBlock(id);
+  }
 }

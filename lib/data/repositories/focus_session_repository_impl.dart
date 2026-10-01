@@ -37,13 +37,23 @@ class FocusSessionRepositoryImpl implements FocusSessionRepository {
 
   @override
   Stream<List<FocusSession>> watchCompletedSessionsInRange(
+          DateTime start, DateTime end) =>
+      _completedInRange(start, end)
+          .watch()
+          .map((rows) => rows.map(_map).toList());
+
+  @override
+  Future<List<FocusSession>> getCompletedSessionsInRange(
+          DateTime start, DateTime end) async =>
+      (await _completedInRange(start, end).get()).map(_map).toList();
+
+  SimpleSelectStatement<$FocusSessionsTable, FocusSessionRow> _completedInRange(
       DateTime start, DateTime end) {
-    final query = _db.select(_db.focusSessions)
+    return _db.select(_db.focusSessions)
       ..where((s) =>
           s.completedAt.isBiggerOrEqualValue(start) &
           s.completedAt.isSmallerThanValue(end))
       ..orderBy([(s) => OrderingTerm.asc(s.completedAt)]);
-    return query.watch().map((rows) => rows.map(_map).toList());
   }
 
   @override

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/async/run_action.dart';
 import '../../../domain/entities/schedule_block.dart';
 import '../../../domain/services/conflict_resolution_ai.dart';
 import '../../schedule_block_form/viewmodel/add_edit_schedule_block_view_model.dart';
@@ -12,6 +13,9 @@ import '../viewmodel/schedule_intelligence_view_model.dart';
 /// non-overlapping time, go back and edit the times by hand, or save the
 /// overlap anyway (it'll show a conflict indicator on the Today
 /// timeline rather than being hidden).
+///
+/// Pops `true` for "Edit times" (the caller reopens the form with the
+/// pending values), `false` after saving, null when dismissed.
 class ConflictWarningSheet extends ConsumerStatefulWidget {
   const ConflictWarningSheet({
     super.key,
@@ -118,16 +122,28 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
   Future<void> _commit(DateTime start, DateTime end) async {
     setState(() => _saving = true);
     final viewModel = ref.read(addEditScheduleBlockViewModelProvider.notifier);
-    if (widget.existingBlock != null) {
-      await viewModel.updateBlock(
-        widget.existingBlock!.copyWith(
-            title: widget.pendingTitle, startTime: start, endTime: end),
-      );
+    final saved = await runAction(
+      context,
+      () async {
+        if (widget.existingBlock != null) {
+          await viewModel.updateBlock(
+            widget.existingBlock!.copyWith(
+                title: widget.pendingTitle, startTime: start, endTime: end),
+          );
+        } else {
+          await viewModel.createBlock(
+              title: widget.pendingTitle, startTime: start, endTime: end);
+        }
+        return true;
+      },
+      failureMessage: "Couldn't save the block \u2014 please try again.",
+    );
+    if (!mounted) return;
+    if (saved == true) {
+      Navigator.of(context).pop(false);
     } else {
-      await viewModel.createBlock(
-          title: widget.pendingTitle, startTime: start, endTime: end);
+      setState(() => _saving = false);
     }
-    if (mounted) Navigator.of(context).pop();
   }
 
   String _fmt(DateTime d) => DateFormat.jm().format(d);
@@ -205,7 +221,8 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
             ),
             const SizedBox(height: 8),
             OutlinedButton.icon(
-              onPressed: _saving ? null : () => Navigator.of(context).pop(),
+              // true = reopen the form with these values (K15).
+              onPressed: _saving ? null : () => Navigator.of(context).pop(true),
               icon: const Icon(Icons.edit_outlined),
               label: const Text('Edit times'),
             ),

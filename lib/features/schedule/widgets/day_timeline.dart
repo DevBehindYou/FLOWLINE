@@ -6,6 +6,7 @@ import '../../../domain/entities/schedule_block.dart';
 import '../../../domain/entities/task.dart';
 import '../../../domain/services/schedule_conflict_checker.dart';
 import '../../../shared_widgets/error_view.dart';
+import '../../schedule_block_form/view/schedule_block_flow.dart';
 import '../../task_form/view/add_edit_task_sheet.dart';
 import '../viewmodel/today_view_model.dart';
 import 'task_card.dart';
@@ -53,6 +54,8 @@ class DayTimeline extends StatelessWidget {
   }
 }
 
+enum _BlockAction { edit, delete }
+
 class _ScheduleBlockSection extends ConsumerWidget {
   const _ScheduleBlockSection(
       {required this.block, required this.isConflicting});
@@ -97,6 +100,33 @@ class _ScheduleBlockSection extends ConsumerWidget {
                   child: Text(timeLabel,
                       style: Theme.of(context).textTheme.bodySmall),
                 ),
+                if (!block.isLocked)
+                  PopupMenuButton<_BlockAction>(
+                    tooltip: 'Block options',
+                    icon: const Icon(Icons.more_vert, size: 20),
+                    onSelected: (action) => switch (action) {
+                      _BlockAction.edit => openScheduleBlockEditor(context,
+                          day: block.startTime, existing: block),
+                      _BlockAction.delete =>
+                        confirmAndDeleteScheduleBlock(context, ref, block),
+                    },
+                    itemBuilder: (_) => const [
+                      PopupMenuItem(
+                        value: _BlockAction.edit,
+                        child: ListTile(
+                          leading: Icon(Icons.edit_outlined),
+                          title: Text('Edit block'),
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: _BlockAction.delete,
+                        child: ListTile(
+                          leading: Icon(Icons.delete_outline),
+                          title: Text('Delete block'),
+                        ),
+                      ),
+                    ],
+                  ),
                 IconButton(
                   icon: const Icon(Icons.add, size: 20),
                   tooltip: 'Add task to this block',

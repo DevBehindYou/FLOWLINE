@@ -9,8 +9,7 @@ import '../../../core/time/current_day.dart';
 import '../../../domain/time/calendar_day.dart';
 import '../../../shared_widgets/empty_state.dart';
 import '../../../shared_widgets/error_view.dart';
-import '../../schedule_block_form/view/add_edit_schedule_block_sheet.dart';
-import '../../schedule_intelligence/view/conflict_warning_sheet.dart';
+import '../../schedule_block_form/view/schedule_block_flow.dart';
 import '../../task_form/view/add_edit_task_sheet.dart';
 import '../viewmodel/today_view_model.dart';
 import '../widgets/day_timeline.dart';
@@ -92,26 +91,8 @@ class TodayScreen extends ConsumerWidget {
     ));
   }
 
-  Future<void> _openAddBlock(BuildContext context, DateTime date) async {
-    final pendingConflict = await showModalBottomSheet<ScheduleConflictPending>(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => AddEditScheduleBlockSheet(initialDate: date),
-    );
-    if (pendingConflict != null && context.mounted) {
-      await showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        builder: (_) => ConflictWarningSheet(
-          pendingTitle: pendingConflict.title,
-          pendingStart: pendingConflict.start,
-          pendingEnd: pendingConflict.end,
-          conflicts: pendingConflict.conflicts,
-          existingBlock: pendingConflict.existingBlock,
-        ),
-      );
-    }
-  }
+  Future<void> _openAddBlock(BuildContext context, DateTime date) =>
+      openScheduleBlockEditor(context, day: date);
 }
 
 class _DateHeader extends ConsumerWidget {
