@@ -39,25 +39,39 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
   bool _asking = false;
   bool _saving = false;
   ConflictResolutionSuggestion? _suggestion;
+
+  /// Why [_suggestion] can't be applied; null when it passed validation.
+  String? _suggestionProblem;
   String? _aiRawText;
   String? _aiError;
+
+  ScheduleIntelligenceViewModel get _viewModel =>
+      ref.read(scheduleIntelligenceViewModelProvider.notifier);
+
+  Future<String?> _validate(ConflictResolutionSuggestion suggestion) {
+    return _viewModel.validateSuggestion(
+      suggestion: suggestion,
+      pendingStart: widget.pendingStart,
+      pendingEnd: widget.pendingEnd,
+      excludeBlockId: widget.existingBlock?.id,
+    );
+  }
 
   Future<void> _askAi() async {
     setState(() {
       _asking = true;
       _suggestion = null;
+      _suggestionProblem = null;
       _aiRawText = null;
       _aiError = null;
     });
 
-    final response = await ref
-        .read(scheduleIntelligenceViewModelProvider.notifier)
-        .suggestResolution(
-          pendingTitle: widget.pendingTitle,
-          pendingStart: widget.pendingStart,
-          pendingEnd: widget.pendingEnd,
-          conflicts: widget.conflicts,
-        );
+    final response = await _viewModel.suggestResolution(
+      pendingTitle: widget.pendingTitle,
+      pendingStart: widget.pendingStart,
+      pendingEnd: widget.pendingEnd,
+      conflicts: widget.conflicts,
+    );
 
     if (!mounted) return;
 
@@ -70,10 +84,13 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
     }
 
     final parsed = parseConflictSuggestion(response.content);
+    final problem = parsed == null ? null : await _validate(parsed);
+    if (!mounted) return;
     setState(() {
       _asking = false;
       if (parsed != null) {
         _suggestion = parsed;
+        _suggestionProblem = problem;
       } else {
         _aiRawText = response.content;
       }
@@ -82,7 +99,14 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
 
   Future<void> _applySuggestion() async {
     final suggestion = _suggestion;
-    if (suggestion == null) return;
+    if (suggestion == null || _suggestionProblem != null) return;
+    // The schedule may have changed since the suggestion arrived.
+    final problem = await _validate(suggestion);
+    if (!mounted) return;
+    if (problem != null) {
+      setState(() => _suggestionProblem = problem);
+      return;
+    }
     await _commit(suggestion.newStartTime, suggestion.newEndTime);
   }
 
@@ -143,28 +167,41 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
               ),
             const SizedBox(height: 20),
             if (_suggestion != null)
-              _SuggestionCard(suggestion: _suggestion!, formatTime: _fmt),
+              _SuggestionCard(
+                suggestion: _suggestion!,
+                formatTime: _fmt,
+                problem: _suggestionProblem,
+              ),
             if (_aiRawText != null) _RawAiTextCard(text: _aiRawText!),
             if (_aiError != null) _ErrorCard(message: _aiError!),
             const SizedBox(height: 12),
-            if (_suggestion != null)
+            if (_suggestion != null) ...[
               ElevatedButton.icon(
-                onPressed: _saving ? null : _applySuggestion,
+                onPressed: _saving || _asking || _suggestionProblem != null
+                    ? null
+                    : _applySuggestion,
                 icon: const Icon(Icons.check),
                 label: const Text('Apply suggested time'),
-              )
-            else
-              OutlinedButton.icon(
-                onPressed: _asking ? null : _askAi,
-                icon: _asking
-                    ? const SizedBox(
-                        height: 16,
-                        width: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.auto_awesome),
-                label: Text(_asking ? 'Asking\u2026' : 'Ask AI to help'),
               ),
+              const SizedBox(height: 8),
+            ],
+            OutlinedButton.icon(
+              onPressed: _asking || _saving ? null : _askAi,
+              icon: _asking
+                  ? const SizedBox(
+                      height: 16,
+                      width: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.auto_awesome),
+              label: Text(
+                _asking
+                    ? 'Asking\u2026'
+                    : _suggestion == null && _aiRawText == null
+                        ? 'Ask AI to help'
+                        : 'Ask again',
+              ),
+            ),
             const SizedBox(height: 8),
             OutlinedButton.icon(
               onPressed: _saving ? null : () => Navigator.of(context).pop(),
@@ -190,10 +227,15 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
 }
 
 class _SuggestionCard extends StatelessWidget {
-  const _SuggestionCard({required this.suggestion, required this.formatTime});
+  const _SuggestionCard({
+    required this.suggestion,
+    required this.formatTime,
+    this.problem,
+  });
 
   final ConflictResolutionSuggestion suggestion;
   final String Function(DateTime) formatTime;
+  final String? problem;
 
   @override
   Widget build(BuildContext context) {
@@ -214,6 +256,26 @@ class _SuggestionCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(suggestion.reason, style: Theme.of(context).textTheme.bodySmall),
+          if (problem != null) ...[
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.block,
+                    size: 16, color: Theme.of(context).colorScheme.error),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    "Can't apply: $problem",
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.copyWith(color: Theme.of(context).colorScheme.error),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

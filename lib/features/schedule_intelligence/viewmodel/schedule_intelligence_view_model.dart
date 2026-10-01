@@ -52,4 +52,25 @@ class ScheduleIntelligenceViewModel extends _$ScheduleIntelligenceViewModel {
     );
     return ref.read(aiRepositoryProvider).completeOnce(prompt: prompt);
   }
+
+  /// Re-checks a parsed AI suggestion against the schedule as it is now.
+  /// Returns a user-facing reason when it can't be applied, else null.
+  Future<String?> validateSuggestion({
+    required ConflictResolutionSuggestion suggestion,
+    required DateTime pendingStart,
+    required DateTime pendingEnd,
+    int? excludeBlockId,
+  }) async {
+    final blocksForDay = await ref
+        .read(scheduleRepositoryProvider)
+        .watchBlocksForDay(pendingStart)
+        .first;
+    return validateConflictSuggestion(
+      suggestion: suggestion,
+      pendingStart: pendingStart,
+      pendingEnd: pendingEnd,
+      blocksForDay: blocksForDay,
+      excludeBlockId: excludeBlockId,
+    );
+  }
 }
