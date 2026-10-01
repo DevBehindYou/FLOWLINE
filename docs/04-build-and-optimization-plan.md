@@ -456,12 +456,12 @@ Tick these in the PR that closes each item.
 - [x] 1.10 `sqlite3.tempDirectory` (K18)
 - [x] 1.11 Accessibility labels + timer semantics (K13)
 
-**Phase 2 — Toolchain**
-- [ ] 2.1 Riverpod 3 (B9, B10)
-- [ ] 2.2 Drift latest + `drift_flutter`
-- [ ] 2.3 `build_runner` + `riverpod_lint`
-- [ ] 2.4 Unpin Flutter; template patches re-verified
-- [ ] 2.5 Remaining package majors, one per commit
+**Phase 2 — Toolchain** — done in code and CI (Flutter 3.47.5). Device checks in the exit gate (upgrade install keeps data **and** API keys) are still the owner's. Deviations: `drift_flutter` not adopted (the hand-written opener is three lines and already sets `sqlite3.tempDirectory`); `riverpod_lint` not added (it depends on `custom_lint`, whose analyzer range lags the SDK — the keepAlive rule R11 is enforced by review instead); `flutter_secure_storage` deliberately held at 10.x (it migrates 9.x data; 11.x can't read it).
+- [x] 2.1 Riverpod 3 (B9, B10)
+- [x] 2.2 Drift latest (2.35, `sqlite3` 3 via build hooks)
+- [x] 2.3 `build_runner` 2.16
+- [x] 2.4 Unpin Flutter; template patches re-verified (3.47.5: AGP 9.1, Gradle 9.3, Kotlin 2.4)
+- [x] 2.5 Remaining package majors (verified one at a time locally)
 
 **Phase 3 — Core UX**
 - [ ] Block edit/delete + "Edit times" hand-off (D4, K15)
@@ -509,7 +509,7 @@ Tick these in the PR that closes each item.
 - [ ] Symbols artifact; optional local crash log
 
 **Process**
-- [ ] `CLAUDE.md` with rules and definition of done
+- [x] `CLAUDE.md` with rules and definition of done
 - [ ] Format-fix workflow
 - [ ] Emulator integration job
 - [ ] Golden job

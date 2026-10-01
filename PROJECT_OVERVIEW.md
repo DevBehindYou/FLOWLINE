@@ -122,22 +122,23 @@ just the caret constraints in `pubspec.yaml`.
 
 | Concern | Package | Resolved | Notes |
 |---|---|---|---|
-| SDK | Flutter / Dart | **3.35.7 / 3.9.2** | Pinned in CI. Newer Flutter (3.38+, Dart 3.10) crashes the pinned `analyzer` 7.x — see [§18](#18-build-ci-and-android-packaging). |
-| State management | `flutter_riverpod`, `riverpod_annotation`, `riverpod_generator` | 2.6.1 / 2.6.1 / 2.6.5 | Code-generated providers. |
-| Routing | `go_router` | 14.8.1 | `StatefulShellRoute.indexedStack` for the 4 tabs. |
-| Database | `drift`, `drift_dev`, `sqlite3_flutter_libs` | 2.28.2 / 2.28.0 / 0.5.42 | SQLite via FFI. |
-| Secure storage | `flutter_secure_storage` | 9.2.4 | `encryptedSharedPreferences: true` (Keystore-backed). |
-| HTTP | `dio` | 5.11.1 | One shared instance, **no timeouts configured**. |
-| Notifications | `flutter_local_notifications`, `timezone`, `flutter_timezone` | 17.2.4 / 0.9.4 / 5.1.0 | Inexact `zonedSchedule`. |
-| Charts | `fl_chart` | 0.69.2 | Insights bar chart. |
-| Export | `pdf`, `printing`, `share_plus`, `path_provider` | 3.13.1 / 5.15.1 / 10.1.4 / 2.1.6 | |
-| Formatting | `intl` | 0.19.0 | Date/time labels. |
-| Lints | `flutter_lints` | 4.0.0 | Included via `package:flutter_lints/flutter.yaml`. |
-| Codegen runner | `build_runner` | 2.5.4 | |
+| SDK | Flutter / Dart | **3.47.5 / 3.13.4** | Pinned in CI; move it only together with the codegen stack (rule R19). The project's language version is still 3.4, so the formatter output didn't change. |
+| State management | `flutter_riverpod`, `riverpod_annotation`, `riverpod_generator` | 3.4.3 / 4.0.7 / 4.0.9 | Code-generated providers. Automatic retry off (`noAutomaticRetry`); action notifiers are keepAlive. |
+| Routing | `go_router` | 18.0.2 | `StatefulShellRoute.indexedStack` for the 4 tabs. |
+| Database | `drift`, `drift_dev`, `sqlite3` | 2.35.1 / 2.35.1 / 3.7.0 | SQLite bundled through Dart build hooks (no `sqlite3_flutter_libs`). Schema v4. |
+| Secure storage | `flutter_secure_storage` | 10.3.4 (held) | Migrates 9.x Jetpack Security data to its own cipher on first read, with backup. Stay on 10.x until every install has run it. |
+| HTTP | `dio` | 5.11.1 | One shared instance; connect 15 s / send 30 s / receive 120 s timeouts. |
+| Notifications | `flutter_local_notifications`, `timezone`, `flutter_timezone` | 22.3.1 / 0.11.1 / 5.1.0 | Inexact `zonedSchedule`; UTC fallback for unknown zones. |
+| Charts | `fl_chart` | 1.2.0 | Insights bar chart. |
+| Export | `pdf`, `printing`, `share_plus`, `path_provider` | 3.13.1 / 5.15.1 / 13.3.0 / 2.1.6 | PDF text kept Latin-1 until fonts are bundled (B25). |
+| Formatting | `intl` | 0.20.3 | Date/time labels. |
+| Lints | `flutter_lints` + strict analyzer settings | 6.0.0 | See `analysis_options.yaml` (rule R15). |
+| Codegen runner | `build_runner` | 2.16.1 | |
 
-Android toolchain (from the Flutter 3.35.7 template CI generates):
-AGP 8.9.1, Gradle 8.12, Kotlin 2.1.0, `compileSdk` 36, `targetSdk` 36,
-`minSdk` 24, JDK 17, application id `com.devbehindyou.flowline`.
+Android toolchain (from the Flutter 3.47.5 template CI generates):
+AGP 9.1.0, Gradle 9.3.1, Kotlin 2.4.0 (`kotlin { compilerOptions }`),
+`compileSdk` 36, `targetSdk` 36, `minSdk` 24, Java 17, application id
+`com.devbehindyou.flowline`.
 
 ---
 
