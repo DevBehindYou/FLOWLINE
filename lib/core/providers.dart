@@ -63,9 +63,9 @@ FocusSessionRepository focusSessionRepository(Ref ref) {
   return FocusSessionRepositoryImpl(ref.watch(appDatabaseProvider));
 }
 
-// Async and lazy on purpose: the notification permission prompt should
-// appear the first time the user actually starts a focus session, not
-// at app launch before they've done anything.
+// Initialised at startup (to receive notification taps), but the
+// permission prompt is separate: NotificationService.requestPermission runs
+// on the first session start, not at launch.
 @Riverpod(keepAlive: true)
 Future<NotificationService> notificationService(Ref ref) async {
   final service = NotificationService();

@@ -5,6 +5,7 @@ import '../../../core/notifications/notification_service.dart';
 import '../../../core/providers.dart';
 import '../../../core/time/current_day.dart';
 import '../../../domain/entities/focus_session.dart';
+import '../../../domain/services/session_planner.dart';
 import '../../../domain/time/calendar_day.dart';
 
 part 'focus_timer_view_model.g.dart';
@@ -30,6 +31,37 @@ Stream<({int totalSeconds, int sessionCount})> todaysFocusSummary(Ref ref) {
     );
     return (totalSeconds: total, sessionCount: completedFocusSessions.length);
   });
+}
+
+/// How a session that just ended went, and what to do next. Published by
+/// [FocusTimerViewModel.complete] only for the call that actually
+/// completed the session; the Focus screen shows it as the Session
+/// Summary sheet and then clears it.
+class SessionOutcome {
+  const SessionOutcome({
+    required this.session,
+    required this.actualSec,
+    required this.endedEarly,
+    required this.next,
+    required this.focusSessionsToday,
+  });
+
+  final FocusSession session;
+  final int actualSec;
+  final bool endedEarly;
+  final FocusSessionType next;
+  final int focusSessionsToday;
+}
+
+// keepAlive: written by the view model when nothing may be watching (the
+// session can end while another tab is open) and read when Focus shows.
+@Riverpod(keepAlive: true)
+class LastSessionOutcome extends _$LastSessionOutcome {
+  @override
+  SessionOutcome? build() => null;
+
+  void publish(SessionOutcome outcome) => state = outcome;
+  void clear() => state = null;
 }
 
 @riverpod
@@ -129,6 +161,31 @@ class FocusTimerViewModel extends _$FocusTimerViewModel {
     }
 
     await _notify((service) => service.cancelSessionNotification());
+    await _publishOutcome(session, endedEarly: endedEarly);
+  }
+
+  Future<void> _publishOutcome(FocusSession session,
+      {required bool endedEarly}) async {
+    final sessions = ref.read(focusSessionRepositoryProvider);
+    final today = dayRange(clock.now());
+    final completed =
+        await sessions.getCompletedSessionsInRange(today.start, today.end);
+    // By id: a session that ran out overnight was completed yesterday.
+    final finished = await sessions.getSession(session.id);
+    final focusToday =
+        completed.where((s) => s.sessionType == FocusSessionType.focus).length;
+    final settings = await ref.read(appSettingsRepositoryProvider).get();
+    ref.read(lastSessionOutcomeProvider.notifier).publish(SessionOutcome(
+          session: finished ?? session,
+          actualSec: finished?.actualDurationSec ?? 0,
+          endedEarly: endedEarly,
+          focusSessionsToday: focusToday,
+          next: suggestNextSession(
+            finished: session.sessionType,
+            focusSessionsCompletedToday: focusToday,
+            longBreakEvery: settings.longBreakEvery,
+          ),
+        ));
   }
 
   /// Completes the active session if its time already ran out while
@@ -147,6 +204,7 @@ class FocusTimerViewModel extends _$FocusTimerViewModel {
       FocusSessionType type, int inSeconds) async {
     final settings = await ref.read(appSettingsRepositoryProvider).get();
     if (!settings.sessionAlerts) return;
+    await _notify((service) => service.requestPermission());
     return _notify(
       (service) => service.scheduleSessionComplete(
         fireAt: clock.now().add(Duration(seconds: inSeconds)),

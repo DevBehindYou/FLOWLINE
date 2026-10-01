@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/providers.dart';
+import '../../../domain/entities/focus_session.dart';
 import '../../../domain/entities/subtask.dart';
 import '../../../domain/entities/task.dart';
 
@@ -9,6 +10,11 @@ part 'task_detail_view_model.g.dart';
 @riverpod
 Stream<Task?> taskById(Ref ref, int taskId) {
   return ref.watch(taskRepositoryProvider).watchTask(taskId);
+}
+
+@riverpod
+Stream<List<FocusSession>> sessionsForTask(Ref ref, int taskId) {
+  return ref.watch(focusSessionRepositoryProvider).watchSessionsForTask(taskId);
 }
 
 @riverpod

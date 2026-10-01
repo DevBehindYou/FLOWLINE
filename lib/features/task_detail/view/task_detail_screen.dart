@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../domain/entities/focus_session.dart';
 import '../../../domain/entities/subtask.dart';
 import '../../../domain/services/task_due.dart';
 import '../../../shared_widgets/confirm_dialog.dart';
@@ -130,6 +131,11 @@ class TaskDetailScreen extends ConsumerWidget {
                 icon: const Icon(Icons.add),
                 label: const Text('Add subtask'),
               ),
+              const SizedBox(height: 24),
+              Text('Focus history',
+                  style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              _SessionHistory(taskId: taskId),
             ],
           );
         },
@@ -275,6 +281,65 @@ class _SubtaskList extends ConsumerWidget {
                     ),
                   ],
                 ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// Spec §5.6: the focus sessions logged against this task, newest first.
+class _SessionHistory extends ConsumerWidget {
+  const _SessionHistory({required this.taskId});
+
+  final int taskId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final sessionsAsync = ref.watch(sessionsForTaskProvider(taskId));
+    final small = Theme.of(context).textTheme.bodySmall;
+    return sessionsAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (error, _) => ErrorView(
+        error: error,
+        compact: true,
+        onRetry: () => ref.invalidate(sessionsForTaskProvider(taskId)),
+      ),
+      data: (sessions) {
+        final done = sessions
+            .where((s) =>
+                s.completedAt != null &&
+                s.sessionType == FocusSessionType.focus)
+            .toList();
+        if (done.isEmpty) {
+          return Text('No focus sessions yet.', style: small);
+        }
+        final total =
+            done.fold<int>(0, (sum, s) => sum + (s.actualDurationSec ?? 0));
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${done.length} session${done.length == 1 ? '' : 's'} \u00b7 '
+              '${(total / 60).round()} min total',
+              style: small,
+            ),
+            for (final s in done.take(20))
+              ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                    s.endedEarly
+                        ? Icons.stop_circle_outlined
+                        : Icons.check_circle_outline,
+                    size: 20),
+                title:
+                    Text('${DateFormat('EEE, MMM d').format(s.completedAt!)} '
+                        '${DateFormat.jm().format(s.startedAt)}'),
+                subtitle:
+                    Text('${((s.actualDurationSec ?? 0) / 60).round()} min'
+                        '${s.endedEarly ? ' \u00b7 ended early' : ''}'),
               ),
           ],
         );

@@ -28,6 +28,14 @@ class FocusSessionRepositoryImpl implements FocusSessionRepository {
   }
 
   @override
+  Future<FocusSession?> getSession(int id) async {
+    final row = await (_db.select(_db.focusSessions)
+          ..where((s) => s.id.equals(id)))
+        .getSingleOrNull();
+    return row == null ? null : _map(row);
+  }
+
+  @override
   Stream<List<FocusSession>> watchSessionsForTask(int taskId) {
     final query = _db.select(_db.focusSessions)
       ..where((s) => s.taskId.equals(taskId))

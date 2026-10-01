@@ -28,8 +28,26 @@ class _FlowlineAppState extends ConsumerState<FlowlineApp> {
     // built. Reconcile after the first frame (never delaying startup) and
     // on every resume.
     _lifecycle = AppLifecycleListener(onResume: _onResume);
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => _reconcileFocusSession());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _reconcileFocusSession();
+      unawaited(_listenForNotificationTaps());
+    });
+  }
+
+  StreamSubscription<void>? _notificationTaps;
+
+  /// A tapped session notification opens the Focus tab, where the
+  /// session's summary is waiting (B24).
+  Future<void> _listenForNotificationTaps() async {
+    try {
+      final service = await ref.read(notificationServiceProvider.future);
+      if (!mounted) return;
+      void openFocus() => ref.read(appRouterProvider).go('/focus');
+      _notificationTaps = service.taps.listen((_) => openFocus());
+      if (await service.launchedFromNotification()) openFocus();
+    } catch (_) {
+      // Notifications are a convenience; the app works without them.
+    }
   }
 
   void _onResume() {
@@ -46,6 +64,7 @@ class _FlowlineAppState extends ConsumerState<FlowlineApp> {
 
   @override
   void dispose() {
+    unawaited(_notificationTaps?.cancel());
     _lifecycle.dispose();
     super.dispose();
   }

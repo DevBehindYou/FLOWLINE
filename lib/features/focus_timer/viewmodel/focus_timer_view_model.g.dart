@@ -110,6 +110,56 @@ final class TodaysFocusSummaryProvider extends $FunctionalProvider<
 String _$todaysFocusSummaryHash() =>
     r'b144a5355400521e543ccf3fd706736731785da4';
 
+@ProviderFor(LastSessionOutcome)
+final lastSessionOutcomeProvider = LastSessionOutcomeProvider._();
+
+final class LastSessionOutcomeProvider
+    extends $NotifierProvider<LastSessionOutcome, SessionOutcome?> {
+  LastSessionOutcomeProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'lastSessionOutcomeProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$lastSessionOutcomeHash();
+
+  @$internal
+  @override
+  LastSessionOutcome create() => LastSessionOutcome();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SessionOutcome? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SessionOutcome?>(value),
+    );
+  }
+}
+
+String _$lastSessionOutcomeHash() =>
+    r'86fe7bc80286c5b312ed0f5d901ca4f90bb09bed';
+
+abstract class _$LastSessionOutcome extends $Notifier<SessionOutcome?> {
+  SessionOutcome? build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<SessionOutcome?, SessionOutcome?>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<SessionOutcome?, SessionOutcome?>,
+        SessionOutcome?,
+        Object?,
+        Object?>;
+    return element.handleCreate(ref, build);
+  }
+}
+
 @ProviderFor(SelectedSessionType)
 final selectedSessionTypeProvider = SelectedSessionTypeProvider._();
 
@@ -320,7 +370,7 @@ final class FocusTimerViewModelProvider
 }
 
 String _$focusTimerViewModelHash() =>
-    r'b1a6ffdf70b0f06f7282b373fcebd2d7381c5320';
+    r'4c5bea793a2e48d116b79485d3d6b111a7b8f8ba';
 
 abstract class _$FocusTimerViewModel extends $Notifier<void> {
   void build();

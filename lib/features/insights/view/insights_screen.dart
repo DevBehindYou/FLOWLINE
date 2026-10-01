@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../domain/services/focus_stats_calculator.dart';
 import '../../../shared_widgets/empty_state.dart';
+import '../../../shared_widgets/settings_action.dart';
 import '../../../shared_widgets/error_view.dart';
 import '../../export/view/export_sheet.dart';
 import '../../focus_timer/viewmodel/focus_timer_view_model.dart';
@@ -32,6 +33,7 @@ class InsightsScreen extends ConsumerWidget {
               builder: (_) => const ExportSheet(),
             ),
           ),
+          const SettingsAction(),
         ],
       ),
       body: weeklyAsync.when(

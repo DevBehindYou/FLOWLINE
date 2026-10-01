@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/async/run_action.dart';
@@ -9,19 +10,62 @@ import '../../../core/providers.dart';
 import '../../../domain/entities/app_settings.dart';
 import '../../../domain/entities/focus_session.dart';
 import '../../../shared_widgets/error_view.dart';
+import '../../../shared_widgets/settings_action.dart';
 import '../../task_detail/viewmodel/task_detail_view_model.dart';
 import '../viewmodel/focus_timer_view_model.dart';
 import '../widgets/timer_ring.dart';
+import 'session_summary_sheet.dart';
 
-class FocusScreen extends ConsumerWidget {
+class FocusScreen extends ConsumerStatefulWidget {
   const FocusScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FocusScreen> createState() => _FocusScreenState();
+}
+
+class _FocusScreenState extends ConsumerState<FocusScreen> {
+  bool _summaryOpen = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // A session can end while another tab (or no screen) is showing; its
+    // summary waits for Focus to be built.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final pending = ref.read(lastSessionOutcomeProvider);
+      if (pending != null) unawaited(_showSummary(pending));
+    });
+  }
+
+  Future<void> _showSummary(SessionOutcome outcome) async {
+    if (_summaryOpen || !mounted) return;
+    _summaryOpen = true;
+    if (!outcome.endedEarly) {
+      // A distinct cue for "time's up" (spec §8): the phone may be face
+      // down on the desk.
+      unawaited(HapticFeedback.heavyImpact());
+    }
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => SessionSummarySheet(outcome: outcome),
+    );
+    _summaryOpen = false;
+    if (mounted) ref.read(lastSessionOutcomeProvider.notifier).clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen(lastSessionOutcomeProvider, (_, next) {
+      if (next != null) unawaited(_showSummary(next));
+    });
     final sessionAsync = ref.watch(activeFocusSessionProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Focus')),
+      appBar: AppBar(
+        title: const Text('Focus'),
+        actions: const [SettingsAction()],
+      ),
       body: sessionAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => ErrorView(
@@ -156,8 +200,13 @@ class _RunningViewState extends ConsumerState<_RunningView>
           runSpacing: 16,
           children: [
             _ControlButton(
-              icon: Icons.stop,
-              label: 'End',
+              // A break is skipped rather than "ended" (spec §5.7).
+              icon: session.sessionType == FocusSessionType.focus
+                  ? Icons.stop
+                  : Icons.skip_next,
+              label: session.sessionType == FocusSessionType.focus
+                  ? 'End'
+                  : 'Skip',
               onPressed: _busy
                   ? null
                   : () => guard(
@@ -388,25 +437,32 @@ class _ControlButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        filled
-            ? FilledButton(
-                onPressed: onPressed,
-                style: FilledButton.styleFrom(
-                  shape: const CircleBorder(),
-                  padding: const EdgeInsets.all(20),
+        // The label under the button isn't part of it, so the button
+        // carries its own accessible name (and a long-press tooltip).
+        Tooltip(
+          message: label,
+          child: filled
+              ? FilledButton(
+                  onPressed: onPressed,
+                  style: FilledButton.styleFrom(
+                    shape: const CircleBorder(),
+                    padding: const EdgeInsets.all(20),
+                  ),
+                  child: Icon(icon),
+                )
+              : OutlinedButton(
+                  onPressed: onPressed,
+                  style: OutlinedButton.styleFrom(
+                    shape: const CircleBorder(),
+                    padding: const EdgeInsets.all(16),
+                  ),
+                  child: Icon(icon),
                 ),
-                child: Icon(icon),
-              )
-            : OutlinedButton(
-                onPressed: onPressed,
-                style: OutlinedButton.styleFrom(
-                  shape: const CircleBorder(),
-                  padding: const EdgeInsets.all(16),
-                ),
-                child: Icon(icon),
-              ),
+        ),
         const SizedBox(height: 4),
-        Text(label, style: Theme.of(context).textTheme.labelSmall),
+        ExcludeSemantics(
+          child: Text(label, style: Theme.of(context).textTheme.labelSmall),
+        ),
       ],
     );
   }

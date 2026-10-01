@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/time/current_day.dart';
 import '../../../domain/time/calendar_day.dart';
 import '../../../shared_widgets/empty_state.dart';
 import '../../../shared_widgets/error_view.dart';
+import '../../../shared_widgets/settings_action.dart';
 import '../../schedule_block_form/view/schedule_block_flow.dart';
 import '../../task_form/view/add_edit_task_sheet.dart';
 import '../viewmodel/today_view_model.dart';
@@ -26,12 +26,8 @@ class TodayScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Flowline'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            tooltip: 'Settings',
-            onPressed: () => context.push('/settings'),
-          ),
+        actions: const [
+          SettingsAction(),
         ],
       ),
       body: Column(

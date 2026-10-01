@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
@@ -13,6 +15,12 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
   bool _initialized = false;
+  bool _permissionRequested = false;
+  final _taps = StreamController<void>.broadcast();
+
+  /// Fires when the user taps a session notification while the app is
+  /// running or in the background (B24).
+  Stream<void> get taps => _taps.stream;
 
   static const _sessionNotificationId = 1001;
   static const _channelId = 'focus_session';
@@ -26,14 +34,29 @@ class NotificationService {
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     await _plugin.initialize(
-        settings: const InitializationSettings(android: androidSettings));
+      settings: const InitializationSettings(android: androidSettings),
+      onDidReceiveNotificationResponse: (_) => _taps.add(null),
+    );
 
+    _initialized = true;
+  }
+
+  /// Asks for POST_NOTIFICATIONS (Android 13+) at most once per process,
+  /// on the first session start rather than at launch (spec §5.2).
+  Future<void> requestPermission() async {
+    if (_permissionRequested) return;
+    _permissionRequested = true;
     await _plugin
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
+  }
 
-    _initialized = true;
+  /// Whether this launch came from tapping a session notification while
+  /// the app wasn't running.
+  Future<bool> launchedFromNotification() async {
+    final details = await _plugin.getNotificationAppLaunchDetails();
+    return details?.didNotificationLaunchApp ?? false;
   }
 
   /// The device's IANA zone, or UTC when the platform reports one the

@@ -82,6 +82,84 @@ final class TaskByIdFamily extends $Family
   String toString() => r'taskByIdProvider';
 }
 
+@ProviderFor(sessionsForTask)
+final sessionsForTaskProvider = SessionsForTaskFamily._();
+
+final class SessionsForTaskProvider extends $FunctionalProvider<
+        AsyncValue<List<FocusSession>>,
+        List<FocusSession>,
+        Stream<List<FocusSession>>>
+    with
+        $FutureModifier<List<FocusSession>>,
+        $StreamProvider<List<FocusSession>> {
+  SessionsForTaskProvider._(
+      {required SessionsForTaskFamily super.from, required int super.argument})
+      : super(
+          retry: null,
+          name: r'sessionsForTaskProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$sessionsForTaskHash();
+
+  @override
+  String toString() {
+    return r'sessionsForTaskProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<List<FocusSession>> $createElement(
+          $ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<FocusSession>> create(Ref ref) {
+    final argument = this.argument as int;
+    return sessionsForTask(
+      ref,
+      argument,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is SessionsForTaskProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$sessionsForTaskHash() => r'29519d49382698ea08fbc4b14e017dda7fed833b';
+
+final class SessionsForTaskFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<List<FocusSession>>, int> {
+  SessionsForTaskFamily._()
+      : super(
+          retry: null,
+          name: r'sessionsForTaskProvider',
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
+        );
+
+  SessionsForTaskProvider call(
+    int taskId,
+  ) =>
+      SessionsForTaskProvider._(argument: taskId, from: this);
+
+  @override
+  String toString() => r'sessionsForTaskProvider';
+}
+
 @ProviderFor(subtasksForTask)
 final subtasksForTaskProvider = SubtasksForTaskFamily._();
 

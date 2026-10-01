@@ -24,6 +24,15 @@ class _FakeNotificationService implements NotificationService {
   }) async {}
 
   @override
+  Future<void> requestPermission() async {}
+
+  @override
+  Future<bool> launchedFromNotification() async => false;
+
+  @override
+  Stream<void> get taps => const Stream.empty();
+
+  @override
   Future<void> cancelSessionNotification() async {}
 }
 
@@ -207,6 +216,31 @@ void main() {
     expect(rows, hasLength(1));
     expect(rows!.single.endedEarly, isFalse);
     expect(rows.single.completedAt, isNull);
+    await disposeScreen(tester);
+  });
+
+  testWidgets('End shows the session summary, which starts the break',
+      (tester) async {
+    await insertRunning(tester, elapsedSec: 600);
+    await pumpScreenNoSettle(tester,
+        db: db, child: const FocusScreen(), extraOverrides: fakeNotifications);
+
+    await tester.tap(find.byTooltip('End'));
+    for (var i = 0; i < 20; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(find.text('Session ended early'), findsOneWidget);
+    expect(find.textContaining('10 min of focus logged'), findsOneWidget);
+
+    await tester.tap(find.text('Start short break (5m)'));
+    for (var i = 0; i < 20; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    final rows = await tester.runAsync(() => db.select(db.focusSessions).get());
+    expect(rows!.last.sessionType, FocusSessionType.shortBreak);
+    expect(rows.last.completedAt, isNull);
+    expect(find.byTooltip('Skip'), findsOneWidget,
+        reason: 'breaks are skipped');
     await disposeScreen(tester);
   });
 }

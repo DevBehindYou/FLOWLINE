@@ -33,6 +33,15 @@ class _FakeNotificationService implements NotificationService {
   }
 
   @override
+  Future<void> requestPermission() async {}
+
+  @override
+  Future<bool> launchedFromNotification() async => false;
+
+  @override
+  Stream<void> get taps => const Stream.empty();
+
+  @override
   Future<void> cancelSessionNotification() async => cancels++;
 }
 
@@ -176,5 +185,30 @@ void main() {
     final row = await db.select(db.focusSessions).getSingle();
     expect(row.plannedDurationSec, 5 * 60);
     expect(notifications.schedules, 0);
+  });
+
+  test('completing publishes an outcome that suggests the next session',
+      () async {
+    await viewModel().startSession(type: FocusSessionType.focus);
+    final active = (await container
+        .read(focusSessionRepositoryProvider)
+        .getActiveSession())!;
+    await viewModel().complete(active, endedEarly: true);
+
+    final outcome = container.read(lastSessionOutcomeProvider)!;
+    expect(outcome.session.id, active.id);
+    expect(outcome.endedEarly, isTrue);
+    expect(outcome.focusSessionsToday, 1);
+    expect(outcome.next, FocusSessionType.shortBreak);
+  });
+
+  test('a repeated completion publishes nothing new', () async {
+    final id = await insertSession(anchor: DateTime(2026, 1, 1, 9));
+    await viewModel().completeIfElapsed();
+    container.read(lastSessionOutcomeProvider.notifier).clear();
+    final row = await sessionRow(id);
+    expect(row.completedAt, isNotNull);
+    await viewModel().completeIfElapsed();
+    expect(container.read(lastSessionOutcomeProvider), isNull);
   });
 }

@@ -27,6 +27,15 @@ class _QuietNotifications implements NotificationService {
       required String title,
       required String body}) async {}
   @override
+  Future<void> requestPermission() async {}
+
+  @override
+  Future<bool> launchedFromNotification() async => false;
+
+  @override
+  Stream<void> get taps => const Stream.empty();
+
+  @override
   Future<void> cancelSessionNotification() async {}
 }
 

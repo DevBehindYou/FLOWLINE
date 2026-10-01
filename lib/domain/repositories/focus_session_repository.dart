@@ -5,6 +5,7 @@ abstract interface class FocusSessionRepository {
   /// enforced by [startSession].
   Stream<FocusSession?> watchActiveSession();
   Future<FocusSession?> getActiveSession();
+  Future<FocusSession?> getSession(int id);
 
   Stream<List<FocusSession>> watchSessionsForTask(int taskId);
 

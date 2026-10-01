@@ -6,6 +6,7 @@ import '../../../domain/entities/ai_provider_config.dart';
 import '../../../core/async/run_action.dart';
 import '../../../shared_widgets/empty_state.dart';
 import '../../../shared_widgets/error_view.dart';
+import '../../../shared_widgets/settings_action.dart';
 import '../viewmodel/assistant_view_model.dart';
 import '../widgets/chat_bubble.dart';
 
@@ -21,10 +22,11 @@ class AssistantScreen extends ConsumerWidget {
         title: const Text('Assistant'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings_outlined),
+            icon: const Icon(Icons.smart_toy_outlined),
             tooltip: 'AI Providers',
             onPressed: () => context.push('/settings/ai-providers'),
           ),
+          const SettingsAction(),
         ],
       ),
       body: activeProviderAsync.when(
