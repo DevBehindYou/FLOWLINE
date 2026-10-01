@@ -512,6 +512,6 @@ Tick these in the PR that closes each item.
 - [x] `CLAUDE.md` with rules and definition of done
 - [ ] Format-fix workflow
 - [ ] Emulator integration job
-- [ ] Golden job
+- [x] Golden job (32 images: 8 screens x light/dark x 1x/2x text; diffs uploaded on failure)
 - [ ] Dependabot
 - [ ] Tagged release workflow

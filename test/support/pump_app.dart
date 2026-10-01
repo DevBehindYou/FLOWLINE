@@ -21,6 +21,7 @@ Widget _app({
       ...extraOverrides,
     ],
     child: MaterialApp(
+      debugShowCheckedModeBanner: false,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       theme: AppTheme.light(),

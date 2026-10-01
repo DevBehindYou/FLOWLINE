@@ -62,29 +62,19 @@ class InsightsScreen extends ConsumerWidget {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: _StatCard(
-                        label: context.l10n.navToday,
-                        value: _formatDuration(context.l10n, todaySeconds)),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _StatCard(
-                      label: context.l10n.dayStreak,
-                      value: '$streak',
-                      icon: Icons.local_fire_department,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _StatCard(
-                        label: context.l10n.thisWeek,
-                        value: _formatDuration(context.l10n, weekTotalSeconds)),
-                  ),
-                ],
-              ),
+              _StatCards(cards: [
+                _StatCard(
+                    label: context.l10n.navToday,
+                    value: _formatDuration(context.l10n, todaySeconds)),
+                _StatCard(
+                  label: context.l10n.dayStreak,
+                  value: '$streak',
+                  icon: Icons.local_fire_department,
+                ),
+                _StatCard(
+                    label: context.l10n.thisWeek,
+                    value: _formatDuration(context.l10n, weekTotalSeconds)),
+              ]),
               const SizedBox(height: 24),
               Text(context.l10n.last7Days,
                   style: Theme.of(context).textTheme.titleMedium),
@@ -113,6 +103,41 @@ class InsightsScreen extends ConsumerWidget {
   }
 }
 
+/// Three stat cards in a row of equal height; stacked full-width when
+/// large text would break their words mid-way (seen in the 200% goldens).
+class _StatCards extends StatelessWidget {
+  const _StatCards({required this.cards});
+
+  final List<_StatCard> cards;
+
+  @override
+  Widget build(BuildContext context) {
+    final largeText = MediaQuery.textScalerOf(context).scale(14) > 14 * 1.3;
+    if (largeText) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final (i, card) in cards.indexed) ...[
+            if (i > 0) const SizedBox(height: 12),
+            card,
+          ],
+        ],
+      );
+    }
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final (i, card) in cards.indexed) ...[
+            if (i > 0) const SizedBox(width: 12),
+            Expanded(child: card),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 class _StatCard extends StatelessWidget {
   const _StatCard({required this.label, required this.value, this.icon});
 
@@ -132,7 +157,13 @@ class _StatCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (icon != null) Icon(icon, size: 18, color: scheme.primary),
+          // The icon slot is always there, so values line up across cards.
+          SizedBox(
+            height: 18,
+            child: icon == null
+                ? null
+                : Icon(icon, size: 18, color: scheme.primary),
+          ),
           const SizedBox(height: 8),
           Text(
             value,
@@ -178,6 +209,9 @@ class _WeeklyBarChart extends StatelessWidget {
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
+              // Room for the day letter at any text size (fl_chart's
+              // default height clips it at 200%).
+              reservedSize: MediaQuery.textScalerOf(context).scale(12) + 14,
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
                 if (index < 0 || index >= totals.length) {

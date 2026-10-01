@@ -85,6 +85,19 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
+      # Golden tests (test/goldens) run in the test step above. On a
+      # mismatch flutter_test writes the expected, actual and diff images
+      # under test/goldens/failures/; hand them back for review. If the
+      # change is intended: flutter test --update-goldens test/goldens.
+      - name: Upload golden diffs
+        if: ${{ !cancelled() && steps.test.outcome == 'failure' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: golden-failures
+          path: test/goldens/failures/
+          retention-days: 14
+          if-no-files-found: ignore
+
       # There is no local formatter, so hand back the exact fix instead
       # of only a list of files: `git apply format.patch`.
       - name: Build formatter patch

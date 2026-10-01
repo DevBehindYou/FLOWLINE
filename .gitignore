@@ -8,3 +8,6 @@ build/
 android/
 ios/
 coverage/
+
+# Golden test diffs (CI uploads them as an artifact)
+test/goldens/failures/

@@ -257,6 +257,9 @@ class _SubtaskList extends ConsumerWidget {
             return CheckboxListTile(
               key: ValueKey(subtask.id),
               contentPadding: EdgeInsets.zero,
+              // Checkbox first, actions and the drag handle at the end, so
+              // the title isn't squeezed behind three icons.
+              controlAffinity: ListTileControlAffinity.leading,
               value: subtask.status == SubtaskStatus.done,
               onChanged: (_) => actions.toggleSubtask(subtask),
               title: Text(

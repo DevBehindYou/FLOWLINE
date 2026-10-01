@@ -52,6 +52,12 @@ class TaskCard extends ConsumerWidget {
       child: Card(
         margin: const EdgeInsets.only(bottom: 8),
         child: ListTile(
+          // Tight padding: the leading and trailing buttons already bring
+          // 48dp touch targets, and on a 360dp phone the title needs the
+          // width (seen in the goldens).
+          contentPadding: const EdgeInsetsDirectional.symmetric(horizontal: 4),
+          horizontalTitleGap: 4,
+          minLeadingWidth: 0,
           onTap: () => context.push('/today/task/${task.id}'),
           // The spec's accessible alternative to swiping (§8).
           onLongPress: () => _showActions(context, ref),

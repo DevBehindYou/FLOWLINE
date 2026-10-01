@@ -13,6 +13,10 @@ Riverpod 3 (codegen), Drift 2.35 / SQLite, go_router.
   together with `riverpod_generator`, `drift_dev` and `build_runner`
   (rule R19). Use that same version locally.
 - After changing tables or providers: `dart run build_runner build`.
+- Golden images live in `test/goldens/images/` (every screen, light and
+  dark, 1x and 2x text). After an intended visual change, run
+  `flutter test --update-goldens test/goldens`, **look at the changed
+  images**, then commit them. CI uploads the diffs of a failing run.
 - After any `schemaVersion` bump: `dart run drift_dev make-migrations`,
   then commit `drift_schemas/` and `test/drift/`.
 - `android/` is generated, never committed. Every change to it goes into
