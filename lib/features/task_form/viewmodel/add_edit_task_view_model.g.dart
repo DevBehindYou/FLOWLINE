@@ -42,7 +42,7 @@ final class AddEditTaskViewModelProvider
 }
 
 String _$addEditTaskViewModelHash() =>
-    r'a15a97e2987506bc7295af2d684fb0cf5a3bad44';
+    r'89451945f90a917b7b8548a325c7899a9cc69c78';
 
 abstract class _$AddEditTaskViewModel extends $Notifier<void> {
   void build();

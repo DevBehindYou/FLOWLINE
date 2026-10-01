@@ -43,7 +43,7 @@ final class AddEditScheduleBlockViewModelProvider
 }
 
 String _$addEditScheduleBlockViewModelHash() =>
-    r'3704898bbaf424cbcdb7caa39f98567320e0490e';
+    r'd4db75ac05a993e853e6f7ce17e2839ca552d38a';
 
 abstract class _$AddEditScheduleBlockViewModel extends $Notifier<void> {
   void build();

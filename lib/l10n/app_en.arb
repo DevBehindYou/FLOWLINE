@@ -640,5 +640,17 @@
         "type": "int"
       }
     }
-  }
+  },
+  "repeat": "Repeat",
+  "repeatNone": "Does not repeat",
+  "repeatDaily": "Every day",
+  "repeatWeekdays": "Every weekday (Mon–Fri)",
+  "repeatWeekly": "Weekly on…",
+  "editRepeatingTitle": "Edit repeating block",
+  "editThisOccurrence": "Only this day",
+  "editAllOccurrences": "All days",
+  "deleteRepeatingTitle": "Delete repeating block",
+  "deleteThisOccurrence": "Only this day",
+  "deleteThisAndFollowing": "This day and all after it",
+  "repeatingBlock": "Repeating block"
 }

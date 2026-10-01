@@ -19,6 +19,27 @@ Future<void> openScheduleBlockEditor(
   required DateTime day,
   ScheduleBlock? existing,
 }) async {
+  // One day of a repeating block: edit just that day, or the series.
+  if (existing != null && existing.isOccurrence) {
+    final scope = await _askScope(context,
+        title: context.l10n.editRepeatingTitle,
+        thisDay: context.l10n.editThisOccurrence,
+        rest: context.l10n.editAllOccurrences);
+    if (scope == null || !context.mounted) return;
+    if (scope == _Scope.rest) {
+      final series = await runAction(
+        context,
+        () => ProviderScope.containerOf(context, listen: false)
+            .read(addEditScheduleBlockViewModelProvider.notifier)
+            .getSeries(existing!),
+      );
+      if (series == null || !context.mounted) return;
+      existing = series;
+      day = DateTime(
+          series.startTime.year, series.startTime.month, series.startTime.day);
+    }
+  }
+
   ScheduleConflictPending? draft;
   while (true) {
     if (!context.mounted) return;
@@ -42,6 +63,7 @@ Future<void> openScheduleBlockEditor(
         pendingEnd: pending.end,
         conflicts: pending.conflicts,
         existingBlock: pending.existingBlock,
+        recurrence: pending.recurrence,
       ),
     );
     if (editAgain != true || !context.mounted) return;
@@ -49,12 +71,32 @@ Future<void> openScheduleBlockEditor(
   }
 }
 
-/// Confirms, then deletes [block]. Its tasks move to Unscheduled.
+/// Confirms, then deletes [block]. Its tasks move to Unscheduled. For one
+/// day of a repeating block, asks whether to delete that day or that day
+/// and everything after it.
 Future<void> confirmAndDeleteScheduleBlock(
   BuildContext context,
   WidgetRef ref,
   ScheduleBlock block,
 ) async {
+  final viewModel = ref.read(addEditScheduleBlockViewModelProvider.notifier);
+  if (block.isOccurrence) {
+    final scope = await _askScope(context,
+        title: context.l10n.deleteRepeatingTitle,
+        thisDay: context.l10n.deleteThisOccurrence,
+        rest: context.l10n.deleteThisAndFollowing,
+        destructive: true);
+    if (scope == null || !context.mounted) return;
+    await runAction(
+      context,
+      () => scope == _Scope.thisDay
+          ? viewModel.deleteBlock(block.id)
+          : viewModel.endSeriesAt(block),
+      failureMessage: context.l10n.deleteBlockFailed,
+    );
+    return;
+  }
+
   final confirmed = await confirmDestructive(
     context,
     title: context.l10n.deleteBlockTitle(block.title),
@@ -63,9 +105,49 @@ Future<void> confirmAndDeleteScheduleBlock(
   if (!confirmed || !context.mounted) return;
   await runAction(
     context,
-    () => ref
-        .read(addEditScheduleBlockViewModelProvider.notifier)
-        .deleteBlock(block.id),
+    () => viewModel.deleteBlock(block.id),
     failureMessage: context.l10n.deleteBlockFailed,
+  );
+}
+
+enum _Scope { thisDay, rest }
+
+Future<_Scope?> _askScope(
+  BuildContext context, {
+  required String title,
+  required String thisDay,
+  required String rest,
+  bool destructive = false,
+}) {
+  return showModalBottomSheet<_Scope>(
+    context: context,
+    builder: (context) {
+      final color = destructive ? Theme.of(context).colorScheme.error : null;
+      return SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title:
+                  Text(title, style: Theme.of(context).textTheme.titleMedium),
+            ),
+            ListTile(
+              leading: Icon(Icons.today_outlined, color: color),
+              title: Text(thisDay),
+              onTap: () => Navigator.pop(context, _Scope.thisDay),
+            ),
+            ListTile(
+              leading: Icon(Icons.repeat, color: color),
+              title: Text(rest),
+              onTap: () => Navigator.pop(context, _Scope.rest),
+            ),
+            ListTile(
+              title: Text(context.l10n.cancel),
+              onTap: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      );
+    },
   );
 }

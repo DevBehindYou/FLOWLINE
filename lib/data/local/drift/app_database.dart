@@ -24,6 +24,7 @@ import 'tables/focus_sessions_table.dart';
 import 'tables/schedule_blocks_table.dart';
 import 'tables/subtasks_table.dart';
 import 'tables/tasks_table.dart';
+import 'app_database.steps.dart';
 
 part 'app_database.g.dart';
 
@@ -32,6 +33,7 @@ part 'app_database.g.dart';
   Tasks,
   Subtasks,
   ScheduleBlocks,
+  ScheduleBlockExceptions,
   FocusSessions,
   AiProviderConfigs,
   AiConversations,
@@ -48,46 +50,58 @@ class AppDatabase extends _$AppDatabase {
   // Every bump: add a step below, then `dart run drift_dev make-migrations`
   // and commit drift_schemas/ and test/drift/ (rule R2).
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (Migrator m) async {
           await m.createAll();
         },
+        // Step by step (drift's generated app_database.steps.dart): each
+        // step sees the schema of the version it migrates to, not today's
+        // tables. Rebuilding a table from the current definition in an old
+        // step breaks as soon as a later version adds a column to it.
+        // v1/v2 never shipped (no snapshots), so steps start at v3.
         onUpgrade: (Migrator m, int from, int to) async {
-          // v1 -> v2: added FocusSessions (Phase 2).
-          if (from < 2) {
-            await m.createTable(focusSessions);
-          }
-          // v2 -> v3: added the AI Assistant's tables (Phase 3). No user
-          // data exists in the wild yet, so these are plain additive
-          // migrations — nothing to backfill.
-          if (from < 3) {
-            await m.createTable(aiProviderConfigs);
-            await m.createTable(aiConversations);
-            await m.createTable(aiMessages);
-          }
-          // v3 -> v4: constraints and indexes (Phase 1 of
-          // docs/04-build-and-optimization-plan.md). Repair first, so no
-          // existing row can violate a new constraint, then rebuild.
-          if (from < 4) {
-            await _repairForV4();
-            // Rebuilds: CHECK(end_time > start_time) on schedule_blocks and
-            // the schedule_block_id foreign key on tasks. alterTable copies
-            // every row and turns foreign keys off while it runs, so the
-            // drop/re-create can't cascade into subtasks or sessions.
-            await m.alterTable(TableMigration(scheduleBlocks));
-            await m.alterTable(TableMigration(tasks));
-            await m.addColumn(aiMessages, aiMessages.isPending);
-            for (final index in allSchemaEntities.whereType<Index>()) {
-              await m.create(index);
-            }
-          }
-          // v4 -> v5: user preferences (Phase 3).
-          if (from < 5) {
-            await m.createTable(appSettingsEntries);
-          }
+          await stepByStep(
+            // Constraints and indexes (Phase 1 of
+            // docs/04-build-and-optimization-plan.md). Repair first, so no
+            // existing row can violate a new constraint, then rebuild.
+            from3To4: (m, schema) async {
+              await _repairForV4();
+              // Rebuilds: CHECK(end_time > start_time) on schedule_blocks
+              // and the schedule_block_id foreign key on tasks. alterTable
+              // copies every row and turns foreign keys off while it runs,
+              // so the drop/re-create can't cascade into subtasks or
+              // sessions.
+              await m.alterTable(TableMigration(schema.scheduleBlocks));
+              await m.alterTable(TableMigration(schema.tasks));
+              await m.addColumn(schema.aiMessages, schema.aiMessages.isPending);
+              for (final index in schema.entities.whereType<Index>()) {
+                await m.create(index);
+              }
+            },
+            // User preferences (Phase 3).
+            from4To5: (m, schema) async {
+              await m.createTable(schema.appSettings);
+            },
+            // Recurring blocks (Phase 3): series columns, the CHECKs
+            // between them, deleted-occurrence exceptions, and the unique
+            // index on (series, day).
+            from5To6: (m, schema) async {
+              await m.alterTable(TableMigration(
+                schema.scheduleBlocks,
+                newColumns: [
+                  schema.scheduleBlocks.recurrence,
+                  schema.scheduleBlocks.recurrenceUntil,
+                  schema.scheduleBlocks.seriesId,
+                  schema.scheduleBlocks.occurrenceDate,
+                ],
+              ));
+              await m.createTable(schema.scheduleBlockExceptions);
+              await m.create(schema.scheduleBlocksSeriesOccurrence);
+            },
+          )(m, from, to);
           await _assertForeignKeysIntact();
         },
         // SQLite ignores every `references(..., onDelete: ...)` above unless
@@ -108,6 +122,7 @@ class AppDatabase extends _$AppDatabase {
         focusSessions,
         subtasks,
         tasks,
+        scheduleBlockExceptions,
         scheduleBlocks,
         aiProviderConfigs,
         appSettingsEntries,

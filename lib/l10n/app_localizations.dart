@@ -1575,6 +1575,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hide completed ({count})'**
   String hideCompleted(int count);
+
+  /// No description provided for @repeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat'**
+  String get repeat;
+
+  /// No description provided for @repeatNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Does not repeat'**
+  String get repeatNone;
+
+  /// No description provided for @repeatDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get repeatDaily;
+
+  /// No description provided for @repeatWeekdays.
+  ///
+  /// In en, this message translates to:
+  /// **'Every weekday (Mon–Fri)'**
+  String get repeatWeekdays;
+
+  /// No description provided for @repeatWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly on…'**
+  String get repeatWeekly;
+
+  /// No description provided for @editRepeatingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit repeating block'**
+  String get editRepeatingTitle;
+
+  /// No description provided for @editThisOccurrence.
+  ///
+  /// In en, this message translates to:
+  /// **'Only this day'**
+  String get editThisOccurrence;
+
+  /// No description provided for @editAllOccurrences.
+  ///
+  /// In en, this message translates to:
+  /// **'All days'**
+  String get editAllOccurrences;
+
+  /// No description provided for @deleteRepeatingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete repeating block'**
+  String get deleteRepeatingTitle;
+
+  /// No description provided for @deleteThisOccurrence.
+  ///
+  /// In en, this message translates to:
+  /// **'Only this day'**
+  String get deleteThisOccurrence;
+
+  /// No description provided for @deleteThisAndFollowing.
+  ///
+  /// In en, this message translates to:
+  /// **'This day and all after it'**
+  String get deleteThisAndFollowing;
+
+  /// No description provided for @repeatingBlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeating block'**
+  String get repeatingBlock;
 }
 
 class _AppLocalizationsDelegate

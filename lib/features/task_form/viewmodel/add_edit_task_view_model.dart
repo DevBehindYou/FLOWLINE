@@ -20,19 +20,30 @@ class AddEditTaskViewModel extends _$AddEditTaskViewModel {
     required TaskPriority priority,
     int? scheduleBlockId,
     DateTime? dueAt,
-  }) {
-    return ref.read(taskRepositoryProvider).createTask(
+  }) async {
+    final blockId = await _storedBlockId(scheduleBlockId);
+    await ref.read(taskRepositoryProvider).createTask(
           title: title,
           notes: notes,
           priority: priority,
-          scheduleBlockId: scheduleBlockId,
+          scheduleBlockId: blockId,
           dueAt: dueAt,
         );
   }
 
-  Future<void> updateTask(Task task) {
-    return ref.read(taskRepositoryProvider).updateTask(task);
+  Future<void> updateTask(Task task) async {
+    final blockId = await _storedBlockId(task.scheduleBlockId);
+    await ref
+        .read(taskRepositoryProvider)
+        .updateTask(task.copyWith(scheduleBlockId: () => blockId));
   }
+
+  /// A task can be put in a computed occurrence of a repeating block (a
+  /// negative stand-in id); the occurrence gets its own row first, so the
+  /// foreign key has something to point at.
+  Future<int?> _storedBlockId(int? blockId) async => blockId == null
+      ? null
+      : ref.read(scheduleRepositoryProvider).storeOccurrence(blockId);
 
   Future<void> deleteTask(int id) {
     return ref.read(taskRepositoryProvider).deleteTask(id);

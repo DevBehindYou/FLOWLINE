@@ -1,5 +1,6 @@
 import '../../domain/entities/schedule_block.dart';
 import '../../domain/entities/task.dart';
+import '../../domain/recurrence/recurrence_rule.dart';
 import '../local/drift/app_database.dart';
 
 // Row -> entity mapping shared by the repositories that read these tables
@@ -23,4 +24,8 @@ ScheduleBlock blockFromRow(ScheduleBlockRow row) => ScheduleBlock(
       endTime: row.endTime,
       source: row.source,
       isLocked: row.isLocked,
+      recurrence: RecurrenceRule.tryParse(row.recurrence),
+      recurrenceUntil: row.recurrenceUntil,
+      seriesId: row.seriesId,
+      occurrenceDate: row.occurrenceDate,
     );

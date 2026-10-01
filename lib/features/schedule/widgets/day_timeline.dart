@@ -128,6 +128,12 @@ class _ScheduleBlockSection extends ConsumerWidget {
                     padding: EdgeInsets.only(right: 6),
                     child: Icon(Icons.lock_outline, size: 16),
                   ),
+                if (block.isOccurrence)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: Icon(Icons.repeat,
+                        size: 16, semanticLabel: l10n.repeatingBlock),
+                  ),
                 if (isConflicting)
                   Padding(
                     padding: const EdgeInsets.only(right: 6),

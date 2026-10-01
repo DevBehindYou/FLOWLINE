@@ -919,4 +919,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String hideCompleted(int count) {
     return 'Hide completed ($count)';
   }
+
+  @override
+  String get repeat => 'Repeat';
+
+  @override
+  String get repeatNone => 'Does not repeat';
+
+  @override
+  String get repeatDaily => 'Every day';
+
+  @override
+  String get repeatWeekdays => 'Every weekday (Mon–Fri)';
+
+  @override
+  String get repeatWeekly => 'Weekly on…';
+
+  @override
+  String get editRepeatingTitle => 'Edit repeating block';
+
+  @override
+  String get editThisOccurrence => 'Only this day';
+
+  @override
+  String get editAllOccurrences => 'All days';
+
+  @override
+  String get deleteRepeatingTitle => 'Delete repeating block';
+
+  @override
+  String get deleteThisOccurrence => 'Only this day';
+
+  @override
+  String get deleteThisAndFollowing => 'This day and all after it';
+
+  @override
+  String get repeatingBlock => 'Repeating block';
 }

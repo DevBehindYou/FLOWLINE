@@ -7,6 +7,7 @@ import '../../../domain/services/conflict_resolution_ai.dart';
 import '../../schedule_block_form/viewmodel/add_edit_schedule_block_view_model.dart';
 import '../viewmodel/schedule_intelligence_view_model.dart';
 import '../../../l10n/l10n.dart';
+import '../../../domain/recurrence/recurrence_rule.dart';
 
 /// Shown instead of saving directly when the pending block overlaps one
 /// or more existing blocks. Three ways out: ask the AI for a suggested
@@ -24,6 +25,7 @@ class ConflictWarningSheet extends ConsumerStatefulWidget {
     required this.pendingEnd,
     required this.conflicts,
     this.existingBlock,
+    this.recurrence,
   });
 
   final String pendingTitle;
@@ -33,6 +35,9 @@ class ConflictWarningSheet extends ConsumerStatefulWidget {
 
   /// Non-null when this conflict came from editing an existing block.
   final ScheduleBlock? existingBlock;
+
+  /// Set when the pending block is a new repeating one.
+  final RecurrenceRule? recurrence;
 
   @override
   ConsumerState<ConflictWarningSheet> createState() =>
@@ -133,7 +138,10 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
           );
         } else {
           await viewModel.createBlock(
-              title: widget.pendingTitle, startTime: start, endTime: end);
+              title: widget.pendingTitle,
+              startTime: start,
+              endTime: end,
+              recurrence: widget.recurrence);
         }
         return true;
       },

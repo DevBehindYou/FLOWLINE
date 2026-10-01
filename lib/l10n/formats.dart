@@ -18,6 +18,9 @@ extension L10nFormats on AppLocalizations {
   /// "5:00 PM" (or "17:00" where the locale uses 24-hour time).
   String time(DateTime d) => DateFormat.jm(localeName).format(d);
 
+  /// "Tue".
+  String weekdayShort(DateTime d) => DateFormat.E(localeName).format(d);
+
   /// The one-letter weekday ("T"), from the locale's own narrow form.
   /// Cutting the first character of the short name split characters in
   /// scripts like Devanagari and gave two identical "T"s wrongly (B19).

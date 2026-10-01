@@ -102,7 +102,7 @@ fixed by aligning the fake clock in the test.
 
 | Module (from `03-scope…` §1) | Status | Notes |
 |---|---|---|
-| Task & schedule management | **Built, partial** | Tasks, subtasks, blocks (create, edit, delete), day switcher, unscheduled backlog, swipe complete/delete with Undo, long-press action sheet, due dates with overdue state, block picker in the task form. No drag-and-drop timeline, no recurrence. |
+| Task & schedule management | **Built, partial** | Tasks, subtasks, blocks (create, edit, delete), day switcher, unscheduled backlog, swipe complete/delete with Undo, long-press action sheet, due dates with overdue state, block picker in the task form. Repeating blocks (every day, weekdays, chosen weekdays) with edit/delete of one day or the whole series. No drag-and-drop timeline. |
 | Focus timer | **Built** | Configurable focus/break lengths, start/pause/resume/end/+5 min, Skip for breaks, task/subtask linking, sprint credit, local notification (tap opens Focus). Session Summary sheet suggests the next session (long break every N focus sessions); completion haptic. No last-10-seconds emphasis yet. |
 | AI assistant | **Built, partial** | Four vendors behind one strategy interface, one thread per provider, error bubbles. No streaming, no markdown, no conversation history screen, no Task Breakdown Engine, no "Add to Today". |
 | Schedule intelligence | **Built, partial** | Overlap detection on save, conflict sheet, one-shot AI time suggestion, overlap flagging on Today. No drift analysis, no manual timeline adjuster. |
@@ -586,8 +586,21 @@ erDiagram
 - **Foreign keys are enforced** — `PRAGMA foreign_keys = ON` runs in
   `beforeOpen` on every connection. (Before commit `1f5d597` it didn't, so
   every `onDelete` rule was silently ignored.)
-- **`tasks.scheduleBlockId` is not a foreign key.** `ScheduleRepositoryImpl.deleteBlock`
-  therefore un-schedules the block's tasks in the same transaction.
+- **`tasks.scheduleBlockId` is a foreign key `ON DELETE SET NULL`** (since
+  v4); `ScheduleRepositoryImpl.deleteBlock` also un-schedules the block's
+  tasks explicitly in the same transaction.
+- **Recurring blocks (v6).** A `schedule_blocks` row is a plain block, a
+  *series* (`recurrence` set: an RRULE subset, `FREQ=DAILY` or
+  `FREQ=WEEKLY;BYDAY=…`; a template that is never shown itself), or a
+  *stored occurrence* (`series_id` + `occurrence_date`; at most one per
+  series and day, unique index). Days are expanded in
+  `domain/recurrence/occurrences.dart` at read time, at wall-clock times
+  (DST-safe). A computed occurrence has a negative stand-in id that
+  encodes its series and day; it is stored as a real row when it's edited
+  alone or gets a task. "Delete this day" adds a row to
+  `schedule_block_exceptions`; "this day and all after" sets
+  `recurrence_until`. CHECKs keep `series_id` and `occurrence_date` set
+  together, and a stored occurrence is never itself a series.
 - **At most one active focus session** (`completedAt IS NULL`).
   `startSession` closes any dangling one first.
 - **Completion is idempotent** — `completeSession` updates only
@@ -604,19 +617,24 @@ erDiagram
 
 ### 7.3 Migrations
 
-`AppDatabase.schemaVersion = 4`. Snapshots of v3 (what every APK so far
-shipped) and v4 live in `drift_schemas/`; `test/drift/` verifies the
-upgrade schema and data. Run `dart run drift_dev make-migrations` after
-each bump.
+`AppDatabase.schemaVersion = 6`. Snapshots of v3 (what every APK
+before Phase 3 shipped) to v6 live in `drift_schemas/`; `test/drift/`
+verifies the upgrade schema and data. Upgrades run **step by step**
+through the generated `app_database.steps.dart`, so each step sees its
+own version's tables. Run `dart run drift_dev make-migrations` after each
+bump, then add the new `fromNToM` step.
 
 | From → to | Change |
 |---|---|
 | 1 → 2 | `createTable(focusSessions)` (Phase 2) |
 | 2 → 3 | `createTable(aiProviderConfigs, aiConversations, aiMessages)` (Phase 3) |
 | 3 → 4 | Repair data, then: unique partial index (one active session), `CHECK(end_time > start_time)`, `tasks.schedule_block_id` FK `ON DELETE SET NULL`, five performance indexes, `ai_messages.is_pending` |
+| 4 → 5 | `createTable(app_settings)` (Phase 3) |
+| 5 → 6 | `schedule_blocks` rebuilt with `recurrence`, `recurrence_until`, `series_id` (FK, cascade), `occurrence_date` and two CHECKs; `createTable(schedule_block_exceptions)`; unique index on `(series_id, occurrence_date)` (Phase 3) |
 
 Schema verification uses Drift's `SchemaVerifier` (generated tests plus a
-data-integrity test that upgrades a v3 database full of edge cases).
+data-integrity tests: a v3 database full of edge cases, and v5 → v6
+keeping blocks and their tasks).
 
 ---
 
@@ -1404,7 +1422,7 @@ checklist; Phase 1 is done (237 tests; 92% line coverage of domain + data);
 Phase 2 (Flutter 3.47 / Riverpod 3 / Drift 2.35) is done; Phase 3 is in
 progress (block editing, task form, settings, Session Summary, onboarding
 and splash, fonts and design tokens, l10n scaffolding, adaptive layout, backlog paging and the single-query
-timeline are done). The list
+timeline, recurring blocks are done). The list
 below is the original scope
 roadmap, kept for reference.
 
