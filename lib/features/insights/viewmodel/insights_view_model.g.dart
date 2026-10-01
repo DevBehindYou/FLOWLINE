@@ -7,7 +7,7 @@ part of 'insights_view_model.dart';
 // **************************************************************************
 
 String _$recentFocusSessionsHash() =>
-    r'26da8d899a6629c43b7f77e18ef002be462242b5';
+    r'b4cfe1579cba40589bd3eda18508ddcb828b902c';
 
 /// See also [recentFocusSessions].
 @ProviderFor(recentFocusSessions)

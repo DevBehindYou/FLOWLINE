@@ -2,21 +2,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart' show Ref;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/providers.dart';
+import '../../../core/time/current_day.dart';
 import '../../../domain/entities/schedule_block.dart';
 import '../../../domain/entities/task.dart';
+import '../../../domain/time/calendar_day.dart';
 
 part 'today_view_model.g.dart';
 
+/// The day shown on the Today tab. Follows [currentDayProvider], so it
+/// moves to the new day at midnight instead of staying on yesterday.
 @riverpod
 class SelectedDate extends _$SelectedDate {
   @override
-  DateTime build() => _stripTime(DateTime.now());
+  DateTime build() => ref.watch(currentDayProvider);
 
-  static DateTime _stripTime(DateTime d) => DateTime(d.year, d.month, d.day);
-
-  void goToToday() => state = _stripTime(DateTime.now());
-  void nextDay() => state = state.add(const Duration(days: 1));
-  void previousDay() => state = state.subtract(const Duration(days: 1));
+  void goToToday() => state = ref.read(currentDayProvider);
+  void nextDay() => state = addDays(state, 1);
+  void previousDay() => state = addDays(state, -1);
 }
 
 @riverpod

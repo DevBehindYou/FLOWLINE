@@ -433,14 +433,14 @@ Events that will force work later, with what triggers them and what to do. Revie
 
 Tick these in the PR that closes each item.
 
-**Phase 0 — Stabilize**
-- [ ] 0.1 Apply the format patch (K2)
-- [ ] 0.2 Stable signing key + fingerprint check (B2)
-- [ ] 0.3 Increasing versionCode (B27)
-- [ ] 0.4 Backup rules + hardened key reads (B3)
-- [ ] 0.5 `complete()` ordering + notification fallback (B4)
-- [ ] 0.6 Conflict-suggestion tests, explicit offsets, whole-day prompt (B28, B13, B14)
-- [ ] 0.7 Refresh the status sections of PROJECT_OVERVIEW and README
+**Phase 0 — Stabilize** — done in code and CI (run #10); still needs the owner to add the `ANDROID_*` signing secrets, then the device checks in the exit gate.
+- [x] 0.1 Apply the format patch (K2)
+- [x] 0.2 Stable signing key + fingerprint check (B2)
+- [x] 0.3 Increasing versionCode (B27)
+- [x] 0.4 Backup rules + hardened key reads (B3)
+- [x] 0.5 `complete()` ordering + notification fallback (B4)
+- [x] 0.6 Conflict-suggestion tests, explicit offsets, whole-day prompt (B28, B13, B14)
+- [x] 0.7 Refresh the status sections of PROJECT_OVERVIEW and README
 
 **Phase 1 — Harden**
 - [ ] 1.1 Time helpers + `currentDayProvider` + grep guard (B1, K7)

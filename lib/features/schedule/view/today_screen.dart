@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/time/current_day.dart';
+import '../../../domain/time/calendar_day.dart';
 import '../../../shared_widgets/empty_state.dart';
+import '../../../shared_widgets/error_view.dart';
 import '../../schedule_block_form/view/add_edit_schedule_block_sheet.dart';
 import '../../schedule_intelligence/view/conflict_warning_sheet.dart';
 import '../../task_form/view/add_edit_task_sheet.dart';
@@ -36,14 +39,19 @@ class TodayScreen extends ConsumerWidget {
           Expanded(
             child: blocksAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) =>
-                  Center(child: Text('Something went wrong: $error')),
+              error: (error, _) => ErrorView(
+                error: error,
+                onRetry: () =>
+                    ref.invalidate(scheduleBlocksForSelectedDateProvider),
+              ),
               data: (blocks) {
                 return unscheduledAsync.when(
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
-                  error: (error, _) =>
-                      Center(child: Text('Something went wrong: $error')),
+                  error: (error, _) => ErrorView(
+                    error: error,
+                    onRetry: () => ref.invalidate(unscheduledTasksProvider),
+                  ),
                   data: (unscheduled) {
                     if (blocks.isEmpty && unscheduled.isEmpty) {
                       return EmptyState(
@@ -112,7 +120,7 @@ class _DateHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final actions = ref.read(selectedDateProvider.notifier);
-    final isToday = _isSameDay(date, DateTime.now());
+    final isToday = isSameDay(date, ref.watch(currentDayProvider));
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -120,6 +128,7 @@ class _DateHeader extends ConsumerWidget {
         children: [
           IconButton(
             icon: const Icon(Icons.chevron_left),
+            tooltip: 'Previous day',
             onPressed: actions.previousDay,
           ),
           Expanded(
@@ -139,13 +148,11 @@ class _DateHeader extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.chevron_right),
+            tooltip: 'Next day',
             onPressed: actions.nextDay,
           ),
         ],
       ),
     );
   }
-
-  bool _isSameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
 }

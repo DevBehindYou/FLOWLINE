@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
+
 import '../entities/focus_session.dart';
 
 /// Pure text formatting — no Flutter, no `pdf`/`share_plus` packages.
@@ -40,7 +42,7 @@ class ExportFormatter {
     required DateTime rangeEnd,
   }) {
     final data = {
-      'exportedAt': DateTime.now().toIso8601String(),
+      'exportedAt': clock.now().toIso8601String(),
       'rangeStart': rangeStart.toIso8601String(),
       'rangeEnd': rangeEnd.toIso8601String(),
       'sessions': [

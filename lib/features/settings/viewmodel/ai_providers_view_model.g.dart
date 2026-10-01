@@ -7,7 +7,7 @@ part of 'ai_providers_view_model.dart';
 // **************************************************************************
 
 String _$aiProvidersViewModelHash() =>
-    r'5b212b47e93ab340a7d2036d77cd116345da8a8a';
+    r'cacef54c58e0b5b036e80dba401b8ad837ec4cc4';
 
 /// See also [AiProvidersViewModel].
 @ProviderFor(AiProvidersViewModel)

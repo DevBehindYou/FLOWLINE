@@ -113,13 +113,15 @@ class TaskRepositoryImpl implements TaskRepository {
   }
 
   @override
-  Future<void> incrementSubtaskCompletedSprints(int subtaskId) async {
-    final row = await (_db.select(_db.subtasks)
-          ..where((s) => s.id.equals(subtaskId)))
-        .getSingle();
-    await (_db.update(_db.subtasks)..where((s) => s.id.equals(subtaskId)))
-        .write(
-      SubtasksCompanion(completedSprints: Value(row.completedSprints + 1)),
+  Future<void> incrementSubtaskCompletedSprints(int subtaskId) {
+    // One statement, so two concurrent increments can't both read the old
+    // value and lose one (a read-then-write would). `updates` keeps
+    // Drift's watch() streams on subtasks refreshing.
+    return _db.customUpdate(
+      'UPDATE subtasks SET completed_sprints = completed_sprints + 1 '
+      'WHERE id = ?',
+      variables: [Variable.withInt(subtaskId)],
+      updates: {_db.subtasks},
     );
   }
 

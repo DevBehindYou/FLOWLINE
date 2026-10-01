@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:sqlite3/sqlite3.dart' show sqlite3;
 
 // The generated part file shares this library's imports, so every enum a
 // table stores via intEnum<T>() must be imported here, not only in the
@@ -74,6 +75,12 @@ class AppDatabase extends _$AppDatabase {
     return LazyDatabase(() async {
       final dbFolder = await getApplicationDocumentsDirectory();
       final file = File(p.join(dbFolder.path, 'flowline.sqlite'));
+      // Android's sandbox has no writable /tmp, so SQLite can fail on
+      // large sorts or temp tables unless it's pointed at the app's own
+      // cache directory (Drift's documented setup; K18).
+      if (Platform.isAndroid) {
+        sqlite3.tempDirectory = (await getTemporaryDirectory()).path;
+      }
       return NativeDatabase.createInBackground(file);
     });
   }

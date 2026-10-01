@@ -79,24 +79,40 @@ void main() {
     expect(unscheduled.map((t) => t.id), contains(taskId));
   });
 
-  test('starting a session while one is active closes the old one first',
+  test('starting while a session is active returns it unchanged (B6)',
       () async {
     final first = await sessions.startSession(
       sessionType: FocusSessionType.focus,
       plannedDurationSec: 1500,
     );
+    // A duplicate start (double tap racing the rebuild) must neither close
+    // the running session as "ended early" nor create a second one.
     final second = await sessions.startSession(
       sessionType: FocusSessionType.shortBreak,
       plannedDurationSec: 300,
     );
 
+    expect(second, first);
+    final rows = await db.select(db.focusSessions).get();
+    expect(rows, hasLength(1));
+    expect(rows.single.completedAt, isNull);
+    expect(rows.single.endedEarly, isFalse);
     final active = await sessions.watchActiveSession().first;
-    expect(active?.id, second);
+    expect(active?.id, first);
+  });
 
-    final old = await (db.select(db.focusSessions)
-          ..where((s) => s.id.equals(first)))
-        .getSingle();
-    expect(old.completedAt, isNotNull);
-    expect(old.endedEarly, isTrue);
+  test('a paused session is also kept when start is called again', () async {
+    final first = await sessions.startSession(
+      sessionType: FocusSessionType.focus,
+      plannedDurationSec: 1500,
+    );
+    await sessions.pauseSession(first);
+
+    expect(
+      await sessions.startSession(
+          sessionType: FocusSessionType.focus, plannedDurationSec: 1500),
+      first,
+    );
+    expect(await db.select(db.focusSessions).get(), hasLength(1));
   });
 }

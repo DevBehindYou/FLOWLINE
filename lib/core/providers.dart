@@ -59,8 +59,20 @@ Future<NotificationService> notificationService(Ref ref) async {
   return service;
 }
 
+/// One shared client for every AI vendor. Timeouts are generous for the
+/// receive side because a non-streaming completion can legitimately take
+/// a minute, but a dead network or an unreachable Ollama host now fails
+/// in seconds instead of hanging the chat forever (K5).
 @Riverpod(keepAlive: true)
-Dio dio(Ref ref) => Dio();
+Dio dio(Ref ref) {
+  final dio = Dio(BaseOptions(
+    connectTimeout: const Duration(seconds: 15),
+    sendTimeout: const Duration(seconds: 30),
+    receiveTimeout: const Duration(seconds: 120),
+  ));
+  ref.onDispose(dio.close);
+  return dio;
+}
 
 @Riverpod(keepAlive: true)
 SecureKeyStore secureKeyStore(Ref ref) => const SecureKeyStore();

@@ -7,9 +7,19 @@ abstract interface class FocusSessionRepository {
   Future<FocusSession?> getActiveSession();
 
   Stream<List<FocusSession>> watchSessionsForTask(int taskId);
-  Stream<List<FocusSession>> watchTodaysSessions();
-  Stream<List<FocusSession>> watchSessionsInRange(DateTime start, DateTime end);
 
+  /// Completed sessions whose [FocusSession.completedAt] falls in
+  /// `[start, end)`. Every day window in the app (Focus footer, Insights,
+  /// export) uses this one rule, the same one the stats calculator buckets
+  /// by, so a session that crosses midnight lands on the same day
+  /// everywhere: the day it ended.
+  Stream<List<FocusSession>> watchCompletedSessionsInRange(
+      DateTime start, DateTime end);
+
+  /// Starts a session and returns its id. Idempotent while one is active:
+  /// if a session is already running (with time left) or paused, that
+  /// session's id is returned and nothing changes. An active session whose
+  /// time already ran out is completed at its natural end first.
   Future<int> startSession({
     required FocusSessionType sessionType,
     required int plannedDurationSec,

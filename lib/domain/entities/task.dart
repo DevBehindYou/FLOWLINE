@@ -23,13 +23,17 @@ class Task {
   final DateTime? dueAt;
   final DateTime createdAt;
 
+  /// Nullable fields take a function so they can be cleared, not only
+  /// changed: `copyWith(scheduleBlockId: () => null)` unschedules a task,
+  /// while omitting the argument keeps the current value. (A plain
+  /// `int? scheduleBlockId` can't tell "set to null" from "not given".)
   Task copyWith({
     String? title,
     String? notes,
     TaskPriority? priority,
     TaskStatus? status,
-    int? scheduleBlockId,
-    DateTime? dueAt,
+    int? Function()? scheduleBlockId,
+    DateTime? Function()? dueAt,
   }) {
     return Task(
       id: id,
@@ -37,8 +41,9 @@ class Task {
       notes: notes ?? this.notes,
       priority: priority ?? this.priority,
       status: status ?? this.status,
-      scheduleBlockId: scheduleBlockId ?? this.scheduleBlockId,
-      dueAt: dueAt ?? this.dueAt,
+      scheduleBlockId:
+          scheduleBlockId != null ? scheduleBlockId() : this.scheduleBlockId,
+      dueAt: dueAt != null ? dueAt() : this.dueAt,
       createdAt: createdAt,
     );
   }

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../domain/services/focus_stats_calculator.dart';
 import '../../../shared_widgets/empty_state.dart';
+import '../../../shared_widgets/error_view.dart';
 import '../../export/view/export_sheet.dart';
 import '../../focus_timer/viewmodel/focus_timer_view_model.dart';
 import '../viewmodel/insights_view_model.dart';
@@ -35,8 +36,10 @@ class InsightsScreen extends ConsumerWidget {
       ),
       body: weeklyAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) =>
-            Center(child: Text('Something went wrong: $error')),
+        error: (error, _) => ErrorView(
+          error: error,
+          onRetry: () => ref.invalidate(recentFocusSessionsProvider),
+        ),
         data: (dailyTotals) {
           final hasAnyData = dailyTotals.any((d) => d.sessionCount > 0);
           if (!hasAnyData) {

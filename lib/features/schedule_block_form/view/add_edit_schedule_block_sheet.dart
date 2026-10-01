@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/entities/schedule_block.dart';
+import '../../../core/async/run_action.dart';
 import '../../schedule_intelligence/viewmodel/schedule_intelligence_view_model.dart';
 import '../viewmodel/add_edit_schedule_block_view_model.dart';
 
@@ -99,16 +100,24 @@ class _AddEditScheduleBlockSheetState
       _saving = true;
     });
 
-    final conflicts = await ref
-        .read(scheduleIntelligenceViewModelProvider.notifier)
-        .findConflicts(
-          date: widget.initialDate,
-          startTime: start,
-          endTime: end,
-          excludeBlockId: widget.existingBlock?.id,
-        );
+    final conflicts = await runAction(
+      context,
+      () => ref
+          .read(scheduleIntelligenceViewModelProvider.notifier)
+          .findConflicts(
+            date: widget.initialDate,
+            startTime: start,
+            endTime: end,
+            excludeBlockId: widget.existingBlock?.id,
+          ),
+      failureMessage: "Couldn't check your schedule — please try again.",
+    );
 
     if (!mounted) return;
+    if (conflicts == null) {
+      setState(() => _saving = false);
+      return;
+    }
 
     if (conflicts.isNotEmpty) {
       // Hand off to the caller rather than opening ConflictWarningSheet
@@ -127,16 +136,29 @@ class _AddEditScheduleBlockSheetState
     }
 
     final viewModel = ref.read(addEditScheduleBlockViewModelProvider.notifier);
-    if (_isEditing) {
-      await viewModel.updateBlock(
-        widget.existingBlock!
-            .copyWith(title: title, startTime: start, endTime: end),
-      );
-    } else {
-      await viewModel.createBlock(title: title, startTime: start, endTime: end);
-    }
+    final saved = await runAction(
+      context,
+      () async {
+        if (_isEditing) {
+          await viewModel.updateBlock(
+            widget.existingBlock!
+                .copyWith(title: title, startTime: start, endTime: end),
+          );
+        } else {
+          await viewModel.createBlock(
+              title: title, startTime: start, endTime: end);
+        }
+        return true;
+      },
+      failureMessage: "Couldn't save the block — please try again.",
+    );
 
-    if (mounted) Navigator.of(context).pop();
+    if (!mounted) return;
+    if (saved == true) {
+      Navigator.of(context).pop();
+    } else {
+      setState(() => _saving = false);
+    }
   }
 
   @override

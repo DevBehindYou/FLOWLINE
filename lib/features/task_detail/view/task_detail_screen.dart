@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../domain/entities/subtask.dart';
+import '../../../shared_widgets/confirm_dialog.dart';
+import '../../../shared_widgets/error_view.dart';
 import '../../../shared_widgets/priority_chip.dart';
 import '../../../shared_widgets/status_chip.dart';
 import '../../focus_timer/viewmodel/focus_timer_view_model.dart';
@@ -28,6 +30,7 @@ class TaskDetailScreen extends ConsumerWidget {
                 ? const SizedBox.shrink()
                 : IconButton(
                     icon: const Icon(Icons.edit_outlined),
+                    tooltip: 'Edit task',
                     onPressed: () => showModalBottomSheet(
                       context: context,
                       isScrollControlled: true,
@@ -38,26 +41,14 @@ class TaskDetailScreen extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.delete_outline),
+            tooltip: 'Delete task',
             onPressed: () async {
-              final confirmed = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Delete task?'),
-                  content: const Text(
-                      'This removes the task and its subtasks permanently.'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: const Text('Delete'),
-                    ),
-                  ],
-                ),
+              final confirmed = await confirmDestructive(
+                context,
+                title: 'Delete task?',
+                message: 'This removes the task and its subtasks permanently.',
               );
-              if (confirmed == true) {
+              if (confirmed) {
                 await actions.deleteTask(taskId);
                 if (context.mounted) Navigator.of(context).pop();
               }
@@ -67,8 +58,10 @@ class TaskDetailScreen extends ConsumerWidget {
       ),
       body: taskAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) =>
-            Center(child: Text('Something went wrong: $error')),
+        error: (error, _) => ErrorView(
+          error: error,
+          onRetry: () => ref.invalidate(taskByIdProvider(taskId)),
+        ),
         data: (task) {
           if (task == null) {
             return const Center(child: Text('This task no longer exists.'));
@@ -115,26 +108,9 @@ class TaskDetailScreen extends ConsumerWidget {
   }
 
   Future<void> _promptAddSubtask(BuildContext context, WidgetRef ref) async {
-    final controller = TextEditingController();
     final title = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('New subtask'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(labelText: 'Title'),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: const Text('Add'),
-          ),
-        ],
-      ),
+      builder: (context) => const _NewSubtaskDialog(),
     );
     if (title != null && title.isNotEmpty) {
       await ref
@@ -159,6 +135,48 @@ void _startFocus(
   context.go('/focus');
 }
 
+/// Owns its controller so it's disposed with the dialog, after the exit
+/// animation, rather than leaked or disposed while still on screen (K16).
+class _NewSubtaskDialog extends StatefulWidget {
+  const _NewSubtaskDialog();
+
+  @override
+  State<_NewSubtaskDialog> createState() => _NewSubtaskDialogState();
+}
+
+class _NewSubtaskDialogState extends State<_NewSubtaskDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() => Navigator.pop(context, _controller.text.trim());
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('New subtask'),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        textInputAction: TextInputAction.done,
+        onSubmitted: (_) => _submit(),
+        decoration: const InputDecoration(labelText: 'Title'),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        TextButton(onPressed: _submit, child: const Text('Add')),
+      ],
+    );
+  }
+}
+
 class _SubtaskList extends ConsumerWidget {
   const _SubtaskList({required this.taskId});
 
@@ -171,7 +189,11 @@ class _SubtaskList extends ConsumerWidget {
 
     return subtasksAsync.when(
       loading: () => const SizedBox.shrink(),
-      error: (error, _) => Text("Couldn't load subtasks: $error"),
+      error: (error, _) => ErrorView(
+        error: error,
+        compact: true,
+        onRetry: () => ref.invalidate(subtasksForTaskProvider(taskId)),
+      ),
       data: (subtasks) {
         if (subtasks.isEmpty) {
           return Text('No subtasks yet.',
@@ -210,7 +232,16 @@ class _SubtaskList extends ConsumerWidget {
                     ),
                     IconButton(
                       icon: const Icon(Icons.close, size: 18),
-                      onPressed: () => actions.deleteSubtask(subtask.id),
+                      tooltip: 'Delete subtask',
+                      onPressed: () async {
+                        final confirmed = await confirmDestructive(
+                          context,
+                          title: 'Delete subtask?',
+                          message: '"${subtask.title}" and its logged '
+                              'pomodoro count will be removed.',
+                        );
+                        if (confirmed) await actions.deleteSubtask(subtask.id);
+                      },
                     ),
                   ],
                 ),

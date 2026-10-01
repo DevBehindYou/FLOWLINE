@@ -5,13 +5,19 @@
 > provider and key function, the UI/UX system, the build/CI pipeline, and
 > an honest list of known gaps.
 >
-> **Snapshot:** commit `1d66c1c` on `main`, 2026-09-27. Status lines marked
-> **VERIFIED** come from CI run `36192781020`; anything not exercised by CI
-> is marked **UNVERIFIED**.
+> **Snapshot:** originally written at commit `1d66c1c` (2026-09-27).
+> Status sections (§2, §18–§20, §22) refreshed on 2026-10-01 for branch
+> `claude/eloquent-pasteur-3lciys` after Phase 0 and the first part of
+> Phase 1 of `docs/04-build-and-optimization-plan.md`. Status lines marked
+> **VERIFIED** come from CI run `36849191025` (#10) or the local Flutter
+> 3.35.7 run noted beside them; anything not exercised by either is marked
+> **UNVERIFIED**.
 >
 > **How it relates to the other docs:** `docs/01-architecture.md`,
 > `docs/02-ux-ui-spec.md` and `docs/03-scope-architecture-dfd-v2.md` are
-> the original *plans*. `README.md` is the phase-by-phase build log. This
+> the original *plans*. `docs/history.md` is the phase-by-phase build log
+(it used to be `README.md`). `docs/04-build-and-optimization-plan.md` is
+the forward plan, with a second defect register (B1–B30). This
 > file describes what the code *actually does today* and records where it
 > differs from the plans (see [§17 Documentation drift](#17-documentation-drift)).
 
@@ -71,16 +77,17 @@ requests go directly from the device to the vendor the user chose.
 | Dependencies resolve (`flutter pub get`) | **VERIFIED** | CI |
 | Code generation (`build_runner`, Drift + Riverpod) | **VERIFIED** | CI |
 | Static analysis (`flutter analyze`) | **VERIFIED — no issues** | CI |
-| Formatting (`dart format`) | **FAILED** — only files added in the latest commit; CI uploaded the exact fix as the `format-patch` artifact | CI |
-| Unit + widget + repository tests | **86 passed, 1 failed** | CI |
-| Android release APK (`--split-per-abi`) | **VERIFIED — builds** | CI artifact `flowline-release-apks-<sha>` |
+| Formatting (`dart format`) | **VERIFIED — clean** | CI #10 |
+| Unit + widget + repository tests | **VERIFIED — all pass** (125 in CI #10; 176 locally with the uncommitted-at-the-time Phase 1 work) | CI + local |
+| Android release APK (`--split-per-abi`) | **VERIFIED — builds, signed through the release signing path**, versionCode from the run number | CI artifact `flowline-release-apks-<sha>` |
+| Release signing with the stable key | **UNVERIFIED** — needs the `ANDROID_*` repository secrets; until then CI signs with a throwaway key and warns | README › Release signing |
 | Emulator / integration tests | **NOT RUN** — no emulator job yet | — |
 | Behaviour on a physical phone | **UNVERIFIED** | see [§21](#21-physical-device-verification-checklist) |
 
-The single failing test is
-`test/features/focus_timer/focus_screen_test.dart` → *"a running session
-shows wall-clock remaining time on first frame"*. It was added in the latest
-commit and has not been diagnosed yet.
+The previously failing first-frame Focus test was fixed in `3fc2115` (a
+leaked Riverpod ticker). A separate timing flake in the per-second
+countdown tests (sub-second clock offset vs. Drift's second precision) was
+fixed by aligning the fake clock in the test.
 
 > History worth knowing: the project was originally written without a
 > compiler ("written blind", per `README.md`). The first CI runs showed it
@@ -1240,9 +1247,14 @@ Design decisions:
 | `android:usesCleartextTraffic="true"` | Ollama over plain HTTP on the LAN. |
 | `isCoreLibraryDesugaringEnabled = true` + `desugar_jdk_libs:2.1.4` | The notification plugin is built with desugaring; the release build fails without it. |
 
-Signing: the release build uses the template's **debug key** — fine for
-sideloading, **not** for the Play Store. No keystore or secrets are
-configured in CI.
+Signing (B2, fixed): the release build reads `android/key.properties`,
+which CI writes from the `ANDROID_KEYSTORE_BASE64` /
+`ANDROID_KEYSTORE_PASSWORD` / `ANDROID_KEY_ALIAS` / `ANDROID_KEY_PASSWORD`
+secrets, then checks every APK's certificate against
+`tool/ci/release_cert_sha256.txt`. Without the secrets it signs with a
+throwaway key and says so in the run summary. `versionCode` is the CI run
+number (B27). Auto Backup rules keep the database and exclude
+flutter_secure_storage's preferences (B3).
 
 ---
 
@@ -1266,7 +1278,10 @@ configured in CI.
 | `test/features/insights/insights_screen_test.dart` | widget | empty (light/dark), populated, ended-early counted |
 | `test/tool/android_patches_test.dart` | unit | manifest + Gradle patches against the 3.35.7 templates, idempotence, loud failure |
 
-**87 tests: 86 passing, 1 failing** (CI run `36192781020`).
+**All passing** — 125 tests in CI run `36849191025` (#10); 176 locally after
+the first Phase 1 batch (time helpers, repository guards, error view,
+busy guards, settings validation, DST and rollover tests, code-rule
+tests). See `docs/04-build-and-optimization-plan.md` §6 for what's next.
 
 ### 19.2 Harness
 
@@ -1297,27 +1312,32 @@ Severity: **P0** critical · **P1** major · **P2** moderate · **P3** minor.
 | ID | Sev | Area | Issue | Status |
 |---|---|---|---|---|
 | K1 | P2 | Focus | Ticker leak: pausing/ending within 1 s of (re)start leaked a 1 Hz timer (Riverpod stream provider disposed while loading) | Fixed — widget-owned timer; regression test |
-| K2 | P2 | CI | `dart format` fails on the newest files | Fix available as the CI `format-patch` artifact |
-| K3 | P2 | Schedule intelligence | "Apply suggested time" saves the AI's time without re-checking it for conflicts or the same day | Suspected |
-| K4 | P2 | AI settings | `providerHasKeyProvider` isn't refreshed after saving or removing a key, so the card and radio stay stale until you leave the screen | Suspected |
-| K5 | P2 | AI network | Shared `Dio()` has no connect/receive timeouts and requests can't be cancelled | Confirmed by reading |
+| K2 | P2 | CI | `dart format` fails on the newest files | Fixed — CI #10 format check green |
+| K3 | P2 | Schedule intelligence | "Apply suggested time" saves the AI's time without re-checking it for conflicts or the same day | Fixed in `d8fcf62`; tests and prompt fixes (B13, B14, B28) in Phase 0 |
+| K4 | P2 | AI settings | `providerHasKeyProvider` isn't refreshed after saving or removing a key, so the card and radio stay stale until you leave the screen | Fixed — key status refreshed after save/remove; test |
+| K5 | P2 | AI network | Shared `Dio()` has no connect/receive timeouts and requests can't be cancelled | Fixed — connect/send/receive timeouts on the shared Dio |
 | K6 | P2 | AI config | Seeded default models `claude-3-5-sonnet-20241022` and `gemini-1.5-flash` are probably retired, so first use fails until the model is edited | Unverified against live APIs |
-| K7 | P2 | Time | "Today" windows (Focus footer, Insights 30-day range, Today's initial date) are computed when the provider is created, and tabs stay mounted, so they go stale across midnight while the app stays open | Suspected |
+| K7 | P2 | Time | "Today" windows (Focus footer, Insights 30-day range, Today's initial date) are computed when the provider is created, and tabs stay mounted, so they go stale across midnight while the app stays open | Fixed — `currentDayProvider` rolls over at midnight and on resume; tests |
 | K8 | P2 | Performance | Whole Focus `Scaffold` rebuilt every second while running | Fixed — `_Countdown` + `RepaintBoundary` |
-| K9 | P2 | Error states | Screens show "Something went wrong: $error" with no retry; AI "unexpected error" messages include the raw exception | Confirmed by reading |
+| K9 | P2 | Error states | Screens show "Something went wrong: $error" with no retry; AI "unexpected error" messages include the raw exception | Fixed — `ErrorView` with Retry; raw exception text never shown; tests |
 | K10 | P2 | AI | Full conversation history is sent on every message (unbounded payload) | Confirmed by reading |
 | K11 | P3 | Insights | Streak caps at 30 days (query window) | Confirmed by reading |
-| K12 | P3 | Insights | Focus footer buckets by `startedAt`, Insights by `completedAt`, so sessions that cross midnight are counted on different days | Confirmed by reading |
-| K13 | P3 | Accessibility | Unlabelled icon buttons (see §14.7); no timer semantics; 200% font untested | Open |
-| K14 | P3 | UX | Remove key and subtask delete have no confirmation | Open |
+| K12 | P3 | Insights | Focus footer buckets by `startedAt`, Insights by `completedAt`, so sessions that cross midnight are counted on different days | Fixed — every day window and bucket uses `completedAt` |
+| K13 | P3 | Accessibility | Unlabelled icon buttons (see §14.7); no timer semantics; 200% font untested | Partly fixed — tooltips on icon buttons; timer semantics and text-scale tests still open |
+| K14 | P3 | UX | Remove key and subtask delete have no confirmation | Fixed — shared confirmation dialog |
 | K15 | P3 | UX | "Edit times" on the conflict sheet just closes it | Known (README) |
-| K16 | P3 | Memory | `TextEditingController` in the "New subtask" dialog is never disposed | Confirmed by reading |
+| K16 | P3 | Memory | `TextEditingController` in the "New subtask" dialog is never disposed | Fixed — dialog widget owns and disposes its controller |
 | K17 | P3 | Data | Enum index storage: reordering an enum corrupts stored rows | Design risk |
-| K18 | P3 | Android | Drift's recommended `sqlite3.tempDirectory` workaround isn't set; large sorts could fail on Android | Unverified |
-| K19 | — | Release | APK signed with the debug key | By design for sideloading |
+| K18 | P3 | Android | Drift's recommended `sqlite3.tempDirectory` workaround isn't set; large sorts could fail on Android | Fixed — `sqlite3.tempDirectory` set on Android |
+| K19 | — | Release | APK signed with the debug key | Fixed (B2) — stable release key from CI secrets |
 | K20 | — | Design | Space Grotesk / Inter not bundled | Known (README) |
 
-Fixed during the current QA pass (all verified by CI): never-compiled DB
+New defects found in the full read for the forward plan are tracked as
+**B1–B30** in `docs/04-build-and-optimization-plan.md` §3. Fixed so far:
+B1 (DST-safe calendar math), B2, B3, B4, B5, B6, B7, B9, B11, B12, B13,
+B14, B15, B16, B17, B22, B27, B28, B29, B30.
+
+Fixed during the earlier QA pass (all verified by CI): never-compiled DB
 layer and API mismatches; nonexistent `flutter_timezone` version; missing
 lint include; FK enforcement off (orphaned subtasks); tasks vanishing on
 block delete; missing release `INTERNET` permission; missing notification
@@ -1357,10 +1377,12 @@ from the latest successful run on a phone and check:
 
 ## 22. Roadmap
 
-Near term (QA stop conditions from the continuation brief):
-1. Diagnose K1, apply the format patch (K2), get CI fully green.
-2. Fix K3–K10 with regression tests; accessibility labels (K13).
-3. Add an emulator job for launch, task, schedule and focus flows.
+The ordered plan now lives in `docs/04-build-and-optimization-plan.md`
+(Phases 0–7 with exit gates, plus a release track). Phase 0 is done apart
+from the owner-only step (adding the signing secrets) and the device
+checklist; Phase 1 is in progress. The list below is the original scope
+roadmap, kept for reference.
+
 
 Then, per `03-scope…` §10 and the UX spec:
 - Schedule block edit/delete UI; due dates; block picker in the task form.

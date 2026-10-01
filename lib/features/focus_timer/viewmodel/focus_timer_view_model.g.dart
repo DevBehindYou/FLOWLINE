@@ -26,7 +26,7 @@ final activeFocusSessionProvider =
 // ignore: unused_element
 typedef ActiveFocusSessionRef = AutoDisposeStreamProviderRef<FocusSession?>;
 String _$todaysFocusSummaryHash() =>
-    r'cefe693731025cee05ca83f647c4bac771e89933';
+    r'b144a5355400521e543ccf3fd706736731785da4';
 
 /// See also [todaysFocusSummary].
 @ProviderFor(todaysFocusSummary)
@@ -62,15 +62,19 @@ final selectedSessionTypeProvider =
 );
 
 typedef _$SelectedSessionType = AutoDisposeNotifier<FocusSessionType>;
-String _$pendingFocusLinkHash() => r'13179119568f9c1a73b4f27db318da9d7148e66d';
+String _$pendingFocusLinkHash() => r'9bec4a5989289614ab2a95a07036830d67a7b1fb';
 
 /// Staged task/subtask to attach to the *next* session that gets started —
 /// set from the Today or Task Detail screens before jumping to the Focus
 /// tab, consumed (and cleared) once a session actually starts.
 ///
+/// keepAlive because it's a hand-off: it's written while nothing watches
+/// it (the Focus tab may never have been built yet), and an auto-dispose
+/// provider could drop the link before the Focus screen reads it (B9).
+///
 /// Copied from [PendingFocusLink].
 @ProviderFor(PendingFocusLink)
-final pendingFocusLinkProvider = AutoDisposeNotifierProvider<PendingFocusLink,
+final pendingFocusLinkProvider = NotifierProvider<PendingFocusLink,
     ({int taskId, int? subtaskId, String label})?>.internal(
   PendingFocusLink.new,
   name: r'pendingFocusLinkProvider',
@@ -82,7 +86,7 @@ final pendingFocusLinkProvider = AutoDisposeNotifierProvider<PendingFocusLink,
 );
 
 typedef _$PendingFocusLink
-    = AutoDisposeNotifier<({int taskId, int? subtaskId, String label})?>;
+    = Notifier<({int taskId, int? subtaskId, String label})?>;
 String _$focusTimerViewModelHash() =>
     r'f0598b797dc17a0ad0f25fd3d8cf8e4a00c25738';
 

@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/providers.dart';
 import '../../../domain/entities/ai_provider_config.dart';
+import '../../ai_assistant/viewmodel/assistant_view_model.dart';
 
 part 'ai_providers_view_model.g.dart';
 
@@ -19,16 +20,20 @@ class AiProvidersViewModel extends _$AiProvidersViewModel {
     required String apiKey,
     required String model,
     String? baseUrl,
-  }) {
-    return ref.read(aiRepositoryProvider).saveProviderKey(
+  }) async {
+    await ref.read(aiRepositoryProvider).saveProviderKey(
           id: id,
           apiKey: apiKey,
           model: model,
           baseUrl: baseUrl,
         );
+    // The key lives in the Keystore, not Drift, so nothing re-reads it on
+    // its own: without this the card and radio stay "Not connected" (K4).
+    ref.invalidate(providerHasKeyProvider(id));
   }
 
-  Future<void> removeKey(AIProviderId id) {
-    return ref.read(aiRepositoryProvider).removeProviderKey(id);
+  Future<void> removeKey(AIProviderId id) async {
+    await ref.read(aiRepositoryProvider).removeProviderKey(id);
+    ref.invalidate(providerHasKeyProvider(id));
   }
 }

@@ -4,7 +4,9 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/notifications/notification_service.dart';
 import '../../../core/providers.dart';
+import '../../../core/time/current_day.dart';
 import '../../../domain/entities/focus_session.dart';
+import '../../../domain/time/calendar_day.dart';
 
 part 'focus_timer_view_model.g.dart';
 
@@ -21,12 +23,13 @@ Stream<FocusSession?> activeFocusSession(Ref ref) {
 
 @riverpod
 Stream<({int totalSeconds, int sessionCount})> todaysFocusSummary(Ref ref) {
+  final day = dayRange(ref.watch(currentDayProvider));
   return ref
       .watch(focusSessionRepositoryProvider)
-      .watchTodaysSessions()
+      .watchCompletedSessionsInRange(day.start, day.end)
       .map((sessions) {
     final completedFocusSessions = sessions.where(
-      (s) => s.sessionType == FocusSessionType.focus && s.completedAt != null,
+      (s) => s.sessionType == FocusSessionType.focus,
     );
     final total = completedFocusSessions.fold<int>(
       0,
@@ -47,7 +50,11 @@ class SelectedSessionType extends _$SelectedSessionType {
 /// Staged task/subtask to attach to the *next* session that gets started —
 /// set from the Today or Task Detail screens before jumping to the Focus
 /// tab, consumed (and cleared) once a session actually starts.
-@riverpod
+///
+/// keepAlive because it's a hand-off: it's written while nothing watches
+/// it (the Focus tab may never have been built yet), and an auto-dispose
+/// provider could drop the link before the Focus screen reads it (B9).
+@Riverpod(keepAlive: true)
 class PendingFocusLink extends _$PendingFocusLink {
   @override
   ({int taskId, int? subtaskId, String label})? build() => null;

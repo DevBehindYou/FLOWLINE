@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../domain/entities/schedule_block.dart';
 import '../../../domain/entities/task.dart';
 import '../../../domain/services/schedule_conflict_checker.dart';
+import '../../../shared_widgets/error_view.dart';
 import '../../task_form/view/add_edit_task_sheet.dart';
 import '../viewmodel/today_view_model.dart';
 import 'task_card.dart';
@@ -122,7 +123,11 @@ class _ScheduleBlockSection extends ConsumerWidget {
             const SizedBox(height: 12),
             tasksAsync.when(
               loading: () => const SizedBox.shrink(),
-              error: (error, _) => Text("Couldn't load tasks: $error"),
+              error: (error, _) => ErrorView(
+                error: error,
+                compact: true,
+                onRetry: () => ref.invalidate(tasksForBlockProvider(block.id)),
+              ),
               data: (tasks) => tasks.isEmpty
                   ? Text(
                       'No tasks in this block yet.',

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/entities/export_format.dart';
+import '../../../core/async/run_action.dart';
 import '../viewmodel/export_view_model.dart';
 
 class ExportSheet extends ConsumerWidget {
@@ -13,8 +14,16 @@ class ExportSheet extends ConsumerWidget {
     final viewModel = ref.read(exportViewModelProvider.notifier);
 
     Future<void> handle(ExportFormat format) async {
-      await viewModel.export(format);
-      if (context.mounted) Navigator.of(context).pop();
+      if (isExporting) return;
+      final done = await runAction(
+        context,
+        () async {
+          await viewModel.export(format);
+          return true;
+        },
+        failureMessage: "Couldn't create the export — please try again.",
+      );
+      if (done == true && context.mounted) Navigator.of(context).pop();
     }
 
     return Padding(

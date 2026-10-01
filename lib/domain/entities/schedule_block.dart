@@ -23,14 +23,16 @@ class ScheduleBlock {
     String? title,
     DateTime? startTime,
     DateTime? endTime,
+    ScheduleBlockSource? source,
+    bool? isLocked,
   }) {
     return ScheduleBlock(
       id: id,
       title: title ?? this.title,
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
-      source: source,
-      isLocked: isLocked,
+      source: source ?? this.source,
+      isLocked: isLocked ?? this.isLocked,
     );
   }
 }

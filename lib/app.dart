@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'core/time/current_day.dart';
 import 'features/focus_timer/viewmodel/focus_timer_view_model.dart';
 
 class FlowlineApp extends ConsumerStatefulWidget {
@@ -22,9 +23,16 @@ class _FlowlineAppState extends ConsumerState<FlowlineApp> {
     // and otherwise stays "active" until the Focus tab happens to be
     // built. Reconcile after the first frame (never delaying startup) and
     // on every resume.
-    _lifecycle = AppLifecycleListener(onResume: _reconcileFocusSession);
+    _lifecycle = AppLifecycleListener(onResume: _onResume);
     WidgetsBinding.instance
         .addPostFrameCallback((_) => _reconcileFocusSession());
+  }
+
+  void _onResume() {
+    // A suspended app's midnight timer doesn't fire on time; re-read the
+    // clock so every "today" window catches up immediately.
+    ref.read(currentDayProvider.notifier).refresh();
+    _reconcileFocusSession();
   }
 
   void _reconcileFocusSession() {

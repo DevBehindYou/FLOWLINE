@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/entities/task.dart';
+import '../../../core/async/run_action.dart';
 import '../viewmodel/add_edit_task_view_model.dart';
 
 /// Handles both create and edit — pass [existingTask] to edit it in place,
@@ -45,24 +46,36 @@ class _AddEditTaskSheetState extends ConsumerState<AddEditTaskSheet> {
     setState(() => _saving = true);
     final viewModel = ref.read(addEditTaskViewModelProvider.notifier);
 
-    if (_isEditing) {
-      await viewModel.updateTask(
-        widget.existingTask!.copyWith(
-          title: title,
-          notes: _notesController.text.trim(),
-          priority: _priority,
-        ),
-      );
-    } else {
-      await viewModel.createTask(
-        title: title,
-        notes: _notesController.text.trim(),
-        priority: _priority,
-        scheduleBlockId: widget.scheduleBlockId,
-      );
-    }
+    final saved = await runAction(
+      context,
+      () async {
+        if (_isEditing) {
+          await viewModel.updateTask(
+            widget.existingTask!.copyWith(
+              title: title,
+              notes: _notesController.text.trim(),
+              priority: _priority,
+            ),
+          );
+        } else {
+          await viewModel.createTask(
+            title: title,
+            notes: _notesController.text.trim(),
+            priority: _priority,
+            scheduleBlockId: widget.scheduleBlockId,
+          );
+        }
+        return true;
+      },
+      failureMessage: "Couldn't save the task — please try again.",
+    );
 
-    if (mounted) Navigator.of(context).pop();
+    if (!mounted) return;
+    if (saved == true) {
+      Navigator.of(context).pop();
+    } else {
+      setState(() => _saving = false);
+    }
   }
 
   @override

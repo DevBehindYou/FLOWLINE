@@ -194,9 +194,12 @@ final scheduleBlocksForSelectedDateProvider =
 // ignore: unused_element
 typedef ScheduleBlocksForSelectedDateRef
     = AutoDisposeStreamProviderRef<List<ScheduleBlock>>;
-String _$selectedDateHash() => r'138fa5c6799b8449922bd2176390773d1f7934ee';
+String _$selectedDateHash() => r'137a689018805c5e78fc30c8704f2fa79a938e23';
 
-/// See also [SelectedDate].
+/// The day shown on the Today tab. Follows [currentDayProvider], so it
+/// moves to the new day at midnight instead of staying on yesterday.
+///
+/// Copied from [SelectedDate].
 @ProviderFor(SelectedDate)
 final selectedDateProvider =
     AutoDisposeNotifierProvider<SelectedDate, DateTime>.internal(

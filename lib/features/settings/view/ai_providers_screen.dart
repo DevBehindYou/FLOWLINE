@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/entities/ai_provider_config.dart';
+import '../../../shared_widgets/error_view.dart';
 import '../../ai_assistant/viewmodel/assistant_view_model.dart';
 import '../viewmodel/ai_providers_view_model.dart';
 import 'add_edit_ai_provider_sheet.dart';
@@ -17,8 +18,10 @@ class AiProvidersScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('AI Providers')),
       body: providersAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) =>
-            Center(child: Text('Something went wrong: $error')),
+        error: (error, _) => ErrorView(
+          error: error,
+          onRetry: () => ref.invalidate(aiProvidersProvider),
+        ),
         data: (providers) => RadioGroup<AIProviderId>(
           groupValue: providers.where((p) => p.isActive).firstOrNull?.id,
           onChanged: (id) {

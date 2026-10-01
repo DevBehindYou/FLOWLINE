@@ -1,8 +1,10 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/providers.dart';
+import '../../../core/time/current_day.dart';
 import '../../../domain/entities/export_format.dart';
 import '../../../domain/services/focus_stats_calculator.dart';
+import '../../../domain/time/calendar_day.dart';
 
 part 'export_view_model.g.dart';
 
@@ -16,15 +18,13 @@ class ExportViewModel extends _$ExportViewModel {
   Future<void> export(ExportFormat format) async {
     state = true;
     try {
-      final now = DateTime.now();
-      final rangeStart = DateTime(now.year, now.month, now.day)
-          .subtract(const Duration(days: 6));
-      final rangeEnd =
-          DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+      final day = ref.read(currentDayProvider);
+      final rangeStart = addDays(day, -6);
+      final rangeEnd = addDays(day, 1);
 
       final sessions = await ref
           .read(focusSessionRepositoryProvider)
-          .watchSessionsInRange(rangeStart, rangeEnd)
+          .watchCompletedSessionsInRange(rangeStart, rangeEnd)
           .first;
       final streak = const FocusStatsCalculator().currentStreak(sessions);
       final service = ref.read(exportServiceProvider);

@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/async/run_action.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/focus_session.dart';
+import '../../../shared_widgets/error_view.dart';
 import '../../task_detail/viewmodel/task_detail_view_model.dart';
 import '../viewmodel/focus_timer_view_model.dart';
 import '../widgets/timer_ring.dart';
@@ -20,8 +22,10 @@ class FocusScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Focus')),
       body: sessionAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) =>
-            Center(child: Text('Something went wrong: $error')),
+        error: (error, _) => ErrorView(
+          error: error,
+          onRetry: () => ref.invalidate(activeFocusSessionProvider),
+        ),
         data: (session) => session == null
             ? const _IdleView()
             : _RunningView(session: session),
@@ -30,14 +34,41 @@ class FocusScreen extends ConsumerWidget {
   }
 }
 
-class _IdleView extends ConsumerWidget {
+/// One in-flight timer action at a time per view (rule R12): a double tap
+/// on Start used to create two sessions, the first then closed as "ended
+/// early" (B6), and End followed quickly by Pause raced each other.
+/// Failures surface as a snackbar instead of an unhandled error.
+mixin _GuardedFocusActions<T extends ConsumerStatefulWidget>
+    on ConsumerState<T> {
+  bool _busy = false;
+
+  FocusTimerViewModel get viewModel =>
+      ref.read(focusTimerViewModelProvider.notifier);
+
+  Future<void> guard(Future<void> Function() action) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      await runAction(context, action);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+}
+
+class _IdleView extends ConsumerStatefulWidget {
   const _IdleView();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_IdleView> createState() => _IdleViewState();
+}
+
+class _IdleViewState extends ConsumerState<_IdleView>
+    with _GuardedFocusActions {
+  @override
+  Widget build(BuildContext context) {
     final selectedType = ref.watch(selectedSessionTypeProvider);
     final pendingLink = ref.watch(pendingFocusLinkProvider);
-    final viewModel = ref.read(focusTimerViewModelProvider.notifier);
 
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -52,6 +83,7 @@ class _IdleView extends ConsumerWidget {
                   avatar: const Icon(Icons.link, size: 16),
                   label:
                       Text(pendingLink.label, overflow: TextOverflow.ellipsis),
+                  deleteButtonTooltipMessage: 'Unlink task',
                   onDeleted: () =>
                       ref.read(pendingFocusLinkProvider.notifier).clear(),
                 ),
@@ -77,11 +109,13 @@ class _IdleView extends ConsumerWidget {
               size: 64, color: Theme.of(context).colorScheme.outline),
           const SizedBox(height: 24),
           FilledButton.icon(
-            onPressed: () => viewModel.startSession(
-              type: selectedType,
-              taskId: pendingLink?.taskId,
-              subtaskId: pendingLink?.subtaskId,
-            ),
+            onPressed: _busy
+                ? null
+                : () => guard(() => viewModel.startSession(
+                      type: selectedType,
+                      taskId: pendingLink?.taskId,
+                      subtaskId: pendingLink?.subtaskId,
+                    )),
             icon: const Icon(Icons.play_arrow),
             label: const Text('Start'),
           ),
@@ -93,14 +127,20 @@ class _IdleView extends ConsumerWidget {
   }
 }
 
-class _RunningView extends ConsumerWidget {
+class _RunningView extends ConsumerStatefulWidget {
   const _RunningView({required this.session});
 
   final FocusSession session;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final viewModel = ref.read(focusTimerViewModelProvider.notifier);
+  ConsumerState<_RunningView> createState() => _RunningViewState();
+}
+
+class _RunningViewState extends ConsumerState<_RunningView>
+    with _GuardedFocusActions {
+  @override
+  Widget build(BuildContext context) {
+    final session = widget.session;
     final color = switch (session.sessionType) {
       FocusSessionType.focus => FlowlineSemanticColors.sessionFocus,
       FocusSessionType.shortBreak => FlowlineSemanticColors.sessionShortBreak,
@@ -129,22 +169,28 @@ class _RunningView extends ConsumerWidget {
               _ControlButton(
                 icon: Icons.stop,
                 label: 'End',
-                onPressed: () => viewModel.complete(session, endedEarly: true),
+                onPressed: _busy
+                    ? null
+                    : () => guard(
+                        () => viewModel.complete(session, endedEarly: true)),
               ),
               const SizedBox(width: 24),
               _ControlButton(
                 icon: session.isPaused ? Icons.play_arrow : Icons.pause,
                 label: session.isPaused ? 'Resume' : 'Pause',
                 filled: true,
-                onPressed: () => session.isPaused
-                    ? viewModel.resume(session)
-                    : viewModel.pause(session),
+                onPressed: _busy
+                    ? null
+                    : () => guard(() => session.isPaused
+                        ? viewModel.resume(session)
+                        : viewModel.pause(session)),
               ),
               const SizedBox(width: 24),
               _ControlButton(
                 icon: Icons.add,
                 label: '+5 min',
-                onPressed: () => viewModel.extend(session),
+                onPressed:
+                    _busy ? null : () => guard(() => viewModel.extend(session)),
               ),
             ],
           ),
@@ -274,7 +320,7 @@ class _ControlButton extends StatelessWidget {
 
   final IconData icon;
   final String label;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final bool filled;
 
   @override

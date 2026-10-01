@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../../domain/entities/schedule_block.dart';
 import '../../domain/repositories/schedule_repository.dart';
+import '../../domain/time/calendar_day.dart';
 import '../local/drift/app_database.dart';
 
 class ScheduleRepositoryImpl implements ScheduleRepository {
@@ -11,12 +12,15 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
 
   @override
   Stream<List<ScheduleBlock>> watchBlocksForDay(DateTime day) {
-    final start = DateTime(day.year, day.month, day.day);
-    final end = start.add(const Duration(days: 1));
+    final start = startOfDay(day);
+    final end = addDays(day, 1);
+    // Every block that overlaps the day, not only those that start on it:
+    // a block running past midnight also occupies the next morning, and
+    // conflict checks for that morning must see it.
     final query = _db.select(_db.scheduleBlocks)
       ..where((b) =>
-          b.startTime.isBiggerOrEqualValue(start) &
-          b.startTime.isSmallerThanValue(end))
+          b.startTime.isSmallerThanValue(end) &
+          b.endTime.isBiggerThanValue(start))
       ..orderBy([(b) => OrderingTerm.asc(b.startTime)]);
     return query.watch().map((rows) => rows.map(_mapBlock).toList());
   }

@@ -70,6 +70,16 @@ jobs:
         timeout-minutes: 10
         run: flutter test --coverage --reporter expanded
 
+      # The runner is UTC, which has no daylight-saving changes, so DST
+      # bugs (B1: 23/25-hour days) can't fail there. Re-run the suites that
+      # do calendar math under a DST zone.
+      - name: Time-sensitive tests under a DST timezone
+        if: ${{ !cancelled() && steps.codegen.outcome == 'success' }}
+        timeout-minutes: 5
+        env:
+          TZ: America/New_York
+        run: flutter test test/domain test/core test/data/repositories
+
       - name: Upload coverage
         if: ${{ !cancelled() && steps.test.outcome != 'skipped' }}
         uses: actions/upload-artifact@v7

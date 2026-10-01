@@ -27,8 +27,8 @@ FocusSession _session({
 void main() {
   const calculator = FocusStatsCalculator();
   final now = DateTime.now();
-  DateTime daysAgo(int n) =>
-      DateTime(now.year, now.month, now.day).subtract(Duration(days: n));
+  // Calendar math, not Duration(days:) — see calendar_day.dart.
+  DateTime daysAgo(int n) => DateTime(now.year, now.month, now.day - n);
 
   group('dailyTotals', () {
     test('returns one zeroed entry per day when there are no sessions', () {

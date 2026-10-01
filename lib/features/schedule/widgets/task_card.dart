@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../domain/entities/task.dart';
+import '../../../shared_widgets/confirm_dialog.dart';
 import '../../../shared_widgets/priority_chip.dart';
 import '../../focus_timer/viewmodel/focus_timer_view_model.dart';
 import '../viewmodel/today_view_model.dart';
@@ -45,6 +46,7 @@ class TaskCard extends ConsumerWidget {
         child: ListTile(
           onTap: () => context.push('/today/task/${task.id}'),
           leading: IconButton(
+            tooltip: isDone ? 'Mark as not done' : 'Mark as done',
             icon: Icon(isDone ? Icons.check_circle : Icons.circle_outlined),
             color: isDone ? Colors.green : null,
             onPressed: () => actions.toggleTaskDone(task),
@@ -88,24 +90,9 @@ class TaskCard extends ConsumerWidget {
     );
   }
 
-  Future<bool> _confirmDelete(BuildContext context) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete task?'),
-        content: Text('"${task.title}" will be removed permanently.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-    return result ?? false;
-  }
+  Future<bool> _confirmDelete(BuildContext context) => confirmDestructive(
+        context,
+        title: 'Delete task?',
+        message: '"${task.title}" will be removed permanently.',
+      );
 }

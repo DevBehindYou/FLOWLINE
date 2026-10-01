@@ -95,9 +95,14 @@ final notificationServiceProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef NotificationServiceRef = FutureProviderRef<NotificationService>;
-String _$dioHash() => r'73be4093313fcb2b7055df1752404e24a2b1f68c';
+String _$dioHash() => r'a776c0eac1fbd6cd8a9772c1528b12065ce3775e';
 
-/// See also [dio].
+/// One shared client for every AI vendor. Timeouts are generous for the
+/// receive side because a non-streaming completion can legitimately take
+/// a minute, but a dead network or an unreachable Ollama host now fails
+/// in seconds instead of hanging the chat forever (K5).
+///
+/// Copied from [dio].
 @ProviderFor(dio)
 final dioProvider = Provider<Dio>.internal(
   dio,

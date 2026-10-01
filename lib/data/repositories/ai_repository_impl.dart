@@ -27,6 +27,15 @@ const _defaultProviders = [
       'http://localhost:11434'),
 ];
 
+// Drift stores date-times at second precision, so a fast reply (local
+// Ollama, an immediate error) shares its prompt's `sentAt`. The row id
+// breaks the tie, keeping both the chat and the history sent to the vendor
+// in the order the messages were written.
+List<OrderClauseGenerator<$AiMessagesTable>> get _messageOrder => [
+      (m) => OrderingTerm.asc(m.sentAt),
+      (m) => OrderingTerm.asc(m.id),
+    ];
+
 class AIRepositoryImpl implements AIRepository {
   AIRepositoryImpl(this._db, this._secureStore, this._clients) {
     _seedFuture = _ensureSeeded();
@@ -133,7 +142,7 @@ class AIRepositoryImpl implements AIRepository {
   Stream<List<AIMessage>> watchMessages(int conversationId) {
     final query = _db.select(_db.aiMessages)
       ..where((m) => m.conversationId.equals(conversationId))
-      ..orderBy([(m) => OrderingTerm.asc(m.sentAt)]);
+      ..orderBy(_messageOrder);
     return query.watch().map((rows) => rows.map(_mapMessage).toList());
   }
 
@@ -161,7 +170,7 @@ class AIRepositoryImpl implements AIRepository {
     // duplicated when the client builds its request.
     final historyRows = await (_db.select(_db.aiMessages)
           ..where((m) => m.conversationId.equals(conversationId))
-          ..orderBy([(m) => OrderingTerm.asc(m.sentAt)]))
+          ..orderBy(_messageOrder))
         .get();
     final history = historyRows.map(_mapMessage).toList();
 
