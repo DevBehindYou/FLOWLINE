@@ -178,6 +178,19 @@ void main() {
       expect(patched, contains('create("release")'));
     });
 
+    test('puts the Kotlin imports first, before plugins {}', () {
+      // A fully qualified java.util.Properties() doesn't compile inside a
+      // .kts build script (`java` is Gradle's extension there).
+      expect(
+          patched,
+          startsWith('import java.io.FileInputStream\n'
+              'import java.util.Properties\n'));
+      expect(patched.indexOf('import java.util.Properties'),
+          lessThan(patched.indexOf('plugins {')));
+      expect(patched, isNot(contains('java.util.Properties()')));
+      expect(_count(patched, 'import java.util.Properties'), 1);
+    });
+
     test('fails loudly when the release signingConfig line is missing', () {
       expect(
         () => patchAppGradleKts(_gradleTemplate.replaceFirst(

@@ -94,12 +94,22 @@ Map<String, String> get backupResourceFiles => {
 // CI writes android/key.properties from repository secrets; when it's
 // absent (forks, before the secrets exist) the build still falls back to
 // the debug key, and CI says so in the job summary.
+// Kotlin build scripts need the imports at the very top of the file:
+// inside the script `java` resolves to Gradle's `java` extension, so a
+// fully qualified `java.util.Properties()` doesn't compile. This mirrors
+// the pattern in Flutter's Android deployment docs.
+const _keystoreImports = '''
+import java.io.FileInputStream
+import java.util.Properties
+
+''';
+
 const _keystorePropertiesBlock = '''
 // Release signing: android/key.properties is written by CI from secrets.
-val keystoreProperties = java.util.Properties()
+val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
-    keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
 ''';
@@ -107,10 +117,10 @@ if (keystorePropertiesFile.exists()) {
 const _releaseSigningConfig = '''
     signingConfigs {
         create("release") {
-            keyAlias = keystoreProperties.getProperty("keyAlias")
-            keyPassword = keystoreProperties.getProperty("keyPassword")
-            storeFile = keystoreProperties.getProperty("storeFile")?.let { file(it) }
-            storePassword = keystoreProperties.getProperty("storePassword")
+            keyAlias = keystoreProperties["keyAlias"] as String?
+            keyPassword = keystoreProperties["keyPassword"] as String?
+            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
+            storePassword = keystoreProperties["storePassword"] as String?
         }
     }
 
@@ -168,6 +178,9 @@ String patchAppGradleKts(String gradle) {
     );
   }
 
+  if (!out.contains('import java.util.Properties')) {
+    out = '${_keystoreImports.trimLeft()}$out';
+  }
   if (!out.contains('keystorePropertiesFile')) {
     out = _insertBefore(out, 'android {\n', _keystorePropertiesBlock,
         first: true);
