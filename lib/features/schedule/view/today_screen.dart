@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/time/current_day.dart';
 import '../../../domain/time/calendar_day.dart';
@@ -13,6 +12,7 @@ import '../../schedule_block_form/view/schedule_block_flow.dart';
 import '../../task_form/view/add_edit_task_sheet.dart';
 import '../viewmodel/today_view_model.dart';
 import '../widgets/day_timeline.dart';
+import '../../../l10n/l10n.dart';
 
 class TodayScreen extends ConsumerWidget {
   const TodayScreen({super.key});
@@ -25,7 +25,7 @@ class TodayScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Flowline'),
+        title: Text(context.l10n.appTitle),
         actions: const [
           SettingsAction(),
         ],
@@ -53,9 +53,9 @@ class TodayScreen extends ConsumerWidget {
                     if (blocks.isEmpty && unscheduled.isEmpty) {
                       return EmptyState(
                         icon: Icons.calendar_today_outlined,
-                        title: 'No tasks yet',
-                        message: 'Add your first task to start planning today.',
-                        actionLabel: 'Add Task',
+                        title: context.l10n.todayEmptyTitle,
+                        message: context.l10n.todayEmptyMessage,
+                        actionLabel: context.l10n.addTask,
                         onAction: () => _openAddTask(context),
                       );
                     }
@@ -74,7 +74,7 @@ class TodayScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openAddTask(context),
         icon: const Icon(Icons.add),
-        label: const Text('Add Task'),
+        label: Text(context.l10n.addTask),
       ),
     );
   }
@@ -107,27 +107,27 @@ class _DateHeader extends ConsumerWidget {
         children: [
           IconButton(
             icon: const Icon(Icons.chevron_left),
-            tooltip: 'Previous day',
+            tooltip: context.l10n.previousDay,
             onPressed: actions.previousDay,
           ),
           Expanded(
             child: Column(
               children: [
                 Text(
-                  DateFormat('EEEE, MMM d').format(date),
+                  context.l10n.dayLong(date),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 if (!isToday)
                   TextButton(
                     onPressed: actions.goToToday,
-                    child: const Text('Jump to today'),
+                    child: Text(context.l10n.jumpToToday),
                   ),
               ],
             ),
           ),
           IconButton(
             icon: const Icon(Icons.chevron_right),
-            tooltip: 'Next day',
+            tooltip: context.l10n.nextDay,
             onPressed: actions.nextDay,
           ),
         ],

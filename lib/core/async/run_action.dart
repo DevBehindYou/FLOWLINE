@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../error/user_message.dart';
+import '../../l10n/l10n.dart';
 
 /// Runs a user-triggered write and reports a failure as a snackbar instead
 /// of an unhandled future error (rule R12). Returns the action's result,
@@ -12,11 +13,12 @@ Future<T?> runAction<T>(
   String? failureMessage,
 }) async {
   final messenger = ScaffoldMessenger.maybeOf(context);
+  final l10n = context.l10n;
   try {
     return await action();
   } catch (error) {
     messenger?.showSnackBar(
-      SnackBar(content: Text(failureMessage ?? userMessageFor(error))),
+      SnackBar(content: Text(failureMessage ?? userMessageFor(error, l10n))),
     );
     return null;
   }

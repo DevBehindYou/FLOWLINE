@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/error/user_message.dart';
+import '../l10n/l10n.dart';
 
 /// The spec's "Inline error + retry" component (K9): a plain-language
 /// message instead of the raw exception, and a Retry that re-runs the
@@ -22,7 +23,7 @@ class ErrorView extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final message = Text(
-      userMessageFor(error),
+      userMessageFor(error, context.l10n),
       textAlign: compact ? TextAlign.start : TextAlign.center,
       style: Theme.of(context).textTheme.bodyMedium,
     );
@@ -31,7 +32,7 @@ class ErrorView extends StatelessWidget {
         : TextButton.icon(
             onPressed: onRetry,
             icon: const Icon(Icons.refresh),
-            label: const Text('Retry'),
+            label: Text(context.l10n.retry),
           );
 
     if (compact) {

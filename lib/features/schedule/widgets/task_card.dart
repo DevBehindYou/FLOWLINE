@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/async/run_action.dart';
 import '../../../core/theme/app_theme.dart';
@@ -12,6 +11,7 @@ import '../../../shared_widgets/priority_chip.dart';
 import '../../focus_timer/viewmodel/focus_timer_view_model.dart';
 import '../../task_form/view/add_edit_task_sheet.dart';
 import '../viewmodel/today_view_model.dart';
+import '../../../l10n/l10n.dart';
 
 class TaskCard extends ConsumerWidget {
   const TaskCard({super.key, required this.task});
@@ -47,7 +47,7 @@ class TaskCard extends ConsumerWidget {
       onDismissed: (_) => runAction(
         context,
         () => ref.read(todayActionsProvider.notifier).deleteTask(task.id),
-        failureMessage: "Couldn't delete the task — please try again.",
+        failureMessage: context.l10n.deleteTaskFailed,
       ),
       child: Card(
         margin: const EdgeInsets.only(bottom: 8),
@@ -56,7 +56,7 @@ class TaskCard extends ConsumerWidget {
           // The spec's accessible alternative to swiping (§8).
           onLongPress: () => _showActions(context, ref),
           leading: IconButton(
-            tooltip: isDone ? 'Mark as not done' : 'Mark as done',
+            tooltip: isDone ? context.l10n.markNotDone : context.l10n.markDone,
             icon: Icon(isDone ? Icons.check_circle : Icons.circle_outlined),
             color: isDone ? FlowlineSemanticColors.statusDone : null,
             onPressed: () => _toggleDone(context, ref),
@@ -80,7 +80,7 @@ class TaskCard extends ConsumerWidget {
               ? null
               : IconButton(
                   icon: const Icon(Icons.play_circle_outline),
-                  tooltip: 'Start focus session',
+                  tooltip: context.l10n.startFocusSession,
                   onPressed: () => _startFocus(context, ref),
                 ),
         ),
@@ -92,6 +92,7 @@ class TaskCard extends ConsumerWidget {
   /// (spec §4 "Snackbar with Undo") that restores the previous status.
   Future<void> _toggleDone(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.maybeOf(context);
+    final l10n = context.l10n;
     final actions = ref.read(todayActionsProvider.notifier);
     final previous =
         await runAction(context, () => actions.toggleTaskDone(task));
@@ -99,9 +100,9 @@ class TaskCard extends ConsumerWidget {
     messenger
       ?..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(
-        content: Text('Marked "${task.title}" done'),
+        content: Text(l10n.markedDone(task.title)),
         action: SnackBarAction(
-          label: 'Undo',
+          label: l10n.undo,
           onPressed: () => actions.setStatus(task.id, previous),
         ),
       ));
@@ -129,27 +130,28 @@ class TaskCard extends ConsumerWidget {
             ),
             ListTile(
               leading: const Icon(Icons.edit_outlined),
-              title: const Text('Edit'),
+              title: Text(context.l10n.edit),
               onTap: () => Navigator.pop(context, _TaskAction.edit),
             ),
             if (task.status != TaskStatus.done)
               ListTile(
                 leading: const Icon(Icons.play_circle_outline),
-                title: const Text('Start focus session'),
+                title: Text(context.l10n.startFocusSession),
                 onTap: () => Navigator.pop(context, _TaskAction.focus),
               ),
             for (final priority in TaskPriority.values)
               if (priority != task.priority)
                 ListTile(
                   leading: const Icon(Icons.flag_outlined),
-                  title: Text('Priority: ${_priorityName(priority)}'),
+                  title: Text(context.l10n
+                      .priorityOption(context.l10n.priorityName(priority))),
                   onTap: () =>
                       Navigator.pop(context, _TaskAction.priority(priority)),
                 ),
             ListTile(
               leading: Icon(Icons.delete_outline,
                   color: Theme.of(context).colorScheme.error),
-              title: const Text('Delete'),
+              title: Text(context.l10n.delete),
               onTap: () => Navigator.pop(context, _TaskAction.delete),
             ),
           ],
@@ -176,12 +178,6 @@ class TaskCard extends ConsumerWidget {
     }
   }
 
-  static String _priorityName(TaskPriority p) => switch (p) {
-        TaskPriority.low => 'Low',
-        TaskPriority.medium => 'Medium',
-        TaskPriority.high => 'High',
-      };
-
   Widget _swipeBackground(
     BuildContext context, {
     required bool alignLeft,
@@ -198,8 +194,8 @@ class TaskCard extends ConsumerWidget {
 
   Future<bool> _confirmDelete(BuildContext context) => confirmDestructive(
         context,
-        title: 'Delete task?',
-        message: '"${task.title}" will be removed permanently.',
+        title: context.l10n.deleteTaskTitle,
+        message: context.l10n.deleteTaskMessage(task.title),
       );
 }
 
@@ -240,17 +236,18 @@ class _DueLabel extends StatelessWidget {
     final due = task.dueAt;
     final state = dueStateOf(task);
     if (due == null || state == DueState.none) return const SizedBox.shrink();
+    final l10n = context.l10n;
     final (text, color) = switch (state) {
       DueState.overdue => (
-          'Overdue · ${DateFormat.MMMd().format(due)}',
+          l10n.dueOverdue(l10n.monthDay(due)),
           FlowlineSemanticColors.feedbackOverdue
         ),
       DueState.dueToday => (
-          'Due today ${DateFormat.jm().format(due)}',
+          l10n.dueToday(l10n.time(due)),
           Theme.of(context).colorScheme.primary
         ),
       _ => (
-          'Due ${DateFormat.MMMd().format(due)}',
+          l10n.dueOn(l10n.monthDay(due)),
           Theme.of(context).colorScheme.onSurfaceVariant
         ),
     };

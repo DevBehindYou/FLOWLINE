@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../l10n/l10n.dart';
+
 class SettingsHomeScreen extends StatelessWidget {
   const SettingsHomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     Widget row(IconData icon, String title, String subtitle, String path) =>
         ListTile(
           leading: Icon(icon),
@@ -16,22 +19,19 @@ class SettingsHomeScreen extends StatelessWidget {
         );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: Text(l10n.settings)),
       body: ListView(
         children: [
-          row(
-              Icons.smart_toy_outlined,
-              'AI Providers',
-              'Connect Anthropic, OpenAI, Gemini, or a local Ollama server',
-              '/settings/ai-providers'),
-          row(Icons.timer_outlined, 'Focus timer', 'Session and break lengths',
-              '/settings/focus'),
-          row(Icons.notifications_outlined, 'Notifications', 'Session alerts',
-              '/settings/notifications'),
-          row(Icons.palette_outlined, 'Appearance', 'Light, dark or system',
-              '/settings/appearance'),
-          row(Icons.shield_outlined, 'Data & privacy',
-              'Where your data lives, clear all data', '/settings/data'),
+          row(Icons.smart_toy_outlined, l10n.settingsAiProviders,
+              l10n.settingsAiProvidersHint, '/settings/ai-providers'),
+          row(Icons.timer_outlined, l10n.settingsFocusTimer,
+              l10n.settingsFocusTimerHint, '/settings/focus'),
+          row(Icons.notifications_outlined, l10n.settingsNotifications,
+              l10n.notificationsSessionAlerts, '/settings/notifications'),
+          row(Icons.palette_outlined, l10n.settingsAppearance,
+              l10n.settingsAppearanceHint, '/settings/appearance'),
+          row(Icons.shield_outlined, l10n.settingsDataPrivacy,
+              l10n.settingsDataPrivacyHint, '/settings/data'),
         ],
       ),
     );

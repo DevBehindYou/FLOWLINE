@@ -120,7 +120,7 @@ void main() {
     final call = _block(2, 'Client call', at(15), at(16), locked: true);
     final blocks = [lunch, call];
 
-    String? validate(
+    SuggestionProblem? validate(
       DateTime start,
       DateTime end, {
       List<ScheduleBlock>? on,
@@ -146,35 +146,48 @@ void main() {
     });
 
     test('rejects an end that is not after its start', () {
-      expect(validate(at(14), at(14)), contains('not after'));
+      expect(validate(at(14), at(14)), isA<SuggestionEndNotAfterStart>());
     });
 
     test('rejects a different day', () {
       final nextDay = DateTime(day.year, day.month, day.day + 1, 9);
       expect(
         validate(nextDay, nextDay.add(const Duration(hours: 1))),
-        contains('same day'),
+        isA<SuggestionNotSameDay>(),
       );
     });
 
     test('rejects a slot that runs past midnight', () {
       expect(
         validate(at(23, 30), DateTime(day.year, day.month, day.day + 1, 0, 30)),
-        contains('same day'),
+        isA<SuggestionNotSameDay>(),
       );
     });
 
     test('rejects a changed duration', () {
-      expect(validate(at(13), at(14, 30)), contains('length'));
+      expect(
+        validate(at(13), at(14, 30)),
+        isA<SuggestionLengthChanged>()
+            .having((p) => p.got, 'got', 90)
+            .having((p) => p.wanted, 'wanted', 60),
+      );
     });
 
     test('rejects an overlap with any block, not only the original conflict',
         () {
-      expect(validate(at(14, 30), at(15, 30)), contains('Client call'));
+      expect(
+        validate(at(14, 30), at(15, 30)),
+        isA<SuggestionStillOverlaps>()
+            .having((p) => p.blockTitle, 'blockTitle', 'Client call'),
+      );
     });
 
     test('rejects an overlap with a locked block', () {
-      expect(validate(at(15), at(16)), contains('Client call'));
+      expect(
+        validate(at(15), at(16)),
+        isA<SuggestionStillOverlaps>()
+            .having((p) => p.blockTitle, 'blockTitle', 'Client call'),
+      );
     });
 
     test('ignores the block being edited (its old slot is being freed)', () {

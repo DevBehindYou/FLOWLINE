@@ -8,6 +8,7 @@ import 'core/router/app_router.dart';
 import 'domain/entities/app_settings.dart';
 import 'core/theme/app_theme.dart';
 import 'core/time/current_day.dart';
+import 'l10n/l10n.dart';
 import 'features/focus_timer/viewmodel/focus_timer_view_model.dart';
 
 class FlowlineApp extends ConsumerStatefulWidget {
@@ -82,7 +83,9 @@ class _FlowlineAppState extends ConsumerState<FlowlineApp> {
     final themeMode = settings.value?.themeMode ?? AppThemeMode.system;
 
     return MaterialApp.router(
-      title: 'Flowline',
+      onGenerateTitle: (context) => context.l10n.appTitle,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),

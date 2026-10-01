@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/focus_session.dart';
 import '../../../domain/entities/subtask.dart';
+import '../../../domain/entities/task.dart';
 import '../../../domain/services/task_due.dart';
 import '../../../shared_widgets/confirm_dialog.dart';
 import '../../../shared_widgets/error_view.dart';
@@ -14,6 +14,7 @@ import '../../../shared_widgets/status_chip.dart';
 import '../../focus_timer/viewmodel/focus_timer_view_model.dart';
 import '../../task_form/view/add_edit_task_sheet.dart';
 import '../viewmodel/task_detail_view_model.dart';
+import '../../../l10n/l10n.dart';
 
 class TaskDetailScreen extends ConsumerWidget {
   const TaskDetailScreen({super.key, required this.taskId});
@@ -27,14 +28,14 @@ class TaskDetailScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Task'),
+        title: Text(context.l10n.taskTitle),
         actions: [
           taskAsync.maybeWhen(
             data: (task) => task == null
                 ? const SizedBox.shrink()
                 : IconButton(
                     icon: const Icon(Icons.edit_outlined),
-                    tooltip: 'Edit task',
+                    tooltip: context.l10n.editTask,
                     onPressed: () async {
                       final deleted = await showModalBottomSheet<bool>(
                         context: context,
@@ -51,12 +52,12 @@ class TaskDetailScreen extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.delete_outline),
-            tooltip: 'Delete task',
+            tooltip: context.l10n.deleteTask,
             onPressed: () async {
               final confirmed = await confirmDestructive(
                 context,
-                title: 'Delete task?',
-                message: 'This removes the task and its subtasks permanently.',
+                title: context.l10n.deleteTaskTitle,
+                message: context.l10n.deleteTaskWithSubtasksMessage,
               );
               if (confirmed) {
                 await actions.deleteTask(taskId);
@@ -74,7 +75,7 @@ class TaskDetailScreen extends ConsumerWidget {
         ),
         data: (task) {
           if (task == null) {
-            return const Center(child: Text('This task no longer exists.'));
+            return Center(child: Text(context.l10n.taskMissing));
           }
           return ListView(
             padding: const EdgeInsets.all(16),
@@ -101,9 +102,7 @@ class TaskDetailScreen extends ConsumerWidget {
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        '${dueStateOf(task) == DueState.overdue ? 'Overdue \u00b7 ' : 'Due '}'
-                        '${DateFormat('EEE, MMM d').format(task.dueAt!)} '
-                        '${DateFormat.jm().format(task.dueAt!)}',
+                        _dueText(context.l10n, task),
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ),
@@ -119,20 +118,21 @@ class TaskDetailScreen extends ConsumerWidget {
                 onPressed: () => _startFocus(context, ref,
                     taskId: task.id, label: task.title),
                 icon: const Icon(Icons.play_arrow),
-                label: const Text('Start Focus Session'),
+                label: Text(context.l10n.startFocusSessionButton),
               ),
               const SizedBox(height: 24),
-              Text('Subtasks', style: Theme.of(context).textTheme.titleMedium),
+              Text(context.l10n.subtasks,
+                  style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
               _SubtaskList(taskId: taskId),
               const SizedBox(height: 8),
               OutlinedButton.icon(
                 onPressed: () => _promptAddSubtask(context, ref),
                 icon: const Icon(Icons.add),
-                label: const Text('Add subtask'),
+                label: Text(context.l10n.addSubtask),
               ),
               const SizedBox(height: 24),
-              Text('Focus history',
+              Text(context.l10n.focusHistory,
                   style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
               _SessionHistory(taskId: taskId),
@@ -194,20 +194,20 @@ class _NewSubtaskDialogState extends State<_NewSubtaskDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('New subtask'),
+      title: Text(context.l10n.newSubtask),
       content: TextField(
         controller: _controller,
         autofocus: true,
         textInputAction: TextInputAction.done,
         onSubmitted: (_) => _submit(),
-        decoration: const InputDecoration(labelText: 'Title'),
+        decoration: InputDecoration(labelText: context.l10n.titleField),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.cancel),
         ),
-        TextButton(onPressed: _submit, child: const Text('Add')),
+        TextButton(onPressed: _submit, child: Text(context.l10n.add)),
       ],
     );
   }
@@ -232,7 +232,7 @@ class _SubtaskList extends ConsumerWidget {
       ),
       data: (subtasks) {
         if (subtasks.isEmpty) {
-          return Text('No subtasks yet.',
+          return Text(context.l10n.subtasksEmpty,
               style: Theme.of(context).textTheme.bodySmall);
         }
         return Column(
@@ -249,7 +249,8 @@ class _SubtaskList extends ConsumerWidget {
                       : null,
                 ),
                 subtitle: Text(
-                  '${subtask.completedSprints} of ${subtask.plannedSprints} pomodoros logged',
+                  context.l10n.subtaskSprints(
+                      subtask.completedSprints, subtask.plannedSprints),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 secondary: Row(
@@ -257,7 +258,7 @@ class _SubtaskList extends ConsumerWidget {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.play_circle_outline, size: 20),
-                      tooltip: 'Start focus session',
+                      tooltip: context.l10n.startFocusSession,
                       onPressed: () => _startFocus(
                         context,
                         ref,
@@ -268,13 +269,13 @@ class _SubtaskList extends ConsumerWidget {
                     ),
                     IconButton(
                       icon: const Icon(Icons.close, size: 18),
-                      tooltip: 'Delete subtask',
+                      tooltip: context.l10n.deleteSubtask,
                       onPressed: () async {
                         final confirmed = await confirmDestructive(
                           context,
-                          title: 'Delete subtask?',
-                          message: '"${subtask.title}" and its logged '
-                              'pomodoro count will be removed.',
+                          title: context.l10n.deleteSubtaskTitle,
+                          message:
+                              context.l10n.deleteSubtaskMessage(subtask.title),
                         );
                         if (confirmed) await actions.deleteSubtask(subtask.id);
                       },
@@ -299,6 +300,7 @@ class _SessionHistory extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sessionsAsync = ref.watch(sessionsForTaskProvider(taskId));
     final small = Theme.of(context).textTheme.bodySmall;
+    final l10n = context.l10n;
     return sessionsAsync.when(
       loading: () => const SizedBox.shrink(),
       error: (error, _) => ErrorView(
@@ -313,7 +315,7 @@ class _SessionHistory extends ConsumerWidget {
                 s.sessionType == FocusSessionType.focus)
             .toList();
         if (done.isEmpty) {
-          return Text('No focus sessions yet.', style: small);
+          return Text(l10n.focusHistoryEmpty, style: small);
         }
         final total =
             done.fold<int>(0, (sum, s) => sum + (s.actualDurationSec ?? 0));
@@ -321,8 +323,7 @@ class _SessionHistory extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${done.length} session${done.length == 1 ? '' : 's'} \u00b7 '
-              '${(total / 60).round()} min total',
+              l10n.focusHistorySummary(done.length, (total / 60).round()),
               style: small,
             ),
             for (final s in done.take(20))
@@ -334,16 +335,25 @@ class _SessionHistory extends ConsumerWidget {
                         ? Icons.stop_circle_outlined
                         : Icons.check_circle_outline,
                     size: 20),
-                title:
-                    Text('${DateFormat('EEE, MMM d').format(s.completedAt!)} '
-                        '${DateFormat.jm().format(s.startedAt)}'),
-                subtitle:
-                    Text('${((s.actualDurationSec ?? 0) / 60).round()} min'
-                        '${s.endedEarly ? ' \u00b7 ended early' : ''}'),
+                title: Text(l10n.dateTime(
+                    l10n.dayShort(s.completedAt!), l10n.time(s.startedAt))),
+                subtitle: Text(s.endedEarly
+                    ? l10n.minutesEndedEarly(
+                        ((s.actualDurationSec ?? 0) / 60).round())
+                    : l10n.minutesShort(
+                        ((s.actualDurationSec ?? 0) / 60).round())),
               ),
           ],
         );
       },
     );
   }
+}
+
+String _dueText(AppLocalizations l10n, Task task) {
+  final date = l10n.dayShort(task.dueAt!);
+  final time = l10n.time(task.dueAt!);
+  return dueStateOf(task) == DueState.overdue
+      ? l10n.dueOverdueAt(date, time)
+      : l10n.dueAt(date, time);
 }

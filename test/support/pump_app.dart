@@ -2,6 +2,7 @@ import 'package:flowline/core/providers.dart';
 import 'package:flowline/core/riverpod_config.dart';
 import 'package:flowline/core/theme/app_theme.dart';
 import 'package:flowline/data/local/drift/app_database.dart';
+import 'package:flowline/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -20,6 +21,8 @@ Widget _app({
       ...extraOverrides,
     ],
     child: MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: themeMode,

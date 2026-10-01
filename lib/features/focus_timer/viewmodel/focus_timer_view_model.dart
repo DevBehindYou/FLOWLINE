@@ -7,6 +7,7 @@ import '../../../core/time/current_day.dart';
 import '../../../domain/entities/focus_session.dart';
 import '../../../domain/services/session_planner.dart';
 import '../../../domain/time/calendar_day.dart';
+import '../../../l10n/l10n.dart';
 
 part 'focus_timer_view_model.g.dart';
 
@@ -205,15 +206,16 @@ class FocusTimerViewModel extends _$FocusTimerViewModel {
     final settings = await ref.read(appSettingsRepositoryProvider).get();
     if (!settings.sessionAlerts) return;
     await _notify((service) => service.requestPermission());
+    final l10n = deviceLocalizations();
     return _notify(
       (service) => service.scheduleSessionComplete(
         fireAt: clock.now().add(Duration(seconds: inSeconds)),
         title: switch (type) {
-          FocusSessionType.focus => 'Focus session complete',
-          FocusSessionType.shortBreak => 'Short break over',
-          FocusSessionType.longBreak => 'Long break over',
+          FocusSessionType.focus => l10n.notifyFocusComplete,
+          FocusSessionType.shortBreak => l10n.notifyShortBreakOver,
+          FocusSessionType.longBreak => l10n.notifyLongBreakOver,
         },
-        body: 'Tap to see what\'s next.',
+        body: l10n.notifyBody,
       ),
     );
   }

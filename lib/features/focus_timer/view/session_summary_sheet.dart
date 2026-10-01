@@ -8,6 +8,7 @@ import '../../../domain/entities/app_settings.dart';
 import '../../../domain/entities/focus_session.dart';
 import '../../task_detail/viewmodel/task_detail_view_model.dart';
 import '../viewmodel/focus_timer_view_model.dart';
+import '../../../l10n/l10n.dart';
 
 /// Spec §5.8: closes the loop on a finished session and offers the next
 /// step of the Pomodoro rhythm in one tap.
@@ -23,12 +24,6 @@ class SessionSummarySheet extends ConsumerStatefulWidget {
 
 class _SessionSummarySheetState extends ConsumerState<SessionSummarySheet> {
   bool _starting = false;
-
-  static String _name(FocusSessionType type) => switch (type) {
-        FocusSessionType.focus => 'focus session',
-        FocusSessionType.shortBreak => 'short break',
-        FocusSessionType.longBreak => 'long break',
-      };
 
   Future<void> _startNext() async {
     final outcome = widget.outcome;
@@ -65,9 +60,10 @@ class _SessionSummarySheetState extends ConsumerState<SessionSummarySheet> {
         ? null
         : ref.watch(taskByIdProvider(taskId)).value?.title;
 
+    final l10n = context.l10n;
     final title = outcome.endedEarly
-        ? (wasFocus ? 'Session ended early' : 'Break skipped')
-        : (wasFocus ? 'Focus session complete' : 'Break over');
+        ? (wasFocus ? l10n.summaryEndedEarly : l10n.summaryBreakSkipped)
+        : (wasFocus ? l10n.summaryFocusComplete : l10n.summaryBreakOver);
 
     return SafeArea(
       child: Padding(
@@ -92,26 +88,25 @@ class _SessionSummarySheetState extends ConsumerState<SessionSummarySheet> {
             if (wasFocus)
               Text(
                 outcome.endedEarly
-                    ? '$minutes min of focus logged. Every bit counts.'
-                    : '$minutes min of focus logged.',
+                    ? l10n.summaryLoggedEarly(minutes)
+                    : l10n.summaryLogged(minutes),
                 style: text.bodyLarge,
               ),
             if (taskTitle != null) ...[
               const SizedBox(height: 4),
-              Text('On: $taskTitle', style: text.bodyMedium),
+              Text(l10n.summaryOnTask(taskTitle), style: text.bodyMedium),
             ],
             const SizedBox(height: 4),
             Text(
-              '${outcome.focusSessionsToday} focus '
-              'session${outcome.focusSessionsToday == 1 ? '' : 's'} today',
+              l10n.summarySessionsToday(outcome.focusSessionsToday),
               style: text.bodySmall,
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: _starting ? null : _startNext,
               icon: const Icon(Icons.play_arrow),
-              label: Text('Start ${_name(outcome.next)} '
-                  '(${settings.minutesFor(outcome.next)}m)'),
+              label: Text(_startLabel(
+                  l10n, outcome.next, settings.minutesFor(outcome.next))),
             ),
             const SizedBox(height: 8),
             TextButton(
@@ -121,7 +116,7 @@ class _SessionSummarySheetState extends ConsumerState<SessionSummarySheet> {
                       Navigator.of(context).pop();
                       context.go('/today');
                     },
-              child: const Text('Back to Today'),
+              child: Text(l10n.backToToday),
             ),
           ],
         ),
@@ -129,3 +124,10 @@ class _SessionSummarySheetState extends ConsumerState<SessionSummarySheet> {
     );
   }
 }
+
+String _startLabel(AppLocalizations l10n, FocusSessionType next, int minutes) =>
+    switch (next) {
+      FocusSessionType.focus => l10n.startFocusMinutes(minutes),
+      FocusSessionType.shortBreak => l10n.startShortBreakMinutes(minutes),
+      FocusSessionType.longBreak => l10n.startLongBreakMinutes(minutes),
+    };

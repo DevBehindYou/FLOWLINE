@@ -1,7 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../../domain/services/focus_stats_calculator.dart';
 import '../../../shared_widgets/empty_state.dart';
@@ -10,6 +9,7 @@ import '../../../shared_widgets/error_view.dart';
 import '../../export/view/export_sheet.dart';
 import '../../focus_timer/viewmodel/focus_timer_view_model.dart';
 import '../viewmodel/insights_view_model.dart';
+import '../../../l10n/l10n.dart';
 
 class InsightsScreen extends ConsumerWidget {
   const InsightsScreen({super.key});
@@ -22,11 +22,11 @@ class InsightsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Insights'),
+        title: Text(context.l10n.navInsights),
         actions: [
           IconButton(
             icon: const Icon(Icons.ios_share_outlined),
-            tooltip: 'Export this week',
+            tooltip: context.l10n.exportThisWeek,
             onPressed: () => showModalBottomSheet<void>(
               context: context,
               isScrollControlled: true,
@@ -45,11 +45,10 @@ class InsightsScreen extends ConsumerWidget {
         data: (dailyTotals) {
           final hasAnyData = dailyTotals.any((d) => d.sessionCount > 0);
           if (!hasAnyData) {
-            return const EmptyState(
+            return EmptyState(
               icon: Icons.bar_chart_outlined,
-              title: 'Complete a session to see stats',
-              message:
-                  'Focus-time trends and streaks show up here once you\u2019ve logged a session.',
+              title: context.l10n.insightsEmptyTitle,
+              message: context.l10n.insightsEmptyMessage,
             );
           }
 
@@ -67,12 +66,13 @@ class InsightsScreen extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: _StatCard(
-                        label: 'Today', value: _formatDuration(todaySeconds)),
+                        label: context.l10n.navToday,
+                        value: _formatDuration(context.l10n, todaySeconds)),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _StatCard(
-                      label: 'Day streak',
+                      label: context.l10n.dayStreak,
                       value: '$streak',
                       icon: Icons.local_fire_department,
                     ),
@@ -80,20 +80,20 @@ class InsightsScreen extends ConsumerWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _StatCard(
-                        label: 'This week',
-                        value: _formatDuration(weekTotalSeconds)),
+                        label: context.l10n.thisWeek,
+                        value: _formatDuration(context.l10n, weekTotalSeconds)),
                   ),
                 ],
               ),
               const SizedBox(height: 24),
-              Text('Last 7 days',
+              Text(context.l10n.last7Days,
                   style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 12),
               SizedBox(
                   height: 180, child: _WeeklyBarChart(totals: dailyTotals)),
               const SizedBox(height: 12),
               Text(
-                '$weekSessionCount focus session${weekSessionCount == 1 ? '' : 's'} this week',
+                context.l10n.weekSessionCount(weekSessionCount),
                 style: Theme.of(context).textTheme.bodySmall,
                 textAlign: TextAlign.center,
               ),
@@ -104,10 +104,12 @@ class InsightsScreen extends ConsumerWidget {
     );
   }
 
-  String _formatDuration(int totalSeconds) {
+  String _formatDuration(AppLocalizations l10n, int totalSeconds) {
     final hours = totalSeconds ~/ 3600;
     final minutes = (totalSeconds % 3600) ~/ 60;
-    return hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
+    return hours > 0
+        ? l10n.durationHoursMinutes(hours, minutes)
+        : l10n.durationMinutes(minutes);
   }
 }
 
@@ -181,8 +183,7 @@ class _WeeklyBarChart extends StatelessWidget {
                 if (index < 0 || index >= totals.length) {
                   return const SizedBox.shrink();
                 }
-                final label =
-                    DateFormat('E').format(totals[index].date).substring(0, 1);
+                final label = context.l10n.weekdayNarrow(totals[index].date);
                 return Padding(
                   padding: const EdgeInsets.only(top: 6),
                   child: Text(label,

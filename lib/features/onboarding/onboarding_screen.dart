@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/async/run_action.dart';
 import '../../core/providers.dart';
 import '../settings/viewmodel/settings_view_model.dart';
+import '../../l10n/l10n.dart';
 
 /// First-run flow (spec §5.2): what Flowline does, why it asks for
 /// notifications, and an optional AI provider. Every step can be skipped,
@@ -53,7 +54,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             .update((s) => s.copyWith(onboardingDone: true));
         return true;
       },
-      failureMessage: "Couldn't save your progress — please try again.",
+      failureMessage: context.l10n.onboardingSaveFailed,
     );
     if (!mounted) return;
     setState(() => _busy = false);
@@ -62,39 +63,34 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final step = switch (_step) {
       0 => _Step(
           key: const ValueKey(0),
           icon: Icons.view_timeline_outlined,
-          title: 'Plan the day. Focus. See where time went.',
-          body: 'Flowline keeps your tasks, time blocks and focus sessions '
-              'on this phone. No account, no sync, nothing leaves the device '
-              'unless you export it.',
-          primaryLabel: 'Next',
+          title: l10n.onboardingWelcomeTitle,
+          body: l10n.onboardingWelcomeBody,
+          primaryLabel: l10n.onboardingNext,
           onPrimary: _next,
         ),
       1 => _Step(
           key: const ValueKey(1),
           icon: Icons.notifications_active_outlined,
-          title: 'Know when a session ends',
-          body: 'Flowline uses notifications only for focus session and break '
-              'alerts, so you can put the phone down. You can change this '
-              'any time in Settings.',
-          primaryLabel: 'Allow notifications',
+          title: l10n.onboardingNotificationsTitle,
+          body: l10n.onboardingNotificationsBody,
+          primaryLabel: l10n.onboardingAllowNotifications,
           onPrimary: _allowNotifications,
-          secondaryLabel: 'Not now',
+          secondaryLabel: l10n.onboardingNotNow,
           onSecondary: _next,
         ),
       _ => _Step(
           key: const ValueKey(2),
           icon: Icons.smart_toy_outlined,
-          title: 'Connect an AI assistant (optional)',
-          body: 'Bring your own API key from OpenAI, Anthropic, Gemini, or '
-              'run Ollama locally. Keys are stored in the Android Keystore and '
-              'never backed up. Everything else works without one.',
-          primaryLabel: 'Connect a provider',
+          title: l10n.onboardingAiTitle,
+          body: l10n.onboardingAiBody,
+          primaryLabel: l10n.onboardingConnectProvider,
           onPrimary: () => _finish(connectAi: true),
-          secondaryLabel: 'Skip for now',
+          secondaryLabel: l10n.onboardingSkipForNow,
           onSecondary: () => _finish(connectAi: false),
         ),
     };
@@ -103,14 +99,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Semantics(
-          label: 'Step ${_step + 1} of $_stepCount',
+          label: l10n.onboardingStep(_step + 1, _stepCount),
           child: ExcludeSemantics(child: _StepDots(current: _step)),
         ),
         actions: [
           if (_step < _stepCount - 1)
             TextButton(
               onPressed: _busy ? null : () => _finish(connectAi: false),
-              child: const Text('Skip'),
+              child: Text(l10n.onboardingSkip),
             ),
         ],
       ),

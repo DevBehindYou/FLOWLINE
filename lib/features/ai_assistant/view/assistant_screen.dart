@@ -9,6 +9,7 @@ import '../../../shared_widgets/error_view.dart';
 import '../../../shared_widgets/settings_action.dart';
 import '../viewmodel/assistant_view_model.dart';
 import '../widgets/chat_bubble.dart';
+import '../../../l10n/l10n.dart';
 
 class AssistantScreen extends ConsumerWidget {
   const AssistantScreen({super.key});
@@ -19,11 +20,11 @@ class AssistantScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Assistant'),
+        title: Text(context.l10n.navAssistant),
         actions: [
           IconButton(
             icon: const Icon(Icons.smart_toy_outlined),
-            tooltip: 'AI Providers',
+            tooltip: context.l10n.settingsAiProviders,
             onPressed: () => context.push('/settings/ai-providers'),
           ),
           const SettingsAction(),
@@ -39,9 +40,9 @@ class AssistantScreen extends ConsumerWidget {
           if (provider == null) {
             return EmptyState(
               icon: Icons.auto_awesome_outlined,
-              title: 'Connect an AI provider',
-              message: 'Add an API key in Settings to start chatting.',
-              actionLabel: 'Go to AI Providers',
+              title: context.l10n.assistantNoProviderTitle,
+              message: context.l10n.assistantNoProviderMessage,
+              actionLabel: context.l10n.assistantGoToProviders,
               onAction: () => context.push('/settings/ai-providers'),
             );
           }
@@ -84,7 +85,7 @@ class _ChatBodyState extends ConsumerState<_ChatBody> {
             );
         return true;
       },
-      failureMessage: "Couldn't send — your message is back in the box.",
+      failureMessage: context.l10n.assistantSendFailed,
     );
     // Vendor errors arrive as error bubbles; this is for local failures
     // (e.g. the database write), where the text would otherwise be lost.
@@ -122,10 +123,10 @@ class _ChatBodyState extends ConsumerState<_ChatBody> {
             ),
             data: (conversation) {
               if (conversation == null) {
-                return const EmptyState(
+                return EmptyState(
                   icon: Icons.chat_bubble_outline,
-                  title: 'Ask me anything',
-                  message: 'Try asking about your schedule, or just say hello.',
+                  title: context.l10n.assistantEmptyTitle,
+                  message: context.l10n.assistantEmptyMessage,
                 );
               }
               return _MessageList(conversationId: conversation.id);
@@ -142,8 +143,8 @@ class _ChatBodyState extends ConsumerState<_ChatBody> {
                 Expanded(
                   child: TextField(
                     controller: _controller,
-                    decoration: const InputDecoration(
-                        hintText: 'Ask the assistant\u2026'),
+                    decoration: InputDecoration(
+                        hintText: context.l10n.assistantInputHint),
                     minLines: 1,
                     maxLines: 4,
                     textInputAction: TextInputAction.send,
@@ -152,7 +153,7 @@ class _ChatBodyState extends ConsumerState<_ChatBody> {
                 ),
                 const SizedBox(width: 8),
                 IconButton.filled(
-                  tooltip: 'Send',
+                  tooltip: context.l10n.send,
                   icon: const Icon(Icons.arrow_upward),
                   onPressed: isSending
                       ? null
@@ -186,10 +187,10 @@ class _MessageList extends ConsumerWidget {
       ),
       data: (messages) {
         if (messages.isEmpty) {
-          return const EmptyState(
+          return EmptyState(
             icon: Icons.chat_bubble_outline,
-            title: 'Ask me anything',
-            message: 'Try asking about your schedule, or just say hello.',
+            title: context.l10n.assistantEmptyTitle,
+            message: context.l10n.assistantEmptyMessage,
           );
         }
         return ListView.builder(

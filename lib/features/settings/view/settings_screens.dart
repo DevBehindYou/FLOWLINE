@@ -6,6 +6,7 @@ import '../../../core/providers.dart';
 import '../../../domain/entities/app_settings.dart';
 import '../../../shared_widgets/confirm_dialog.dart';
 import '../viewmodel/settings_view_model.dart';
+import '../../../l10n/l10n.dart';
 
 AppSettings _settings(WidgetRef ref) =>
     ref.watch(appSettingsProvider).value ?? const AppSettings();
@@ -15,7 +16,7 @@ Future<void> _update(BuildContext context, WidgetRef ref,
     runAction(
       context,
       () => ref.read(settingsViewModelProvider.notifier).update(change),
-      failureMessage: "Couldn't save the setting — please try again.",
+      failureMessage: context.l10n.settingSaveFailed,
     );
 
 /// Spec §5.16.
@@ -26,33 +27,34 @@ class AppearanceScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final mode = _settings(ref).themeMode;
     return Scaffold(
-      appBar: AppBar(title: const Text('Appearance')),
+      appBar: AppBar(title: Text(context.l10n.settingsAppearance)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('Theme', style: Theme.of(context).textTheme.titleMedium),
+          Text(context.l10n.appearanceTheme,
+              style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 12),
           SegmentedButton<AppThemeMode>(
-            segments: const [
+            segments: [
               ButtonSegment(
                   value: AppThemeMode.system,
-                  icon: Icon(Icons.brightness_auto_outlined),
-                  label: Text('System')),
+                  icon: const Icon(Icons.brightness_auto_outlined),
+                  label: Text(context.l10n.appearanceSystem)),
               ButtonSegment(
                   value: AppThemeMode.light,
-                  icon: Icon(Icons.light_mode_outlined),
-                  label: Text('Light')),
+                  icon: const Icon(Icons.light_mode_outlined),
+                  label: Text(context.l10n.appearanceLight)),
               ButtonSegment(
                   value: AppThemeMode.dark,
-                  icon: Icon(Icons.dark_mode_outlined),
-                  label: Text('Dark')),
+                  icon: const Icon(Icons.dark_mode_outlined),
+                  label: Text(context.l10n.appearanceDark)),
             ],
             selected: {mode},
             onSelectionChanged: (s) =>
                 _update(context, ref, (c) => c.copyWith(themeMode: s.first)),
           ),
           const SizedBox(height: 8),
-          Text('System follows your phone’s dark mode setting.',
+          Text(context.l10n.appearanceSystemHint,
               style: Theme.of(context).textTheme.bodySmall),
         ],
       ),
@@ -68,30 +70,30 @@ class FocusTimerSettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = _settings(ref);
     return Scaffold(
-      appBar: AppBar(title: const Text('Focus timer')),
+      appBar: AppBar(title: Text(context.l10n.settingsFocusTimer)),
       body: ListView(
         children: [
           _MinutesTile(
-            label: 'Focus',
+            label: context.l10n.sessionFocus,
             value: s.focusMinutes,
             onChanged: (v) =>
                 _update(context, ref, (c) => c.copyWith(focusMinutes: v)),
           ),
           _MinutesTile(
-            label: 'Short break',
+            label: context.l10n.sessionShortBreak,
             value: s.shortBreakMinutes,
             onChanged: (v) =>
                 _update(context, ref, (c) => c.copyWith(shortBreakMinutes: v)),
           ),
           _MinutesTile(
-            label: 'Long break',
+            label: context.l10n.sessionLongBreak,
             value: s.longBreakMinutes,
             onChanged: (v) =>
                 _update(context, ref, (c) => c.copyWith(longBreakMinutes: v)),
           ),
           _StepperTile(
-            label: 'Long break after',
-            valueText: '${s.longBreakEvery} focus sessions',
+            label: context.l10n.focusSettingsLongBreakAfter,
+            valueText: context.l10n.focusSessionCount(s.longBreakEvery),
             onMinus: s.longBreakEvery > 2
                 ? () => _update(context, ref,
                     (c) => c.copyWith(longBreakEvery: c.longBreakEvery - 1))
@@ -104,7 +106,7 @@ class FocusTimerSettingsScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              'New lengths apply to the next session you start.',
+              context.l10n.focusSettingsHint,
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
@@ -133,7 +135,7 @@ class _MinutesTile extends StatelessWidget {
     final down = value > 10 && value - step < 10 ? value - 10 : step;
     return _StepperTile(
       label: label,
-      valueText: '$value min',
+      valueText: context.l10n.minutesShort(value),
       onMinus:
           value > AppSettings.minMinutes ? () => onChanged(value - down) : null,
       onPlus: value < AppSettings.maxMinutes
@@ -165,12 +167,12 @@ class _StepperTile extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            tooltip: 'Decrease $label',
+            tooltip: context.l10n.decreaseSetting(label),
             icon: const Icon(Icons.remove_circle_outline),
             onPressed: onMinus,
           ),
           IconButton(
-            tooltip: 'Increase $label',
+            tooltip: context.l10n.increaseSetting(label),
             icon: const Icon(Icons.add_circle_outline),
             onPressed: onPlus,
           ),
@@ -188,13 +190,12 @@ class NotificationSettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = _settings(ref);
     return Scaffold(
-      appBar: AppBar(title: const Text('Notifications')),
+      appBar: AppBar(title: Text(context.l10n.settingsNotifications)),
       body: ListView(
         children: [
           SwitchListTile(
-            title: const Text('Session alerts'),
-            subtitle:
-                const Text('A notification when a focus session or break ends'),
+            title: Text(context.l10n.notificationsSessionAlerts),
+            subtitle: Text(context.l10n.notificationsSessionAlertsHint),
             value: s.sessionAlerts,
             onChanged: (v) =>
                 _update(context, ref, (c) => c.copyWith(sessionAlerts: v)),
@@ -219,10 +220,9 @@ class _DataPrivacyScreenState extends ConsumerState<DataPrivacyScreen> {
   Future<void> _clearAll() async {
     final confirmed = await confirmDestructive(
       context,
-      title: 'Clear all data?',
-      message: 'Deletes every task, block, focus session, conversation and '
-          'saved API key on this phone. This can’t be undone.',
-      confirmLabel: 'Clear everything',
+      title: context.l10n.clearAllDataTitle,
+      message: context.l10n.clearAllDataMessage,
+      confirmLabel: context.l10n.clearAllDataConfirm,
     );
     if (!confirmed || !mounted) return;
     setState(() => _clearing = true);
@@ -232,13 +232,13 @@ class _DataPrivacyScreenState extends ConsumerState<DataPrivacyScreen> {
         await ref.read(settingsViewModelProvider.notifier).clearAllData();
         return true;
       },
-      failureMessage: "Couldn't clear your data — please try again.",
+      failureMessage: context.l10n.clearAllDataFailed,
     );
     if (!mounted) return;
     setState(() => _clearing = false);
     if (done == true) {
       ScaffoldMessenger.maybeOf(context)
-          ?.showSnackBar(const SnackBar(content: Text('All data cleared')));
+          ?.showSnackBar(SnackBar(content: Text(context.l10n.allDataCleared)));
     }
   }
 
@@ -246,22 +246,13 @@ class _DataPrivacyScreenState extends ConsumerState<DataPrivacyScreen> {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('Data & privacy')),
+      appBar: AppBar(title: Text(context.l10n.settingsDataPrivacy)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('Where your data lives', style: text.titleMedium),
+          Text(context.l10n.dataWhereTitle, style: text.titleMedium),
           const SizedBox(height: 8),
-          const Text(
-            'Everything you create is stored only on this phone. There is no '
-            'Flowline account, server or analytics.\n\n'
-            'API keys are kept in Android’s secure Keystore and are only '
-            'ever sent to the AI provider they belong to. When you use the '
-            'Assistant, your message and the conversation so far go '
-            'directly from this phone to the provider you chose.\n\n'
-            'Your Android backup includes your Flowline data but never your '
-            'API keys.',
-          ),
+          Text(context.l10n.dataWhereBody),
           const SizedBox(height: 32),
           OutlinedButton.icon(
             onPressed: _clearing ? null : _clearAll,
@@ -273,16 +264,16 @@ class _DataPrivacyScreenState extends ConsumerState<DataPrivacyScreen> {
                     height: 16,
                     child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.delete_forever_outlined),
-            label: const Text('Clear all data'),
+            label: Text(context.l10n.clearAllData),
           ),
           const SizedBox(height: 16),
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.article_outlined),
-            title: const Text('Open-source licences'),
+            title: Text(context.l10n.openSourceLicences),
             onTap: () => showLicensePage(
               context: context,
-              applicationName: 'Flowline',
+              applicationName: context.l10n.appTitle,
             ),
           ),
         ],

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../domain/entities/ai_message.dart';
 
+import '../../../l10n/l10n.dart';
+
 class ChatBubble extends StatelessWidget {
   const ChatBubble({super.key, required this.message});
 
@@ -38,7 +40,7 @@ class ChatBubble extends StatelessWidget {
         ),
         child: message.isPending
             ? Semantics(
-                label: 'Waiting for a reply',
+                label: context.l10n.assistantWaiting,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -49,7 +51,7 @@ class ChatBubble extends StatelessWidget {
                           strokeWidth: 2, color: textColor),
                     ),
                     const SizedBox(width: 8),
-                    Text('Thinking\u2026',
+                    Text(context.l10n.assistantThinking,
                         style: TextStyle(
                             color: textColor, fontStyle: FontStyle.italic)),
                   ],

@@ -66,8 +66,8 @@ class ScheduleIntelligenceViewModel extends _$ScheduleIntelligenceViewModel {
   }
 
   /// Re-checks a parsed AI suggestion against the schedule as it is now.
-  /// Returns a user-facing reason when it can't be applied, else null.
-  Future<String?> validateSuggestion({
+  /// Returns why it can't be applied, else null.
+  Future<SuggestionProblem?> validateSuggestion({
     required ConflictResolutionSuggestion suggestion,
     required DateTime pendingStart,
     required DateTime pendingEnd,

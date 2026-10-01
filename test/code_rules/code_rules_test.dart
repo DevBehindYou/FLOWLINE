@@ -53,4 +53,27 @@ void main() {
     ];
     expect(hits, isEmpty);
   });
+
+  test('widgets take user-facing text from l10n, not string literals', () {
+    // Literal text passed to the usual text-bearing parameters. A string
+    // that must not be translated (a URL) carries `// l10n-ignore`.
+    final literal = RegExp(
+        r'''(Text|tooltip:|label:|title:|message:|labelText:|hintText:|helperText:|failureMessage:|actionLabel:|confirmLabel:|semanticLabel:|errorText:)\s*\(?\s*(const\s+)?(Text\()?\s*['"][A-Za-z]''');
+    final ui = sources.where((f) {
+      final path = f.path.replaceAll(r'\', '/');
+      return path.startsWith('lib/features/') ||
+          path.startsWith('lib/shared_widgets/') ||
+          path == 'lib/app.dart';
+    });
+    final hits = [
+      for (final f in ui)
+        for (final (i, line) in f.readAsLinesSync().indexed)
+          if (literal.hasMatch(line) &&
+              !line.trimLeft().startsWith('//') &&
+              !line.contains('l10n-ignore'))
+            '${f.path}:${i + 1}: ${line.trim()}',
+    ];
+    expect(hits, isEmpty,
+        reason: 'Add the string to lib/l10n/app_en.arb and use context.l10n.');
+  });
 }

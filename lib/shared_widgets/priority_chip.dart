@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/theme/app_theme.dart';
 import '../domain/entities/task.dart';
+import '../l10n/l10n.dart';
 
 class PriorityChip extends StatelessWidget {
   const PriorityChip({super.key, required this.priority});
@@ -10,10 +11,11 @@ class PriorityChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (label, color) = switch (priority) {
-      TaskPriority.low => ('Low', FlowlineSemanticColors.priorityLow),
-      TaskPriority.medium => ('Medium', FlowlineSemanticColors.priorityMedium),
-      TaskPriority.high => ('High', FlowlineSemanticColors.priorityHigh),
+    final label = context.l10n.priorityName(priority);
+    final color = switch (priority) {
+      TaskPriority.low => FlowlineSemanticColors.priorityLow,
+      TaskPriority.medium => FlowlineSemanticColors.priorityMedium,
+      TaskPriority.high => FlowlineSemanticColors.priorityHigh,
     };
 
     return Container(

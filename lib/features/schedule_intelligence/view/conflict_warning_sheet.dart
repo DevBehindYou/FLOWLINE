@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/async/run_action.dart';
 import '../../../domain/entities/schedule_block.dart';
 import '../../../domain/services/conflict_resolution_ai.dart';
 import '../../schedule_block_form/viewmodel/add_edit_schedule_block_view_model.dart';
 import '../viewmodel/schedule_intelligence_view_model.dart';
+import '../../../l10n/l10n.dart';
 
 /// Shown instead of saving directly when the pending block overlaps one
 /// or more existing blocks. Three ways out: ask the AI for a suggested
@@ -45,14 +45,15 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
   ConflictResolutionSuggestion? _suggestion;
 
   /// Why [_suggestion] can't be applied; null when it passed validation.
-  String? _suggestionProblem;
+  SuggestionProblem? _suggestionProblem;
   String? _aiRawText;
   String? _aiError;
 
   ScheduleIntelligenceViewModel get _viewModel =>
       ref.read(scheduleIntelligenceViewModelProvider.notifier);
 
-  Future<String?> _validate(ConflictResolutionSuggestion suggestion) {
+  Future<SuggestionProblem?> _validate(
+      ConflictResolutionSuggestion suggestion) {
     return _viewModel.validateSuggestion(
       suggestion: suggestion,
       pendingStart: widget.pendingStart,
@@ -136,7 +137,7 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
         }
         return true;
       },
-      failureMessage: "Couldn't save the block \u2014 please try again.",
+      failureMessage: context.l10n.saveBlockFailed,
     );
     if (!mounted) return;
     if (saved == true) {
@@ -146,7 +147,7 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
     }
   }
 
-  String _fmt(DateTime d) => DateFormat.jm().format(d);
+  String _fmt(DateTime d) => context.l10n.time(d);
 
   @override
   Widget build(BuildContext context) {
@@ -163,14 +164,14 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
               children: [
                 Icon(Icons.warning_amber_rounded, color: scheme.error),
                 const SizedBox(width: 8),
-                Text('Schedule conflict',
+                Text(context.l10n.scheduleConflict,
                     style: Theme.of(context).textTheme.titleLarge),
               ],
             ),
             const SizedBox(height: 12),
             Text(
-              '"${widget.pendingTitle}" (${_fmt(widget.pendingStart)} \u2013 ${_fmt(widget.pendingEnd)}) '
-              'overlaps:',
+              context.l10n.conflictOverlaps(widget.pendingTitle,
+                  _fmt(widget.pendingStart), _fmt(widget.pendingEnd)),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 8),
@@ -178,7 +179,8 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 4),
                 child: Text(
-                  '\u2022 "${conflict.title}" (${_fmt(conflict.startTime)} \u2013 ${_fmt(conflict.endTime)})',
+                  context.l10n.conflictItem(conflict.title,
+                      _fmt(conflict.startTime), _fmt(conflict.endTime)),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ),
@@ -198,7 +200,7 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
                     ? null
                     : _applySuggestion,
                 icon: const Icon(Icons.check),
-                label: const Text('Apply suggested time'),
+                label: Text(context.l10n.applySuggestedTime),
               ),
               const SizedBox(height: 8),
             ],
@@ -213,10 +215,10 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
                   : const Icon(Icons.auto_awesome),
               label: Text(
                 _asking
-                    ? 'Asking\u2026'
+                    ? context.l10n.asking
                     : _suggestion == null && _aiRawText == null
-                        ? 'Ask AI to help'
-                        : 'Ask again',
+                        ? context.l10n.askAiToHelp
+                        : context.l10n.askAgain,
               ),
             ),
             const SizedBox(height: 8),
@@ -224,7 +226,7 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
               // true = reopen the form with these values (K15).
               onPressed: _saving ? null : () => Navigator.of(context).pop(true),
               icon: const Icon(Icons.edit_outlined),
-              label: const Text('Edit times'),
+              label: Text(context.l10n.editTimes),
             ),
             const SizedBox(height: 8),
             TextButton(
@@ -235,7 +237,7 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
                       width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Save anyway (overlap allowed)'),
+                  : Text(context.l10n.saveAnyway),
             ),
           ],
         ),
@@ -253,10 +255,11 @@ class _SuggestionCard extends StatelessWidget {
 
   final ConflictResolutionSuggestion suggestion;
   final String Function(DateTime) formatTime;
-  final String? problem;
+  final SuggestionProblem? problem;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
@@ -269,7 +272,8 @@ class _SuggestionCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Suggested: ${formatTime(suggestion.newStartTime)} \u2013 ${formatTime(suggestion.newEndTime)}',
+            l10n.suggestedTime(formatTime(suggestion.newStartTime),
+                formatTime(suggestion.newEndTime)),
             style: Theme.of(context).textTheme.titleSmall,
           ),
           const SizedBox(height: 4),
@@ -284,7 +288,7 @@ class _SuggestionCard extends StatelessWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    "Can't apply: $problem",
+                    l10n.cantApply(_problemText(l10n, problem!)),
                     style: Theme.of(context)
                         .textTheme
                         .bodySmall
@@ -319,7 +323,7 @@ class _RawAiTextCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Couldn't turn that into a specific time automatically:",
+            context.l10n.aiRawTextIntro,
             style: Theme.of(context).textTheme.labelMedium,
           ),
           const SizedBox(height: 4),
@@ -350,3 +354,13 @@ class _ErrorCard extends StatelessWidget {
     );
   }
 }
+
+String _problemText(AppLocalizations l10n, SuggestionProblem problem) =>
+    switch (problem) {
+      SuggestionEndNotAfterStart() => l10n.problemEndNotAfterStart,
+      SuggestionNotSameDay() => l10n.problemNotSameDay,
+      SuggestionLengthChanged(:final got, :final wanted) =>
+        l10n.problemLengthChanged(got, wanted),
+      SuggestionStillOverlaps(:final blockTitle) =>
+        l10n.problemStillOverlaps(blockTitle),
+    };

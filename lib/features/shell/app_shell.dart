@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../l10n/l10n.dart';
+
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.navigationShell});
 
@@ -8,6 +10,7 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
@@ -16,26 +19,26 @@ class AppShell extends StatelessWidget {
           index,
           initialLocation: index == navigationShell.currentIndex,
         ),
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.calendar_today_outlined),
-            selectedIcon: Icon(Icons.calendar_today),
-            label: 'Today',
+            icon: const Icon(Icons.calendar_today_outlined),
+            selectedIcon: const Icon(Icons.calendar_today),
+            label: l10n.navToday,
           ),
           NavigationDestination(
-            icon: Icon(Icons.hourglass_empty_outlined),
-            selectedIcon: Icon(Icons.hourglass_bottom),
-            label: 'Focus',
+            icon: const Icon(Icons.hourglass_empty_outlined),
+            selectedIcon: const Icon(Icons.hourglass_bottom),
+            label: l10n.navFocus,
           ),
           NavigationDestination(
-            icon: Icon(Icons.auto_awesome_outlined),
-            selectedIcon: Icon(Icons.auto_awesome),
-            label: 'Assistant',
+            icon: const Icon(Icons.auto_awesome_outlined),
+            selectedIcon: const Icon(Icons.auto_awesome),
+            label: l10n.navAssistant,
           ),
           NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart),
-            label: 'Insights',
+            icon: const Icon(Icons.bar_chart_outlined),
+            selectedIcon: const Icon(Icons.bar_chart),
+            label: l10n.navInsights,
           ),
         ],
       ),

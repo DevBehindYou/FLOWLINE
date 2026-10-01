@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../l10n/l10n.dart';
+
 class TimerRing extends StatelessWidget {
   const TimerRing({
     super.key,
@@ -20,8 +22,8 @@ class TimerRing extends StatelessWidget {
     // One label for screen readers instead of three unlabeled progress
     // indicators and a bare "12:34" (K13).
     return Semantics(
-      label: 'Timer',
-      value: _spoken(remainingSec),
+      label: context.l10n.timer,
+      value: _spoken(context.l10n, remainingSec),
       excludeSemantics: true,
       child: SizedBox(
         width: 240,
@@ -66,12 +68,11 @@ class TimerRing extends StatelessWidget {
     );
   }
 
-  String _spoken(int totalSeconds) {
+  String _spoken(AppLocalizations l10n, int totalSeconds) {
     final safe = totalSeconds < 0 ? 0 : totalSeconds;
     final minutes = safe ~/ 60;
     final seconds = safe % 60;
-    return '$minutes minute${minutes == 1 ? '' : 's'} '
-        '$seconds second${seconds == 1 ? '' : 's'} remaining';
+    return l10n.timerRemaining(minutes, seconds);
   }
 
   String _format(int totalSeconds) {

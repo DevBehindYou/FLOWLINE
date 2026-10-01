@@ -1,0 +1,9 @@
+# gen-l10n (runs on `flutter pub get` because pubspec has generate: true).
+# Strings live in lib/l10n/app_en.arb; add a language by adding
+# app_<locale>.arb next to it. The generated Dart files are committed so
+# analyze and tests never depend on generation order.
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+nullable-getter: false

@@ -42,6 +42,11 @@ R1–R21, defect register B1–B31) > `docs/03-…` > `docs/01-…`/`02-…`
   flag** (R12). No raw `$error` in the UI: use `ErrorView` (R14).
 - **AI output is untrusted input** (R16). Parse it, validate it against
   current state, and only apply it after a tap.
+- **No user-facing string literals in widgets.** Add the string to
+  `lib/l10n/app_en.arb` and read it with `context.l10n` (dates and times
+  through `lib/l10n/formats.dart`). `lib/domain/` returns typed results
+  (enums, sealed classes), never English text. `test/code_rules/`
+  enforces the widget side.
 - **API keys only go in `SecureKeyStore`.** Never in Drift, logs or URLs.
   `flutter_secure_storage` is held at 10.x on purpose (see
   `secure_key_store.dart`).

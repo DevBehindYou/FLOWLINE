@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/theme/app_theme.dart';
 import '../domain/entities/task.dart';
+import '../l10n/l10n.dart';
 
 class StatusChip extends StatelessWidget {
   const StatusChip({super.key, required this.status});
@@ -10,13 +11,11 @@ class StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (label, color) = switch (status) {
-      TaskStatus.todo => ('Todo', FlowlineSemanticColors.statusTodo),
-      TaskStatus.inProgress => (
-          'In Progress',
-          FlowlineSemanticColors.statusInProgress
-        ),
-      TaskStatus.done => ('Done', FlowlineSemanticColors.statusDone),
+    final label = context.l10n.statusName(status);
+    final color = switch (status) {
+      TaskStatus.todo => FlowlineSemanticColors.statusTodo,
+      TaskStatus.inProgress => FlowlineSemanticColors.statusInProgress,
+      TaskStatus.done => FlowlineSemanticColors.statusDone,
     };
 
     return Container(

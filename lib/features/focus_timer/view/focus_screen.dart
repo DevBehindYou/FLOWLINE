@@ -15,6 +15,7 @@ import '../../task_detail/viewmodel/task_detail_view_model.dart';
 import '../viewmodel/focus_timer_view_model.dart';
 import '../widgets/timer_ring.dart';
 import 'session_summary_sheet.dart';
+import '../../../l10n/l10n.dart';
 
 class FocusScreen extends ConsumerStatefulWidget {
   const FocusScreen({super.key});
@@ -63,7 +64,7 @@ class _FocusScreenState extends ConsumerState<FocusScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Focus'),
+        title: Text(context.l10n.navFocus),
         actions: const [SettingsAction()],
       ),
       body: sessionAsync.when(
@@ -126,7 +127,7 @@ class _IdleViewState extends ConsumerState<_IdleView>
               child: Chip(
                 avatar: const Icon(Icons.link, size: 16),
                 label: Text(pendingLink.label, overflow: TextOverflow.ellipsis),
-                deleteButtonTooltipMessage: 'Unlink task',
+                deleteButtonTooltipMessage: context.l10n.unlinkTask,
                 onDeleted: () =>
                     ref.read(pendingFocusLinkProvider.notifier).clear(),
               ),
@@ -150,7 +151,7 @@ class _IdleViewState extends ConsumerState<_IdleView>
                     subtaskId: pendingLink?.subtaskId,
                   )),
           icon: const Icon(Icons.play_arrow),
-          label: const Text('Start'),
+          label: Text(context.l10n.start),
         ),
         const Spacer(),
         const _TodaysFocusFooter(),
@@ -186,7 +187,9 @@ class _RunningViewState extends ConsumerState<_RunningView>
         _Countdown(session: session, color: color),
         const SizedBox(height: 8),
         Text(
-          session.isPaused ? 'PAUSED' : _typeLabel(session.sessionType),
+          session.isPaused
+              ? context.l10n.timerPaused
+              : _typeLabel(context.l10n, session.sessionType),
           style: Theme.of(context)
               .textTheme
               .labelLarge
@@ -205,8 +208,8 @@ class _RunningViewState extends ConsumerState<_RunningView>
                   ? Icons.stop
                   : Icons.skip_next,
               label: session.sessionType == FocusSessionType.focus
-                  ? 'End'
-                  : 'Skip',
+                  ? context.l10n.end
+                  : context.l10n.skip,
               onPressed: _busy
                   ? null
                   : () => guard(
@@ -214,7 +217,8 @@ class _RunningViewState extends ConsumerState<_RunningView>
             ),
             _ControlButton(
               icon: session.isPaused ? Icons.play_arrow : Icons.pause,
-              label: session.isPaused ? 'Resume' : 'Pause',
+              label:
+                  session.isPaused ? context.l10n.resume : context.l10n.pause,
               filled: true,
               onPressed: _busy
                   ? null
@@ -224,7 +228,7 @@ class _RunningViewState extends ConsumerState<_RunningView>
             ),
             _ControlButton(
               icon: Icons.add,
-              label: '+5 min',
+              label: context.l10n.addFiveMinutes,
               onPressed:
                   _busy ? null : () => guard(() => viewModel.extend(session)),
             ),
@@ -236,10 +240,11 @@ class _RunningViewState extends ConsumerState<_RunningView>
     );
   }
 
-  String _typeLabel(FocusSessionType type) => switch (type) {
-        FocusSessionType.focus => 'FOCUS',
-        FocusSessionType.shortBreak => 'SHORT BREAK',
-        FocusSessionType.longBreak => 'LONG BREAK',
+  String _typeLabel(AppLocalizations l10n, FocusSessionType type) =>
+      switch (type) {
+        FocusSessionType.focus => l10n.timerLabelFocus,
+        FocusSessionType.shortBreak => l10n.timerLabelShortBreak,
+        FocusSessionType.longBreak => l10n.timerLabelLongBreak,
       };
 }
 
@@ -356,19 +361,21 @@ class _SessionTypeSelector extends ConsumerWidget {
   final FocusSessionType selected;
   final ValueChanged<FocusSessionType> onChanged;
 
-  static const _names = {
-    FocusSessionType.focus: 'Focus',
-    FocusSessionType.shortBreak: 'Short',
-    FocusSessionType.longBreak: 'Long',
-  };
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings =
         ref.watch(appSettingsProvider).value ?? const AppSettings();
+    final l10n = context.l10n;
     final labels = {
       for (final type in FocusSessionType.values)
-        type: '${_names[type]} (${settings.minutesFor(type)}m)',
+        type: switch (type) {
+          FocusSessionType.focus =>
+            l10n.selectorFocus(settings.minutesFor(type)),
+          FocusSessionType.shortBreak =>
+            l10n.selectorShortBreak(settings.minutesFor(type)),
+          FocusSessionType.longBreak =>
+            l10n.selectorLongBreak(settings.minutesFor(type)),
+        },
     };
     final largeText = MediaQuery.textScalerOf(context).scale(14) > 14 * 1.3;
     if (largeText) {
@@ -478,7 +485,10 @@ class _TodaysFocusFooter extends ConsumerWidget {
       data: (summary) {
         final hours = summary.totalSeconds ~/ 3600;
         final minutes = (summary.totalSeconds % 3600) ~/ 60;
-        final label = hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
+        final l10n = context.l10n;
+        final label = hours > 0
+            ? l10n.durationHoursMinutes(hours, minutes)
+            : l10n.durationMinutes(minutes);
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
@@ -497,12 +507,11 @@ class _TodaysFocusFooter extends ConsumerWidget {
                   Icon(Icons.bolt,
                       size: 18, color: Theme.of(context).colorScheme.primary),
                   const SizedBox(width: 8),
-                  const Flexible(child: Text("Today's Focus")),
+                  Flexible(child: Text(l10n.todaysFocus)),
                 ],
               ),
               Text(
-                '$label \u2022 ${summary.sessionCount} '
-                'session${summary.sessionCount == 1 ? '' : 's'}',
+                l10n.focusFooterSummary(label, summary.sessionCount),
               ),
             ],
           ),

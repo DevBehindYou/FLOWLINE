@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../../domain/entities/schedule_block.dart';
 import '../../../domain/entities/task.dart';
@@ -10,6 +9,7 @@ import '../../schedule_block_form/view/schedule_block_flow.dart';
 import '../../task_form/view/add_edit_task_sheet.dart';
 import '../viewmodel/today_view_model.dart';
 import 'task_card.dart';
+import '../../../l10n/l10n.dart';
 
 class DayTimeline extends StatelessWidget {
   const DayTimeline({
@@ -41,11 +41,12 @@ class DayTimeline extends StatelessWidget {
         OutlinedButton.icon(
           onPressed: onAddBlock,
           icon: const Icon(Icons.add),
-          label: const Text('Add schedule block'),
+          label: Text(context.l10n.addScheduleBlock),
         ),
         if (unscheduledTasks.isNotEmpty) ...[
           const SizedBox(height: 24),
-          Text('Unscheduled', style: Theme.of(context).textTheme.titleMedium),
+          Text(context.l10n.unscheduled,
+              style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           for (final task in unscheduledTasks) TaskCard(task: task),
         ],
@@ -66,8 +67,9 @@ class _ScheduleBlockSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tasksAsync = ref.watch(tasksForBlockProvider(block.id));
+    final l10n = context.l10n;
     final timeLabel =
-        '${DateFormat.jm().format(block.startTime)} \u2013 ${DateFormat.jm().format(block.endTime)}';
+        l10n.timeRange(l10n.time(block.startTime), l10n.time(block.endTime));
     final scheme = Theme.of(context).colorScheme;
 
     return Card(
@@ -102,7 +104,7 @@ class _ScheduleBlockSection extends ConsumerWidget {
                 ),
                 if (!block.isLocked)
                   PopupMenuButton<_BlockAction>(
-                    tooltip: 'Block options',
+                    tooltip: l10n.blockOptions,
                     icon: const Icon(Icons.more_vert, size: 20),
                     onSelected: (action) => switch (action) {
                       _BlockAction.edit => openScheduleBlockEditor(context,
@@ -110,26 +112,26 @@ class _ScheduleBlockSection extends ConsumerWidget {
                       _BlockAction.delete =>
                         confirmAndDeleteScheduleBlock(context, ref, block),
                     },
-                    itemBuilder: (_) => const [
+                    itemBuilder: (_) => [
                       PopupMenuItem(
                         value: _BlockAction.edit,
                         child: ListTile(
-                          leading: Icon(Icons.edit_outlined),
-                          title: Text('Edit block'),
+                          leading: const Icon(Icons.edit_outlined),
+                          title: Text(l10n.editBlock),
                         ),
                       ),
                       PopupMenuItem(
                         value: _BlockAction.delete,
                         child: ListTile(
-                          leading: Icon(Icons.delete_outline),
-                          title: Text('Delete block'),
+                          leading: const Icon(Icons.delete_outline),
+                          title: Text(l10n.deleteBlock),
                         ),
                       ),
                     ],
                   ),
                 IconButton(
                   icon: const Icon(Icons.add, size: 20),
-                  tooltip: 'Add task to this block',
+                  tooltip: l10n.addTaskToBlock,
                   onPressed: () => showModalBottomSheet<void>(
                     context: context,
                     isScrollControlled: true,
@@ -143,7 +145,7 @@ class _ScheduleBlockSection extends ConsumerWidget {
             if (isConflicting) ...[
               const SizedBox(height: 2),
               Text(
-                'Overlaps another block',
+                l10n.overlapsAnotherBlock,
                 style: Theme.of(context)
                     .textTheme
                     .bodySmall
@@ -160,7 +162,7 @@ class _ScheduleBlockSection extends ConsumerWidget {
               ),
               data: (tasks) => tasks.isEmpty
                   ? Text(
-                      'No tasks in this block yet.',
+                      l10n.blockEmpty,
                       style: Theme.of(context).textTheme.bodySmall,
                     )
                   : Column(children: [

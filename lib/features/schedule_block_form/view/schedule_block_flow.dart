@@ -7,6 +7,7 @@ import '../../../shared_widgets/confirm_dialog.dart';
 import '../../schedule_intelligence/view/conflict_warning_sheet.dart';
 import '../viewmodel/add_edit_schedule_block_view_model.dart';
 import 'add_edit_schedule_block_sheet.dart';
+import '../../../l10n/l10n.dart';
 
 /// Create ([existing] null) or edit a schedule block, including the
 /// conflict hand-off: the form returns a pending conflict instead of
@@ -56,8 +57,8 @@ Future<void> confirmAndDeleteScheduleBlock(
 ) async {
   final confirmed = await confirmDestructive(
     context,
-    title: 'Delete "${block.title}"?',
-    message: 'Its tasks stay and move to Unscheduled.',
+    title: context.l10n.deleteBlockTitle(block.title),
+    message: context.l10n.deleteBlockMessage,
   );
   if (!confirmed || !context.mounted) return;
   await runAction(
@@ -65,6 +66,6 @@ Future<void> confirmAndDeleteScheduleBlock(
     () => ref
         .read(addEditScheduleBlockViewModelProvider.notifier)
         .deleteBlock(block.id),
-    failureMessage: "Couldn't delete the block — please try again.",
+    failureMessage: context.l10n.deleteBlockFailed,
   );
 }

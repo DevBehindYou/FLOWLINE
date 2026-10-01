@@ -131,7 +131,8 @@ just the caret constraints in `pubspec.yaml`.
 | Notifications | `flutter_local_notifications`, `timezone`, `flutter_timezone` | 22.3.1 / 0.11.1 / 5.1.0 | Inexact `zonedSchedule`; UTC fallback for unknown zones. |
 | Charts | `fl_chart` | 1.2.0 | Insights bar chart. |
 | Export | `pdf`, `printing`, `share_plus`, `path_provider` | 3.13.1 / 5.15.1 / 13.3.0 / 2.1.6 | PDF embeds the bundled Inter, so dashes and Latin/Greek/Cyrillic text render (B25). |
-| Formatting | `intl` | 0.20.3 | Date/time labels. |
+| Formatting | `intl` | 0.20.3 | Date/time labels, through locale-aware skeletons in `lib/l10n/formats.dart`. |
+| Localization | `flutter_localizations` + gen-l10n | SDK | All UI text in `lib/l10n/app_en.arb` (English only so far); `context.l10n`. Generated Dart is committed. |
 | Lints | `flutter_lints` + strict analyzer settings | 6.0.0 | See `analysis_options.yaml` (rule R15). |
 | Codegen runner | `build_runner` | 2.16.1 | |
 
@@ -1346,7 +1347,7 @@ Severity: **P0** critical · **P1** major · **P2** moderate · **P3** minor.
 New defects found in the full read for the forward plan are tracked as
 **B1–B30** in `docs/04-build-and-optimization-plan.md` §3. Fixed so far:
 B1 (DST-safe calendar math), B2, B3, B4, B5, B6, B7, B8, B9, B11, B12,
-B13, B14, B15, B16, B17, B22, B23, B25, B26, B27,
+B13, B14, B15, B16, B17, B19, B22, B23, B25, B26, B27,
 B28, B29, B30, and B31 (new: error bubbles were sent to the vendor as
 history). Schema is now v4 (see §7.3 and `drift_schemas/`).
 
@@ -1396,7 +1397,8 @@ from the owner-only step (adding the signing secrets) and the device
 checklist; Phase 1 is done (237 tests; 92% line coverage of domain + data);
 Phase 2 (Flutter 3.47 / Riverpod 3 / Drift 2.35) is done; Phase 3 is in
 progress (block editing, task form, settings, Session Summary, onboarding
-and splash, fonts and design tokens are done). The list below is the original scope
+and splash, fonts and design tokens, l10n scaffolding are done). The list
+below is the original scope
 roadmap, kept for reference.
 
 

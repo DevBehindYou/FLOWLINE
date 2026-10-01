@@ -6,6 +6,18 @@ import '../../../domain/services/ai_settings_validation.dart';
 import '../../../shared_widgets/confirm_dialog.dart';
 import '../../ai_assistant/viewmodel/assistant_view_model.dart';
 import '../viewmodel/ai_providers_view_model.dart';
+import '../../../l10n/l10n.dart';
+
+String? _message(AppLocalizations l10n, AiFieldError? error) => switch (error) {
+      null => null,
+      AiFieldError.modelEmpty => l10n.aiFieldModelEmpty,
+      AiFieldError.modelHasSpaces => l10n.aiFieldModelHasSpaces,
+      AiFieldError.urlNeedsScheme => l10n.aiFieldUrlNeedsScheme,
+      AiFieldError.urlNeedsHost => l10n.aiFieldUrlNeedsHost,
+      AiFieldError.urlHasPath => l10n.aiFieldUrlHasPath,
+      AiFieldError.keyEmpty => l10n.aiFieldKeyEmpty,
+      AiFieldError.keyHasSpaces => l10n.aiFieldKeyHasSpaces,
+    };
 
 class AddEditAiProviderSheet extends ConsumerStatefulWidget {
   const AddEditAiProviderSheet({super.key, required this.config});
@@ -54,10 +66,9 @@ class _AddEditAiProviderSheetState
   Future<void> _remove() async {
     final confirmed = await confirmDestructive(
       context,
-      title: 'Remove ${widget.config.displayName} key?',
-      message: 'The key is deleted from this phone. Your saved conversations '
-          'stay, but new messages won\'t work until you add a key again.',
-      confirmLabel: 'Remove',
+      title: context.l10n.removeKeyTitle(widget.config.displayName),
+      message: context.l10n.removeKeyMessage,
+      confirmLabel: context.l10n.remove,
     );
     if (!confirmed || !mounted) return;
     await _run(() => ref
@@ -78,7 +89,7 @@ class _AddEditAiProviderSheetState
       if (mounted) {
         setState(() {
           _saving = false;
-          _error = 'Couldn\'t save — please try again.';
+          _error = context.l10n.saveFailed;
         });
       }
     }
@@ -86,6 +97,7 @@ class _AddEditAiProviderSheetState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final hasSavedKey =
         ref.watch(providerHasKeyProvider(widget.config.id)).value ?? false;
 
@@ -112,15 +124,15 @@ class _AddEditAiProviderSheetState
                   obscureText: _obscureKey,
                   autocorrect: false,
                   enableSuggestions: false,
-                  validator: (value) =>
-                      validateApiKey(value ?? '', hasSavedKey: hasSavedKey),
+                  validator: (value) => _message(l10n,
+                      validateApiKey(value ?? '', hasSavedKey: hasSavedKey)),
                   decoration: InputDecoration(
-                    labelText: 'API key',
+                    labelText: l10n.apiKey,
                     helperText: hasSavedKey
-                        ? 'A key is saved. Leave empty to keep it.'
-                        : 'Stored only on this phone, in the Android Keystore.',
+                        ? l10n.apiKeySavedHint
+                        : l10n.apiKeyStorageHint,
                     suffixIcon: IconButton(
-                      tooltip: _obscureKey ? 'Show key' : 'Hide key',
+                      tooltip: _obscureKey ? l10n.showKey : l10n.hideKey,
                       icon: Icon(
                         _obscureKey
                             ? Icons.visibility_outlined
@@ -136,13 +148,12 @@ class _AddEditAiProviderSheetState
                   controller: _baseUrlController,
                   keyboardType: TextInputType.url,
                   autocorrect: false,
-                  validator: (value) => validateOllamaBaseUrl(value ?? ''),
-                  decoration: const InputDecoration(
-                    labelText: 'Server URL',
-                    hintText: 'http://localhost:11434',
-                    helperText:
-                        "On a phone, \"localhost\" means the phone itself — "
-                        "use your computer's LAN IP if Ollama runs there.",
+                  validator: (value) =>
+                      _message(l10n, validateOllamaBaseUrl(value ?? '')),
+                  decoration: InputDecoration(
+                    labelText: l10n.serverUrl,
+                    hintText: 'http://localhost:11434', // l10n-ignore: a URL
+                    helperText: l10n.serverUrlHint,
                     helperMaxLines: 2,
                   ),
                 ),
@@ -150,8 +161,9 @@ class _AddEditAiProviderSheetState
               TextFormField(
                 controller: _modelController,
                 autocorrect: false,
-                validator: (value) => validateModelName(value ?? ''),
-                decoration: const InputDecoration(labelText: 'Model'),
+                validator: (value) =>
+                    _message(l10n, validateModelName(value ?? '')),
+                decoration: InputDecoration(labelText: l10n.model),
               ),
               if (_error != null) ...[
                 const SizedBox(height: 12),
@@ -169,13 +181,13 @@ class _AddEditAiProviderSheetState
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Save'),
+                    : Text(l10n.save),
               ),
               const SizedBox(height: 8),
               if (_requiresKey && hasSavedKey)
                 TextButton(
                   onPressed: _saving ? null : _remove,
-                  child: const Text('Remove key'),
+                  child: Text(l10n.removeKey),
                 ),
             ],
           ),

@@ -103,12 +103,37 @@ ConflictResolutionSuggestion? parseConflictSuggestion(String aiText) {
   }
 }
 
+/// Why a parsed AI suggestion can't be applied. The UI words it (domain/
+/// has no access to l10n).
+sealed class SuggestionProblem {
+  const SuggestionProblem();
+}
+
+class SuggestionEndNotAfterStart extends SuggestionProblem {
+  const SuggestionEndNotAfterStart();
+}
+
+class SuggestionNotSameDay extends SuggestionProblem {
+  const SuggestionNotSameDay();
+}
+
+class SuggestionLengthChanged extends SuggestionProblem {
+  const SuggestionLengthChanged({required this.got, required this.wanted});
+  final int got;
+  final int wanted;
+}
+
+class SuggestionStillOverlaps extends SuggestionProblem {
+  const SuggestionStillOverlaps(this.blockTitle);
+  final String blockTitle;
+}
+
 /// Why a parsed AI suggestion can't be applied, or null when it can. AI
 /// output is never authoritative: the suggestion must keep the pending
 /// block's day and duration and must not overlap anything already on the
 /// schedule (locked external blocks included), checked against the
 /// current blocks rather than the ones the AI was told about.
-String? validateConflictSuggestion({
+SuggestionProblem? validateConflictSuggestion({
   required ConflictResolutionSuggestion suggestion,
   required DateTime pendingStart,
   required DateTime pendingEnd,
@@ -118,21 +143,20 @@ String? validateConflictSuggestion({
   final start = suggestion.newStartTime;
   final end = suggestion.newEndTime;
   if (!end.isAfter(start)) {
-    return 'The suggested end time is not after its start.';
+    return const SuggestionEndNotAfterStart();
   }
 
   final dayStart =
       DateTime(pendingStart.year, pendingStart.month, pendingStart.day);
   final nextDay = DateTime(dayStart.year, dayStart.month, dayStart.day + 1);
   if (start.isBefore(dayStart) || end.isAfter(nextDay)) {
-    return 'The suggested time is not on the same day.';
+    return const SuggestionNotSameDay();
   }
 
   final wanted = pendingEnd.difference(pendingStart).inMinutes;
   final got = end.difference(start).inMinutes;
   if (got != wanted) {
-    return 'The suggestion changes the length to $got min '
-        '(expected $wanted min).';
+    return SuggestionLengthChanged(got: got, wanted: wanted);
   }
 
   final conflicts = const ScheduleConflictChecker().findConflicts(
@@ -142,7 +166,7 @@ String? validateConflictSuggestion({
     excludeBlockId: excludeBlockId,
   );
   if (conflicts.isNotEmpty) {
-    return 'That time still overlaps "${conflicts.first.title}".';
+    return SuggestionStillOverlaps(conflicts.first.title);
   }
   return null;
 }

@@ -5,6 +5,7 @@ import '../../../domain/entities/schedule_block.dart';
 import '../../../core/async/run_action.dart';
 import '../../schedule_intelligence/viewmodel/schedule_intelligence_view_model.dart';
 import '../viewmodel/add_edit_schedule_block_view_model.dart';
+import '../../../l10n/l10n.dart';
 
 /// Returned by [AddEditScheduleBlockSheet] (via `Navigator.pop`) instead
 /// of saving directly when the pending block overlaps an existing one.
@@ -91,13 +92,13 @@ class _AddEditScheduleBlockSheetState
   Future<void> _save() async {
     final title = _titleController.text.trim();
     if (title.isEmpty) {
-      setState(() => _error = 'Title is required');
+      setState(() => _error = context.l10n.titleRequired);
       return;
     }
     final start = _combine(_startTime);
     final end = _combine(_endTime);
     if (!end.isAfter(start)) {
-      setState(() => _error = 'End time must be after start time');
+      setState(() => _error = context.l10n.endAfterStart);
       return;
     }
 
@@ -116,7 +117,7 @@ class _AddEditScheduleBlockSheetState
             endTime: end,
             excludeBlockId: widget.existingBlock?.id,
           ),
-      failureMessage: "Couldn't check your schedule — please try again.",
+      failureMessage: context.l10n.checkScheduleFailed,
     );
 
     if (!mounted) return;
@@ -156,7 +157,7 @@ class _AddEditScheduleBlockSheetState
         }
         return true;
       },
-      failureMessage: "Couldn't save the block — please try again.",
+      failureMessage: context.l10n.saveBlockFailed,
     );
 
     if (!mounted) return;
@@ -182,15 +183,17 @@ class _AddEditScheduleBlockSheetState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              _isEditing ? 'Edit Schedule Block' : 'Add Schedule Block',
+              _isEditing
+                  ? context.l10n.editScheduleBlock
+                  : context.l10n.addScheduleBlockTitle,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _titleController,
               autofocus: !_isEditing,
-              decoration:
-                  InputDecoration(labelText: 'Block title', errorText: _error),
+              decoration: InputDecoration(
+                  labelText: context.l10n.blockTitleField, errorText: _error),
             ),
             const SizedBox(height: 12),
             Row(
@@ -198,14 +201,15 @@ class _AddEditScheduleBlockSheetState
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => _pickTime(isStart: true),
-                    child: Text('Start: ${_startTime.format(context)}'),
+                    child:
+                        Text(context.l10n.startAt(_startTime.format(context))),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => _pickTime(isStart: false),
-                    child: Text('End: ${_endTime.format(context)}'),
+                    child: Text(context.l10n.endAt(_endTime.format(context))),
                   ),
                 ),
               ],
@@ -219,7 +223,9 @@ class _AddEditScheduleBlockSheetState
                       width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : Text(_isEditing ? 'Save Changes' : 'Add Block'),
+                  : Text(_isEditing
+                      ? context.l10n.saveChanges
+                      : context.l10n.addBlock),
             ),
           ],
         ),

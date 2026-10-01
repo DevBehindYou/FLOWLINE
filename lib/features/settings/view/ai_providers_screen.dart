@@ -8,6 +8,7 @@ import '../../../shared_widgets/error_view.dart';
 import '../../ai_assistant/viewmodel/assistant_view_model.dart';
 import '../viewmodel/ai_providers_view_model.dart';
 import 'add_edit_ai_provider_sheet.dart';
+import '../../../l10n/l10n.dart';
 
 class AiProvidersScreen extends ConsumerWidget {
   const AiProvidersScreen({super.key});
@@ -17,7 +18,7 @@ class AiProvidersScreen extends ConsumerWidget {
     final providersAsync = ref.watch(aiProvidersProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('AI Providers')),
+      appBar: AppBar(title: Text(context.l10n.settingsAiProviders)),
       body: providersAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => ErrorView(
@@ -62,10 +63,10 @@ class _ProviderCard extends ConsumerWidget {
     } else {
       subtitle = hasKeyAsync.when(
         data: (hasKey) => hasKey
-            ? 'Connected \u2022 ${config.defaultModel}'
-            : 'Not connected',
+            ? context.l10n.providerConnected(config.defaultModel)
+            : context.l10n.providerNotConnected,
         loading: () => '\u2026',
-        error: (_, __) => 'Unknown',
+        error: (_, __) => context.l10n.providerStatusUnknown,
       );
     }
 
@@ -87,7 +88,7 @@ class _ProviderCard extends ConsumerWidget {
             ),
             IconButton(
               icon: const Icon(Icons.edit_outlined),
-              tooltip: 'Edit',
+              tooltip: context.l10n.edit,
               onPressed: () => showModalBottomSheet<void>(
                 context: context,
                 isScrollControlled: true,

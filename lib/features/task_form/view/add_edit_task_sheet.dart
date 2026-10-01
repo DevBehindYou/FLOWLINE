@@ -1,7 +1,6 @@
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/async/run_action.dart';
 import '../../../domain/entities/schedule_block.dart';
@@ -9,6 +8,7 @@ import '../../../domain/entities/task.dart';
 import '../../../shared_widgets/confirm_dialog.dart';
 import '../../schedule/viewmodel/today_view_model.dart';
 import '../viewmodel/add_edit_task_view_model.dart';
+import '../../../l10n/l10n.dart';
 
 /// Handles both create and edit — pass [existingTask] to edit it in place,
 /// or [scheduleBlockId] to create a new task pre-assigned to a block.
@@ -71,7 +71,7 @@ class _AddEditTaskSheetState extends ConsumerState<AddEditTaskSheet> {
   Future<void> _save() async {
     final title = _titleController.text.trim();
     if (title.isEmpty) {
-      setState(() => _titleError = 'Title is required');
+      setState(() => _titleError = context.l10n.titleRequired);
       return;
     }
 
@@ -104,7 +104,7 @@ class _AddEditTaskSheetState extends ConsumerState<AddEditTaskSheet> {
         }
         return true;
       },
-      failureMessage: "Couldn't save the task — please try again.",
+      failureMessage: context.l10n.saveTaskFailed,
     );
 
     if (!mounted) return;
@@ -119,8 +119,8 @@ class _AddEditTaskSheetState extends ConsumerState<AddEditTaskSheet> {
     final task = widget.existingTask!;
     final confirmed = await confirmDestructive(
       context,
-      title: 'Delete task?',
-      message: '"${task.title}" and its subtasks will be removed permanently.',
+      title: context.l10n.deleteTaskTitle,
+      message: context.l10n.deleteTaskAndSubtasksMessage(task.title),
     );
     if (!confirmed || !mounted) return;
     setState(() => _saving = true);
@@ -132,7 +132,7 @@ class _AddEditTaskSheetState extends ConsumerState<AddEditTaskSheet> {
             .deleteTask(task.id);
         return true;
       },
-      failureMessage: "Couldn't delete the task — please try again.",
+      failureMessage: context.l10n.deleteTaskFailed,
     );
     if (!mounted) return;
     if (deleted == true) {
@@ -171,15 +171,15 @@ class _AddEditTaskSheetState extends ConsumerState<AddEditTaskSheet> {
               ),
             ),
             Text(
-              _isEditing ? 'Edit Task' : 'Add Task',
+              _isEditing ? context.l10n.editTaskTitle : context.l10n.addTask,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _titleController,
               autofocus: !_isEditing,
-              decoration:
-                  InputDecoration(labelText: 'Title', errorText: _titleError),
+              decoration: InputDecoration(
+                  labelText: context.l10n.titleField, errorText: _titleError),
               onChanged: (_) {
                 if (_titleError != null) setState(() => _titleError = null);
               },
@@ -187,19 +187,19 @@ class _AddEditTaskSheetState extends ConsumerState<AddEditTaskSheet> {
             const SizedBox(height: 12),
             TextField(
               controller: _notesController,
-              decoration: const InputDecoration(labelText: 'Notes'),
+              decoration: InputDecoration(labelText: context.l10n.notesField),
               minLines: 2,
               maxLines: 4,
             ),
             const SizedBox(height: 12),
-            Text('Priority', style: Theme.of(context).textTheme.labelLarge),
+            Text(context.l10n.priorityField,
+                style: Theme.of(context).textTheme.labelLarge),
             const SizedBox(height: 8),
             SegmentedButton<TaskPriority>(
-              segments: const [
-                ButtonSegment(value: TaskPriority.low, label: Text('Low')),
-                ButtonSegment(
-                    value: TaskPriority.medium, label: Text('Medium')),
-                ButtonSegment(value: TaskPriority.high, label: Text('High')),
+              segments: [
+                for (final p in TaskPriority.values)
+                  ButtonSegment(
+                      value: p, label: Text(context.l10n.priorityName(p))),
               ],
               selected: {_priority},
               onSelectionChanged: (selection) =>
@@ -207,14 +207,20 @@ class _AddEditTaskSheetState extends ConsumerState<AddEditTaskSheet> {
             ),
             if (_isEditing) ...[
               const SizedBox(height: 12),
-              Text('Status', style: Theme.of(context).textTheme.labelLarge),
+              Text(context.l10n.statusField,
+                  style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 8),
               SegmentedButton<TaskStatus>(
-                segments: const [
-                  ButtonSegment(value: TaskStatus.todo, label: Text('To do')),
+                segments: [
                   ButtonSegment(
-                      value: TaskStatus.inProgress, label: Text('Doing')),
-                  ButtonSegment(value: TaskStatus.done, label: Text('Done')),
+                      value: TaskStatus.todo,
+                      label: Text(context.l10n.formStatusTodo)),
+                  ButtonSegment(
+                      value: TaskStatus.inProgress,
+                      label: Text(context.l10n.formStatusDoing)),
+                  ButtonSegment(
+                      value: TaskStatus.done,
+                      label: Text(context.l10n.statusDone)),
                 ],
                 selected: {_status},
                 onSelectionChanged: (selection) =>
@@ -242,7 +248,9 @@ class _AddEditTaskSheetState extends ConsumerState<AddEditTaskSheet> {
                       width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : Text(_isEditing ? 'Save Changes' : 'Add Task'),
+                  : Text(_isEditing
+                      ? context.l10n.saveChanges
+                      : context.l10n.addTask),
             ),
             if (_isEditing) ...[
               const SizedBox(height: 8),
@@ -252,7 +260,7 @@ class _AddEditTaskSheetState extends ConsumerState<AddEditTaskSheet> {
                   style: TextButton.styleFrom(
                       foregroundColor: Theme.of(context).colorScheme.error),
                   icon: const Icon(Icons.delete_outline),
-                  label: const Text('Delete task'),
+                  label: Text(context.l10n.deleteTaskButton),
                 ),
               ),
             ],
@@ -280,21 +288,21 @@ class _BlockPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final onThisDay = blocks.any((b) => b.id == selectedId);
-    final time = DateFormat.jm();
+    final l10n = context.l10n;
     return DropdownButtonFormField<int?>(
       initialValue: selectedId,
       isExpanded: true,
-      decoration: const InputDecoration(labelText: 'Schedule block'),
+      decoration: InputDecoration(labelText: l10n.scheduleBlockField),
       items: [
-        const DropdownMenuItem<int?>(value: null, child: Text('Unscheduled')),
+        DropdownMenuItem<int?>(value: null, child: Text(l10n.unscheduled)),
         if (selectedId != null && !onThisDay)
           DropdownMenuItem<int?>(
-              value: selectedId, child: const Text('Keep current block')),
+              value: selectedId, child: Text(l10n.keepCurrentBlock)),
         for (final block in blocks)
           DropdownMenuItem<int?>(
             value: block.id,
             child: Text(
-              '${block.title} · ${time.format(block.startTime)}',
+              l10n.blockOption(block.title, l10n.time(block.startTime)),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -317,10 +325,10 @@ class _DueField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final label = dueAt == null
-        ? 'No due date'
-        : 'Due ${DateFormat('EEE, MMM d').format(dueAt!)} '
-            '${DateFormat.jm().format(dueAt!)}';
+        ? l10n.noDueDate
+        : l10n.dueAt(l10n.dayShort(dueAt!), l10n.time(dueAt!));
     return Row(
       children: [
         Expanded(
@@ -332,7 +340,7 @@ class _DueField extends StatelessWidget {
         ),
         if (dueAt != null)
           IconButton(
-            tooltip: 'Remove due date',
+            tooltip: l10n.removeDueDate,
             icon: const Icon(Icons.close),
             onPressed: onClear,
           ),
