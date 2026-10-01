@@ -6,231 +6,285 @@ part of 'today_view_model.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$tasksForBlockHash() => r'5152f0be77b83e99d5503b1837dbe284ae708be5';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+/// The day shown on the Today tab. Follows [currentDayProvider], so it
+/// moves to the new day at midnight instead of staying on yesterday.
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
+@ProviderFor(SelectedDate)
+final selectedDateProvider = SelectedDateProvider._();
 
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [tasksForBlock].
-@ProviderFor(tasksForBlock)
-const tasksForBlockProvider = TasksForBlockFamily();
-
-/// See also [tasksForBlock].
-class TasksForBlockFamily extends Family<AsyncValue<List<Task>>> {
-  /// See also [tasksForBlock].
-  const TasksForBlockFamily();
-
-  /// See also [tasksForBlock].
-  TasksForBlockProvider call(
-    int blockId,
-  ) {
-    return TasksForBlockProvider(
-      blockId,
-    );
-  }
-
-  @override
-  TasksForBlockProvider getProviderOverride(
-    covariant TasksForBlockProvider provider,
-  ) {
-    return call(
-      provider.blockId,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'tasksForBlockProvider';
-}
-
-/// See also [tasksForBlock].
-class TasksForBlockProvider extends AutoDisposeStreamProvider<List<Task>> {
-  /// See also [tasksForBlock].
-  TasksForBlockProvider(
-    int blockId,
-  ) : this._internal(
-          (ref) => tasksForBlock(
-            ref as TasksForBlockRef,
-            blockId,
-          ),
-          from: tasksForBlockProvider,
-          name: r'tasksForBlockProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$tasksForBlockHash,
-          dependencies: TasksForBlockFamily._dependencies,
-          allTransitiveDependencies:
-              TasksForBlockFamily._allTransitiveDependencies,
-          blockId: blockId,
+/// The day shown on the Today tab. Follows [currentDayProvider], so it
+/// moves to the new day at midnight instead of staying on yesterday.
+final class SelectedDateProvider
+    extends $NotifierProvider<SelectedDate, DateTime> {
+  /// The day shown on the Today tab. Follows [currentDayProvider], so it
+  /// moves to the new day at midnight instead of staying on yesterday.
+  SelectedDateProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'selectedDateProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
         );
 
-  TasksForBlockProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.blockId,
-  }) : super.internal();
-
-  final int blockId;
-
   @override
-  Override overrideWith(
-    Stream<List<Task>> Function(TasksForBlockRef provider) create,
-  ) {
-    return ProviderOverride(
+  String debugGetCreateSourceHash() => _$selectedDateHash();
+
+  @$internal
+  @override
+  SelectedDate create() => SelectedDate();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DateTime value) {
+    return $ProviderOverride(
       origin: this,
-      override: TasksForBlockProvider._internal(
-        (ref) => create(ref as TasksForBlockRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        blockId: blockId,
-      ),
+      providerOverride: $SyncValueProvider<DateTime>(value),
     );
   }
-
-  @override
-  AutoDisposeStreamProviderElement<List<Task>> createElement() {
-    return _TasksForBlockProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is TasksForBlockProvider && other.blockId == blockId;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, blockId.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin TasksForBlockRef on AutoDisposeStreamProviderRef<List<Task>> {
-  /// The parameter `blockId` of this provider.
-  int get blockId;
-}
-
-class _TasksForBlockProviderElement
-    extends AutoDisposeStreamProviderElement<List<Task>> with TasksForBlockRef {
-  _TasksForBlockProviderElement(super.provider);
-
-  @override
-  int get blockId => (origin as TasksForBlockProvider).blockId;
-}
-
-String _$unscheduledTasksHash() => r'eb6903f9791f909da8764e2b6eb98d10b90bc385';
-
-/// See also [unscheduledTasks].
-@ProviderFor(unscheduledTasks)
-final unscheduledTasksProvider = AutoDisposeStreamProvider<List<Task>>.internal(
-  unscheduledTasks,
-  name: r'unscheduledTasksProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$unscheduledTasksHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef UnscheduledTasksRef = AutoDisposeStreamProviderRef<List<Task>>;
-String _$scheduleBlocksForSelectedDateHash() =>
-    r'b2e586367956a369cbb28d6f4273594de059ad69';
-
-/// See also [scheduleBlocksForSelectedDate].
-@ProviderFor(scheduleBlocksForSelectedDate)
-final scheduleBlocksForSelectedDateProvider =
-    AutoDisposeStreamProvider<List<ScheduleBlock>>.internal(
-  scheduleBlocksForSelectedDate,
-  name: r'scheduleBlocksForSelectedDateProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$scheduleBlocksForSelectedDateHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef ScheduleBlocksForSelectedDateRef
-    = AutoDisposeStreamProviderRef<List<ScheduleBlock>>;
 String _$selectedDateHash() => r'137a689018805c5e78fc30c8704f2fa79a938e23';
 
 /// The day shown on the Today tab. Follows [currentDayProvider], so it
 /// moves to the new day at midnight instead of staying on yesterday.
-///
-/// Copied from [SelectedDate].
-@ProviderFor(SelectedDate)
-final selectedDateProvider =
-    AutoDisposeNotifierProvider<SelectedDate, DateTime>.internal(
-  SelectedDate.new,
-  name: r'selectedDateProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$selectedDateHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
 
-typedef _$SelectedDate = AutoDisposeNotifier<DateTime>;
-String _$todayActionsHash() => r'23b04fb065798abffc5aa4d04e53646a31fccbfd';
+abstract class _$SelectedDate extends $Notifier<DateTime> {
+  DateTime build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<DateTime, DateTime>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<DateTime, DateTime>, DateTime, Object?, Object?>;
+    return element.handleCreate(ref, build);
+  }
+}
+
+@ProviderFor(tasksForBlock)
+final tasksForBlockProvider = TasksForBlockFamily._();
+
+final class TasksForBlockProvider extends $FunctionalProvider<
+        AsyncValue<List<Task>>, List<Task>, Stream<List<Task>>>
+    with $FutureModifier<List<Task>>, $StreamProvider<List<Task>> {
+  TasksForBlockProvider._(
+      {required TasksForBlockFamily super.from, required int super.argument})
+      : super(
+          retry: null,
+          name: r'tasksForBlockProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$tasksForBlockHash();
+
+  @override
+  String toString() {
+    return r'tasksForBlockProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<List<Task>> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<Task>> create(Ref ref) {
+    final argument = this.argument as int;
+    return tasksForBlock(
+      ref,
+      argument,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TasksForBlockProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$tasksForBlockHash() => r'5152f0be77b83e99d5503b1837dbe284ae708be5';
+
+final class TasksForBlockFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<List<Task>>, int> {
+  TasksForBlockFamily._()
+      : super(
+          retry: null,
+          name: r'tasksForBlockProvider',
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
+        );
+
+  TasksForBlockProvider call(
+    int blockId,
+  ) =>
+      TasksForBlockProvider._(argument: blockId, from: this);
+
+  @override
+  String toString() => r'tasksForBlockProvider';
+}
+
+@ProviderFor(unscheduledTasks)
+final unscheduledTasksProvider = UnscheduledTasksProvider._();
+
+final class UnscheduledTasksProvider extends $FunctionalProvider<
+        AsyncValue<List<Task>>, List<Task>, Stream<List<Task>>>
+    with $FutureModifier<List<Task>>, $StreamProvider<List<Task>> {
+  UnscheduledTasksProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'unscheduledTasksProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$unscheduledTasksHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<Task>> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<Task>> create(Ref ref) {
+    return unscheduledTasks(ref);
+  }
+}
+
+String _$unscheduledTasksHash() => r'eb6903f9791f909da8764e2b6eb98d10b90bc385';
+
+@ProviderFor(scheduleBlocksForSelectedDate)
+final scheduleBlocksForSelectedDateProvider =
+    ScheduleBlocksForSelectedDateProvider._();
+
+final class ScheduleBlocksForSelectedDateProvider extends $FunctionalProvider<
+        AsyncValue<List<ScheduleBlock>>,
+        List<ScheduleBlock>,
+        Stream<List<ScheduleBlock>>>
+    with
+        $FutureModifier<List<ScheduleBlock>>,
+        $StreamProvider<List<ScheduleBlock>> {
+  ScheduleBlocksForSelectedDateProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'scheduleBlocksForSelectedDateProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$scheduleBlocksForSelectedDateHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<ScheduleBlock>> $createElement(
+          $ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<ScheduleBlock>> create(Ref ref) {
+    return scheduleBlocksForSelectedDate(ref);
+  }
+}
+
+String _$scheduleBlocksForSelectedDateHash() =>
+    r'b2e586367956a369cbb28d6f4273594de059ad69';
 
 /// Action surface for the Today screen. The View calls through here
 /// rather than touching repositories directly, keeping the MVVM boundary
 /// even though there's no separate state to hold beyond the streams
 /// above — see the README for why a full Use Case layer isn't here yet.
-///
-/// Copied from [TodayActions].
-@ProviderFor(TodayActions)
-final todayActionsProvider =
-    AutoDisposeNotifierProvider<TodayActions, void>.internal(
-  TodayActions.new,
-  name: r'todayActionsProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$todayActionsHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+// keepAlive (rule R11): an action surface whose methods use `ref` after
+// an `await`. Auto-dispose would let it be disposed mid-action (the sheet
+// or screen that called it closes), and Riverpod 3 throws on any use of a
+// disposed Ref.
 
-typedef _$TodayActions = AutoDisposeNotifier<void>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+@ProviderFor(TodayActions)
+final todayActionsProvider = TodayActionsProvider._();
+
+/// Action surface for the Today screen. The View calls through here
+/// rather than touching repositories directly, keeping the MVVM boundary
+/// even though there's no separate state to hold beyond the streams
+/// above — see the README for why a full Use Case layer isn't here yet.
+// keepAlive (rule R11): an action surface whose methods use `ref` after
+// an `await`. Auto-dispose would let it be disposed mid-action (the sheet
+// or screen that called it closes), and Riverpod 3 throws on any use of a
+// disposed Ref.
+final class TodayActionsProvider extends $NotifierProvider<TodayActions, void> {
+  /// Action surface for the Today screen. The View calls through here
+  /// rather than touching repositories directly, keeping the MVVM boundary
+  /// even though there's no separate state to hold beyond the streams
+  /// above — see the README for why a full Use Case layer isn't here yet.
+// keepAlive (rule R11): an action surface whose methods use `ref` after
+// an `await`. Auto-dispose would let it be disposed mid-action (the sheet
+// or screen that called it closes), and Riverpod 3 throws on any use of a
+// disposed Ref.
+  TodayActionsProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'todayActionsProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$todayActionsHash();
+
+  @$internal
+  @override
+  TodayActions create() => TodayActions();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(void value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<void>(value),
+    );
+  }
+}
+
+String _$todayActionsHash() => r'90036a2b69bce2a3306a5b0ab57e868818b9b7b1';
+
+/// Action surface for the Today screen. The View calls through here
+/// rather than touching repositories directly, keeping the MVVM boundary
+/// even though there's no separate state to hold beyond the streams
+/// above — see the README for why a full Use Case layer isn't here yet.
+// keepAlive (rule R11): an action surface whose methods use `ref` after
+// an `await`. Auto-dispose would let it be disposed mid-action (the sheet
+// or screen that called it closes), and Riverpod 3 throws on any use of a
+// disposed Ref.
+
+abstract class _$TodayActions extends $Notifier<void> {
+  void build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<void, void>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<void, void>, void, Object?, Object?>;
+    return element.handleCreate(ref, build);
+  }
+}

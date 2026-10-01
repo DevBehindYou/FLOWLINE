@@ -14,14 +14,13 @@ permissions:
   contents: read
 
 # Pinned for determinism — CI is the only place this project builds and
-# tests (no local Flutter SDK). 3.35.x is deliberate, not stale: its Dart
-# 3.9 is the newest SDK the pinned codegen stack's `analyzer` 7.x can
-# parse. Flutter 3.38+ ships Dart 3.10, whose own SDK source uses dot
-# shorthands; analyzer 7.x crashes on those ("Missing implementation of
-# visitDotShorthandPropertyAccess") and build_runner then hangs. Only bump
-# this together with riverpod_generator/drift_dev/build_runner.
+# tests. Bump it only together with the code-generation stack
+# (riverpod_generator, drift_dev, build_runner and the analyzer they
+# share), and re-check tool/ci/android_patches.dart against the new
+# Android template: on 3.35 the pinned analyzer crashed on a newer SDK and
+# build_runner hung for 5.5 hours (see docs/04, rule R19).
 env:
-  FLUTTER_VERSION: "3.35.7"
+  FLUTTER_VERSION: "3.47.5"
 
 jobs:
   analyze:
@@ -30,9 +29,6 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
-
-      - name: Install host sqlite3 (Drift in-memory DB for widget tests)
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq libsqlite3-dev
 
       - uses: subosito/flutter-action@v2
         with:
@@ -49,7 +45,7 @@ jobs:
       - name: Generate Drift + Riverpod code
         id: codegen
         timeout-minutes: 10
-        run: dart run build_runner build --delete-conflicting-outputs
+        run: dart run build_runner build
 
       # Tracked files only: build_runner output is formatted by its own
       # bundled dart_style and must not fail this check.
@@ -149,7 +145,7 @@ jobs:
 
       - name: Generate Drift + Riverpod code
         timeout-minutes: 10
-        run: dart run build_runner build --delete-conflicting-outputs
+        run: dart run build_runner build
 
       # One stable release key (repository secrets) so every CI build can
       # be installed over the previous one. Without it each fresh runner

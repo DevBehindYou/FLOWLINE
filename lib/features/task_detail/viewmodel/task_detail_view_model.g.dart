@@ -6,302 +6,198 @@ part of 'task_detail_view_model.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$taskByIdHash() => r'997525c1711c312f162c289908f6b053c7e60913';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [taskById].
 @ProviderFor(taskById)
-const taskByIdProvider = TaskByIdFamily();
+final taskByIdProvider = TaskByIdFamily._();
 
-/// See also [taskById].
-class TaskByIdFamily extends Family<AsyncValue<Task?>> {
-  /// See also [taskById].
-  const TaskByIdFamily();
-
-  /// See also [taskById].
-  TaskByIdProvider call(
-    int taskId,
-  ) {
-    return TaskByIdProvider(
-      taskId,
-    );
-  }
-
-  @override
-  TaskByIdProvider getProviderOverride(
-    covariant TaskByIdProvider provider,
-  ) {
-    return call(
-      provider.taskId,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'taskByIdProvider';
-}
-
-/// See also [taskById].
-class TaskByIdProvider extends AutoDisposeStreamProvider<Task?> {
-  /// See also [taskById].
-  TaskByIdProvider(
-    int taskId,
-  ) : this._internal(
-          (ref) => taskById(
-            ref as TaskByIdRef,
-            taskId,
-          ),
-          from: taskByIdProvider,
+final class TaskByIdProvider
+    extends $FunctionalProvider<AsyncValue<Task?>, Task?, Stream<Task?>>
+    with $FutureModifier<Task?>, $StreamProvider<Task?> {
+  TaskByIdProvider._(
+      {required TaskByIdFamily super.from, required int super.argument})
+      : super(
+          retry: null,
           name: r'taskByIdProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$taskByIdHash,
-          dependencies: TaskByIdFamily._dependencies,
-          allTransitiveDependencies: TaskByIdFamily._allTransitiveDependencies,
-          taskId: taskId,
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
         );
 
-  TaskByIdProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.taskId,
-  }) : super.internal();
-
-  final int taskId;
+  @override
+  String debugGetCreateSourceHash() => _$taskByIdHash();
 
   @override
-  Override overrideWith(
-    Stream<Task?> Function(TaskByIdRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: TaskByIdProvider._internal(
-        (ref) => create(ref as TaskByIdRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        taskId: taskId,
-      ),
-    );
+  String toString() {
+    return r'taskByIdProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  AutoDisposeStreamProviderElement<Task?> createElement() {
-    return _TaskByIdProviderElement(this);
+  $StreamProviderElement<Task?> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<Task?> create(Ref ref) {
+    final argument = this.argument as int;
+    return taskById(
+      ref,
+      argument,
+    );
   }
 
   @override
   bool operator ==(Object other) {
-    return other is TaskByIdProvider && other.taskId == taskId;
+    return other is TaskByIdProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, taskId.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin TaskByIdRef on AutoDisposeStreamProviderRef<Task?> {
-  /// The parameter `taskId` of this provider.
-  int get taskId;
-}
+String _$taskByIdHash() => r'997525c1711c312f162c289908f6b053c7e60913';
 
-class _TaskByIdProviderElement extends AutoDisposeStreamProviderElement<Task?>
-    with TaskByIdRef {
-  _TaskByIdProviderElement(super.provider);
+final class TaskByIdFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<Task?>, int> {
+  TaskByIdFamily._()
+      : super(
+          retry: null,
+          name: r'taskByIdProvider',
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
+        );
+
+  TaskByIdProvider call(
+    int taskId,
+  ) =>
+      TaskByIdProvider._(argument: taskId, from: this);
 
   @override
-  int get taskId => (origin as TaskByIdProvider).taskId;
+  String toString() => r'taskByIdProvider';
+}
+
+@ProviderFor(subtasksForTask)
+final subtasksForTaskProvider = SubtasksForTaskFamily._();
+
+final class SubtasksForTaskProvider extends $FunctionalProvider<
+        AsyncValue<List<Subtask>>, List<Subtask>, Stream<List<Subtask>>>
+    with $FutureModifier<List<Subtask>>, $StreamProvider<List<Subtask>> {
+  SubtasksForTaskProvider._(
+      {required SubtasksForTaskFamily super.from, required int super.argument})
+      : super(
+          retry: null,
+          name: r'subtasksForTaskProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$subtasksForTaskHash();
+
+  @override
+  String toString() {
+    return r'subtasksForTaskProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<List<Subtask>> $createElement(
+          $ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<Subtask>> create(Ref ref) {
+    final argument = this.argument as int;
+    return subtasksForTask(
+      ref,
+      argument,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is SubtasksForTaskProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
 }
 
 String _$subtasksForTaskHash() => r'0c73ce8c4c7ce8d1aeceee1e83976e43578ab0a8';
 
-/// See also [subtasksForTask].
-@ProviderFor(subtasksForTask)
-const subtasksForTaskProvider = SubtasksForTaskFamily();
-
-/// See also [subtasksForTask].
-class SubtasksForTaskFamily extends Family<AsyncValue<List<Subtask>>> {
-  /// See also [subtasksForTask].
-  const SubtasksForTaskFamily();
-
-  /// See also [subtasksForTask].
-  SubtasksForTaskProvider call(
-    int taskId,
-  ) {
-    return SubtasksForTaskProvider(
-      taskId,
-    );
-  }
-
-  @override
-  SubtasksForTaskProvider getProviderOverride(
-    covariant SubtasksForTaskProvider provider,
-  ) {
-    return call(
-      provider.taskId,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'subtasksForTaskProvider';
-}
-
-/// See also [subtasksForTask].
-class SubtasksForTaskProvider extends AutoDisposeStreamProvider<List<Subtask>> {
-  /// See also [subtasksForTask].
-  SubtasksForTaskProvider(
-    int taskId,
-  ) : this._internal(
-          (ref) => subtasksForTask(
-            ref as SubtasksForTaskRef,
-            taskId,
-          ),
-          from: subtasksForTaskProvider,
+final class SubtasksForTaskFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<List<Subtask>>, int> {
+  SubtasksForTaskFamily._()
+      : super(
+          retry: null,
           name: r'subtasksForTaskProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$subtasksForTaskHash,
-          dependencies: SubtasksForTaskFamily._dependencies,
-          allTransitiveDependencies:
-              SubtasksForTaskFamily._allTransitiveDependencies,
-          taskId: taskId,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
         );
 
-  SubtasksForTaskProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.taskId,
-  }) : super.internal();
-
-  final int taskId;
+  SubtasksForTaskProvider call(
+    int taskId,
+  ) =>
+      SubtasksForTaskProvider._(argument: taskId, from: this);
 
   @override
-  Override overrideWith(
-    Stream<List<Subtask>> Function(SubtasksForTaskRef provider) create,
-  ) {
-    return ProviderOverride(
+  String toString() => r'subtasksForTaskProvider';
+}
+
+@ProviderFor(TaskDetailActions)
+final taskDetailActionsProvider = TaskDetailActionsProvider._();
+
+final class TaskDetailActionsProvider
+    extends $NotifierProvider<TaskDetailActions, void> {
+  TaskDetailActionsProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'taskDetailActionsProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$taskDetailActionsHash();
+
+  @$internal
+  @override
+  TaskDetailActions create() => TaskDetailActions();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(void value) {
+    return $ProviderOverride(
       origin: this,
-      override: SubtasksForTaskProvider._internal(
-        (ref) => create(ref as SubtasksForTaskRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        taskId: taskId,
-      ),
+      providerOverride: $SyncValueProvider<void>(value),
     );
   }
-
-  @override
-  AutoDisposeStreamProviderElement<List<Subtask>> createElement() {
-    return _SubtasksForTaskProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is SubtasksForTaskProvider && other.taskId == taskId;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, taskId.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin SubtasksForTaskRef on AutoDisposeStreamProviderRef<List<Subtask>> {
-  /// The parameter `taskId` of this provider.
-  int get taskId;
-}
+String _$taskDetailActionsHash() => r'67fd43bfb8625709d6de0ff12d280d6ecb631689';
 
-class _SubtasksForTaskProviderElement
-    extends AutoDisposeStreamProviderElement<List<Subtask>>
-    with SubtasksForTaskRef {
-  _SubtasksForTaskProviderElement(super.provider);
-
+abstract class _$TaskDetailActions extends $Notifier<void> {
+  void build();
+  @$mustCallSuper
   @override
-  int get taskId => (origin as SubtasksForTaskProvider).taskId;
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<void, void>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<void, void>, void, Object?, Object?>;
+    return element.handleCreate(ref, build);
+  }
 }
-
-String _$taskDetailActionsHash() => r'1f5d7d385dcfb4f801b6402be86679a617be11c3';
-
-/// See also [TaskDetailActions].
-@ProviderFor(TaskDetailActions)
-final taskDetailActionsProvider =
-    AutoDisposeNotifierProvider<TaskDetailActions, void>.internal(
-  TaskDetailActions.new,
-  name: r'taskDetailActionsProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$taskDetailActionsHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef _$TaskDetailActions = AutoDisposeNotifier<void>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

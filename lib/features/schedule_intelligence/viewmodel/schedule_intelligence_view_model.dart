@@ -15,7 +15,11 @@ part 'schedule_intelligence_view_model.g.dart';
 /// orchestration" case the earlier phases' READMEs said would justify
 /// stepping past a plain repository call — still not a full Use Case
 /// class, since there's only one call site (the conflict sheet) so far.
-@riverpod
+// keepAlive (rule R11): an action surface whose methods use `ref` after
+// an `await`. Auto-dispose would let it be disposed mid-action (the sheet
+// or screen that called it closes), and Riverpod 3 throws on any use of a
+// disposed Ref.
+@Riverpod(keepAlive: true)
 class ScheduleIntelligenceViewModel extends _$ScheduleIntelligenceViewModel {
   @override
   void build() {}

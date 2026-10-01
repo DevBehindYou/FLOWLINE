@@ -6,165 +6,391 @@ part of 'providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(appDatabase)
+final appDatabaseProvider = AppDatabaseProvider._();
+
+final class AppDatabaseProvider
+    extends $FunctionalProvider<AppDatabase, AppDatabase, AppDatabase>
+    with $Provider<AppDatabase> {
+  AppDatabaseProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'appDatabaseProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$appDatabaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<AppDatabase> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  AppDatabase create(Ref ref) {
+    return appDatabase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AppDatabase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AppDatabase>(value),
+    );
+  }
+}
+
 String _$appDatabaseHash() => r'59cce38d45eeaba199eddd097d8e149d66f9f3e1';
 
-/// See also [appDatabase].
-@ProviderFor(appDatabase)
-final appDatabaseProvider = Provider<AppDatabase>.internal(
-  appDatabase,
-  name: r'appDatabaseProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$appDatabaseHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+@ProviderFor(taskRepository)
+final taskRepositoryProvider = TaskRepositoryProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef AppDatabaseRef = ProviderRef<AppDatabase>;
+final class TaskRepositoryProvider
+    extends $FunctionalProvider<TaskRepository, TaskRepository, TaskRepository>
+    with $Provider<TaskRepository> {
+  TaskRepositoryProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'taskRepositoryProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$taskRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<TaskRepository> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  TaskRepository create(Ref ref) {
+    return taskRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(TaskRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<TaskRepository>(value),
+    );
+  }
+}
+
 String _$taskRepositoryHash() => r'd1b32b0edd73be3c572e14024c9203bf1a7c06d8';
 
-/// See also [taskRepository].
-@ProviderFor(taskRepository)
-final taskRepositoryProvider = Provider<TaskRepository>.internal(
-  taskRepository,
-  name: r'taskRepositoryProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$taskRepositoryHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+@ProviderFor(scheduleRepository)
+final scheduleRepositoryProvider = ScheduleRepositoryProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef TaskRepositoryRef = ProviderRef<TaskRepository>;
+final class ScheduleRepositoryProvider extends $FunctionalProvider<
+    ScheduleRepository,
+    ScheduleRepository,
+    ScheduleRepository> with $Provider<ScheduleRepository> {
+  ScheduleRepositoryProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'scheduleRepositoryProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$scheduleRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<ScheduleRepository> $createElement(
+          $ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  ScheduleRepository create(Ref ref) {
+    return scheduleRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ScheduleRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ScheduleRepository>(value),
+    );
+  }
+}
+
 String _$scheduleRepositoryHash() =>
     r'0300f69ab3d681e5cb6f513e12f84c33c92ee242';
 
-/// See also [scheduleRepository].
-@ProviderFor(scheduleRepository)
-final scheduleRepositoryProvider = Provider<ScheduleRepository>.internal(
-  scheduleRepository,
-  name: r'scheduleRepositoryProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$scheduleRepositoryHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+@ProviderFor(focusSessionRepository)
+final focusSessionRepositoryProvider = FocusSessionRepositoryProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef ScheduleRepositoryRef = ProviderRef<ScheduleRepository>;
+final class FocusSessionRepositoryProvider extends $FunctionalProvider<
+    FocusSessionRepository,
+    FocusSessionRepository,
+    FocusSessionRepository> with $Provider<FocusSessionRepository> {
+  FocusSessionRepositoryProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'focusSessionRepositoryProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$focusSessionRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<FocusSessionRepository> $createElement(
+          $ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  FocusSessionRepository create(Ref ref) {
+    return focusSessionRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(FocusSessionRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<FocusSessionRepository>(value),
+    );
+  }
+}
+
 String _$focusSessionRepositoryHash() =>
     r'e736431f78d5e510607da56a25185557d9c4be11';
 
-/// See also [focusSessionRepository].
-@ProviderFor(focusSessionRepository)
-final focusSessionRepositoryProvider =
-    Provider<FocusSessionRepository>.internal(
-  focusSessionRepository,
-  name: r'focusSessionRepositoryProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$focusSessionRepositoryHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+@ProviderFor(notificationService)
+final notificationServiceProvider = NotificationServiceProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef FocusSessionRepositoryRef = ProviderRef<FocusSessionRepository>;
+final class NotificationServiceProvider extends $FunctionalProvider<
+        AsyncValue<NotificationService>,
+        NotificationService,
+        FutureOr<NotificationService>>
+    with
+        $FutureModifier<NotificationService>,
+        $FutureProvider<NotificationService> {
+  NotificationServiceProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'notificationServiceProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$notificationServiceHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<NotificationService> $createElement(
+          $ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<NotificationService> create(Ref ref) {
+    return notificationService(ref);
+  }
+}
+
 String _$notificationServiceHash() =>
     r'00ccaba7c6bbb8d602b8b6dec32b3000bfb1712d';
-
-/// See also [notificationService].
-@ProviderFor(notificationService)
-final notificationServiceProvider =
-    FutureProvider<NotificationService>.internal(
-  notificationService,
-  name: r'notificationServiceProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$notificationServiceHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef NotificationServiceRef = FutureProviderRef<NotificationService>;
-String _$dioHash() => r'a776c0eac1fbd6cd8a9772c1528b12065ce3775e';
 
 /// One shared client for every AI vendor. Timeouts are generous for the
 /// receive side because a non-streaming completion can legitimately take
 /// a minute, but a dead network or an unreachable Ollama host now fails
 /// in seconds instead of hanging the chat forever (K5).
-///
-/// Copied from [dio].
-@ProviderFor(dio)
-final dioProvider = Provider<Dio>.internal(
-  dio,
-  name: r'dioProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$dioHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef DioRef = ProviderRef<Dio>;
+@ProviderFor(dio)
+final dioProvider = DioProvider._();
+
+/// One shared client for every AI vendor. Timeouts are generous for the
+/// receive side because a non-streaming completion can legitimately take
+/// a minute, but a dead network or an unreachable Ollama host now fails
+/// in seconds instead of hanging the chat forever (K5).
+
+final class DioProvider extends $FunctionalProvider<Dio, Dio, Dio>
+    with $Provider<Dio> {
+  /// One shared client for every AI vendor. Timeouts are generous for the
+  /// receive side because a non-streaming completion can legitimately take
+  /// a minute, but a dead network or an unreachable Ollama host now fails
+  /// in seconds instead of hanging the chat forever (K5).
+  DioProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'dioProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$dioHash();
+
+  @$internal
+  @override
+  $ProviderElement<Dio> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  Dio create(Ref ref) {
+    return dio(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Dio value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Dio>(value),
+    );
+  }
+}
+
+String _$dioHash() => r'a776c0eac1fbd6cd8a9772c1528b12065ce3775e';
+
+@ProviderFor(secureKeyStore)
+final secureKeyStoreProvider = SecureKeyStoreProvider._();
+
+final class SecureKeyStoreProvider
+    extends $FunctionalProvider<SecureKeyStore, SecureKeyStore, SecureKeyStore>
+    with $Provider<SecureKeyStore> {
+  SecureKeyStoreProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'secureKeyStoreProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$secureKeyStoreHash();
+
+  @$internal
+  @override
+  $ProviderElement<SecureKeyStore> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  SecureKeyStore create(Ref ref) {
+    return secureKeyStore(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SecureKeyStore value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SecureKeyStore>(value),
+    );
+  }
+}
+
 String _$secureKeyStoreHash() => r'2a1c5d57a9486fcbdaefb79d198e428832637da0';
 
-/// See also [secureKeyStore].
-@ProviderFor(secureKeyStore)
-final secureKeyStoreProvider = Provider<SecureKeyStore>.internal(
-  secureKeyStore,
-  name: r'secureKeyStoreProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$secureKeyStoreHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+@ProviderFor(aiRepository)
+final aiRepositoryProvider = AiRepositoryProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef SecureKeyStoreRef = ProviderRef<SecureKeyStore>;
+final class AiRepositoryProvider
+    extends $FunctionalProvider<AIRepository, AIRepository, AIRepository>
+    with $Provider<AIRepository> {
+  AiRepositoryProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'aiRepositoryProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$aiRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<AIRepository> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  AIRepository create(Ref ref) {
+    return aiRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AIRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AIRepository>(value),
+    );
+  }
+}
+
 String _$aiRepositoryHash() => r'3400d8a71061e3417a5e907e341033113f41c212';
 
-/// See also [aiRepository].
-@ProviderFor(aiRepository)
-final aiRepositoryProvider = Provider<AIRepository>.internal(
-  aiRepository,
-  name: r'aiRepositoryProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$aiRepositoryHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef AiRepositoryRef = ProviderRef<AIRepository>;
-String _$exportServiceHash() => r'd8db18ff188965d70ff027315853adcf090b054d';
-
-/// See also [exportService].
 @ProviderFor(exportService)
-final exportServiceProvider = Provider<ExportService>.internal(
-  exportService,
-  name: r'exportServiceProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$exportServiceHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final exportServiceProvider = ExportServiceProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef ExportServiceRef = ProviderRef<ExportService>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class ExportServiceProvider
+    extends $FunctionalProvider<ExportService, ExportService, ExportService>
+    with $Provider<ExportService> {
+  ExportServiceProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'exportServiceProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$exportServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<ExportService> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  ExportService create(Ref ref) {
+    return exportService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ExportService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ExportService>(value),
+    );
+  }
+}
+
+String _$exportServiceHash() => r'd8db18ff188965d70ff027315853adcf090b054d';

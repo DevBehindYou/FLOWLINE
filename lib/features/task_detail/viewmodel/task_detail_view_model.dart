@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart' show Ref;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/providers.dart';
@@ -17,7 +16,11 @@ Stream<List<Subtask>> subtasksForTask(Ref ref, int taskId) {
   return ref.watch(taskRepositoryProvider).watchSubtasks(taskId);
 }
 
-@riverpod
+// keepAlive (rule R11): an action surface whose methods use `ref` after
+// an `await`. Auto-dispose would let it be disposed mid-action (the sheet
+// or screen that called it closes), and Riverpod 3 throws on any use of a
+// disposed Ref.
+@Riverpod(keepAlive: true)
 class TaskDetailActions extends _$TaskDetailActions {
   @override
   void build() {}

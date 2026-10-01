@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flowline/core/notifications/notification_service.dart';
 import 'package:flowline/core/providers.dart';
+import 'package:flowline/core/riverpod_config.dart';
 import 'package:flowline/data/local/drift/app_database.dart';
 import 'package:flowline/data/repositories/task_repository_impl.dart';
 import 'package:flowline/domain/entities/focus_session.dart';
@@ -36,7 +37,7 @@ void main() {
   setUp(() {
     db = createTestDatabase();
     notifications = _FakeNotificationService();
-    container = ProviderContainer(overrides: [
+    container = ProviderContainer(retry: noAutomaticRetry, overrides: [
       appDatabaseProvider.overrideWith((ref) => db),
       notificationServiceProvider.overrideWith((ref) async => notifications),
     ]);
@@ -127,7 +128,7 @@ void main() {
     // Notification init can fail on a real device (unknown timezone id,
     // revoked permission). The session is completed in the database
     // before notifications run, so the credit must not depend on them.
-    final failing = ProviderContainer(overrides: [
+    final failing = ProviderContainer(retry: noAutomaticRetry, overrides: [
       appDatabaseProvider.overrideWith((ref) => db),
       notificationServiceProvider
           .overrideWith((ref) async => throw StateError('plugin failed')),

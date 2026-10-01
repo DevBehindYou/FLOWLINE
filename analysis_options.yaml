@@ -16,6 +16,7 @@ analyzer:
     - "**/*.g.dart"
     - "**/*.steps.dart"
     - "test/drift/*/generated/**"
+    - build/**
 
 linter:
   rules:

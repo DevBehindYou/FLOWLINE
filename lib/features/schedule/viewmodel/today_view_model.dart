@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart' show Ref;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/providers.dart';
@@ -41,7 +40,11 @@ Stream<List<ScheduleBlock>> scheduleBlocksForSelectedDate(Ref ref) {
 /// rather than touching repositories directly, keeping the MVVM boundary
 /// even though there's no separate state to hold beyond the streams
 /// above — see the README for why a full Use Case layer isn't here yet.
-@riverpod
+// keepAlive (rule R11): an action surface whose methods use `ref` after
+// an `await`. Auto-dispose would let it be disposed mid-action (the sheet
+// or screen that called it closes), and Riverpod 3 throws on any use of a
+// disposed Ref.
+@Riverpod(keepAlive: true)
 class TodayActions extends _$TodayActions {
   @override
   void build() {}

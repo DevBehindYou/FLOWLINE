@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../tool/ci/android_patches.dart';
 
-// Flutter 3.35.7's templates (packages/flutter_tools/templates/app/
+// Flutter 3.47.5's templates (packages/flutter_tools/templates/app/
 // android*.tmpl) rendered for this project, with comments and attributes
 // the patches never touch trimmed. Every anchor the patches rely on is
 // kept verbatim; refresh these when CI's pinned Flutter version changes.
@@ -41,7 +41,6 @@ const _manifestTemplate = '''
 const _gradleTemplate = '''
 plugins {
     id("com.android.application")
-    id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -51,18 +50,28 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+    defaultConfig {
+        applicationId = "com.devbehindyou.flowline"
+        minSdk = flutter.minSdkVersion
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
     }
 
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("debug")
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
 
@@ -147,7 +156,7 @@ void main() {
     test('enables core library desugaring inside compileOptions', () {
       final compileOptions = patched.substring(
         patched.indexOf('compileOptions {'),
-        patched.indexOf('kotlinOptions {'),
+        patched.indexOf('defaultConfig {'),
       );
       expect(compileOptions, contains('isCoreLibraryDesugaringEnabled = true'));
     });

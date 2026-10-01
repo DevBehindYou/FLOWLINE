@@ -55,9 +55,8 @@ class InsightsScreen extends ConsumerWidget {
               dailyTotals.fold<int>(0, (sum, d) => sum + d.totalSeconds);
           final weekSessionCount =
               dailyTotals.fold<int>(0, (sum, d) => sum + d.sessionCount);
-          final todaySeconds =
-              todaysSummaryAsync.valueOrNull?.totalSeconds ?? 0;
-          final streak = streakAsync.valueOrNull ?? 0;
+          final todaySeconds = todaysSummaryAsync.value?.totalSeconds ?? 0;
+          final streak = streakAsync.value ?? 0;
 
           return ListView(
             padding: const EdgeInsets.all(16),

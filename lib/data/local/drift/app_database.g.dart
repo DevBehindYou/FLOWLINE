@@ -2864,8 +2864,7 @@ final class $$ScheduleBlocksTableReferences extends BaseReferences<
   static MultiTypedResultKey<$TasksTable, List<TaskRow>> _tasksRefsTable(
           _$AppDatabase db) =>
       MultiTypedResultKey.fromTable(db.tasks,
-          aliasName: $_aliasNameGenerator(
-              db.scheduleBlocks.id, db.tasks.scheduleBlockId));
+          aliasName: 'schedule_blocks__id__tasks__schedule_block_id');
 
   $$TasksTableProcessedTableManager get tasksRefs {
     final manager = $$TasksTableTableManager($_db, $_db.tasks).filter(
@@ -3062,7 +3061,7 @@ class $$ScheduleBlocksTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$ScheduleBlocksTable, ScheduleBlockRow>(table),
                     $$ScheduleBlocksTableReferences(db, table, e)
                   ))
               .toList(),
@@ -3131,8 +3130,8 @@ final class $$TasksTableReferences
   $$TasksTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static $ScheduleBlocksTable _scheduleBlockIdTable(_$AppDatabase db) =>
-      db.scheduleBlocks.createAlias(
-          $_aliasNameGenerator(db.tasks.scheduleBlockId, db.scheduleBlocks.id));
+      db.scheduleBlocks
+          .createAlias('tasks__schedule_block_id__schedule_blocks__id');
 
   $$ScheduleBlocksTableProcessedTableManager? get scheduleBlockId {
     final $_column = $_itemColumn<int>('schedule_block_id');
@@ -3148,7 +3147,7 @@ final class $$TasksTableReferences
   static MultiTypedResultKey<$SubtasksTable, List<SubtaskRow>>
       _subtasksRefsTable(_$AppDatabase db) =>
           MultiTypedResultKey.fromTable(db.subtasks,
-              aliasName: $_aliasNameGenerator(db.tasks.id, db.subtasks.taskId));
+              aliasName: 'tasks__id__subtasks__task_id');
 
   $$SubtasksTableProcessedTableManager get subtasksRefs {
     final manager = $$SubtasksTableTableManager($_db, $_db.subtasks)
@@ -3162,8 +3161,7 @@ final class $$TasksTableReferences
   static MultiTypedResultKey<$FocusSessionsTable, List<FocusSessionRow>>
       _focusSessionsRefsTable(_$AppDatabase db) =>
           MultiTypedResultKey.fromTable(db.focusSessions,
-              aliasName:
-                  $_aliasNameGenerator(db.tasks.id, db.focusSessions.taskId));
+              aliasName: 'tasks__id__focus_sessions__task_id');
 
   $$FocusSessionsTableProcessedTableManager get focusSessionsRefs {
     final manager = $$FocusSessionsTableTableManager($_db, $_db.focusSessions)
@@ -3479,8 +3477,10 @@ class $$TasksTableTableManager extends RootTableManager<
             createdAt: createdAt,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) =>
-                  (e.readTable(table), $$TasksTableReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$TasksTable, TaskRow>(table),
+                    $$TasksTableReferences(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: (
               {scheduleBlockId = false,
@@ -3587,8 +3587,8 @@ final class $$SubtasksTableReferences
     extends BaseReferences<_$AppDatabase, $SubtasksTable, SubtaskRow> {
   $$SubtasksTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static $TasksTable _taskIdTable(_$AppDatabase db) => db.tasks
-      .createAlias($_aliasNameGenerator(db.subtasks.taskId, db.tasks.id));
+  static $TasksTable _taskIdTable(_$AppDatabase db) =>
+      db.tasks.createAlias('subtasks__task_id__tasks__id');
 
   $$TasksTableProcessedTableManager get taskId {
     final $_column = $_itemColumn<int>('task_id')!;
@@ -3604,8 +3604,7 @@ final class $$SubtasksTableReferences
   static MultiTypedResultKey<$FocusSessionsTable, List<FocusSessionRow>>
       _focusSessionsRefsTable(_$AppDatabase db) =>
           MultiTypedResultKey.fromTable(db.focusSessions,
-              aliasName: $_aliasNameGenerator(
-                  db.subtasks.id, db.focusSessions.subtaskId));
+              aliasName: 'subtasks__id__focus_sessions__subtask_id');
 
   $$FocusSessionsTableProcessedTableManager get focusSessionsRefs {
     final manager = $$FocusSessionsTableTableManager($_db, $_db.focusSessions)
@@ -3868,8 +3867,10 @@ class $$SubtasksTableTableManager extends RootTableManager<
             orderIndex: orderIndex,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) =>
-                  (e.readTable(table), $$SubtasksTableReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$SubtasksTable, SubtaskRow>(table),
+                    $$SubtasksTableReferences(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: ({taskId = false, focusSessionsRefs = false}) {
             return PrefetchHooks(
@@ -3972,8 +3973,8 @@ final class $$FocusSessionsTableReferences extends BaseReferences<_$AppDatabase,
   $$FocusSessionsTableReferences(
       super.$_db, super.$_table, super.$_typedResult);
 
-  static $TasksTable _taskIdTable(_$AppDatabase db) => db.tasks
-      .createAlias($_aliasNameGenerator(db.focusSessions.taskId, db.tasks.id));
+  static $TasksTable _taskIdTable(_$AppDatabase db) =>
+      db.tasks.createAlias('focus_sessions__task_id__tasks__id');
 
   $$TasksTableProcessedTableManager? get taskId {
     final $_column = $_itemColumn<int>('task_id');
@@ -3987,8 +3988,7 @@ final class $$FocusSessionsTableReferences extends BaseReferences<_$AppDatabase,
   }
 
   static $SubtasksTable _subtaskIdTable(_$AppDatabase db) =>
-      db.subtasks.createAlias(
-          $_aliasNameGenerator(db.focusSessions.subtaskId, db.subtasks.id));
+      db.subtasks.createAlias('focus_sessions__subtask_id__subtasks__id');
 
   $$SubtasksTableProcessedTableManager? get subtaskId {
     final $_column = $_itemColumn<int>('subtask_id');
@@ -4333,7 +4333,7 @@ class $$FocusSessionsTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$FocusSessionsTable, FocusSessionRow>(table),
                     $$FocusSessionsTableReferences(db, table, e)
                   ))
               .toList(),
@@ -4550,7 +4550,12 @@ class $$AiProviderConfigsTableTableManager extends RootTableManager<
             isActive: isActive,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$AiProviderConfigsTable, AiProviderConfigRow>(
+                        table),
+                    BaseReferences<_$AppDatabase, $AiProviderConfigsTable,
+                        AiProviderConfigRow>(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: null,
         ));
@@ -4595,8 +4600,7 @@ final class $$AiConversationsTableReferences extends BaseReferences<
   static MultiTypedResultKey<$AiMessagesTable, List<AiMessageRow>>
       _aiMessagesRefsTable(_$AppDatabase db) =>
           MultiTypedResultKey.fromTable(db.aiMessages,
-              aliasName: $_aliasNameGenerator(
-                  db.aiConversations.id, db.aiMessages.conversationId));
+              aliasName: 'ai_conversations__id__ai_messages__conversation_id');
 
   $$AiMessagesTableProcessedTableManager get aiMessagesRefs {
     final manager = $$AiMessagesTableTableManager($_db, $_db.aiMessages)
@@ -4768,7 +4772,8 @@ class $$AiConversationsTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$AiConversationsTable, AiConversationRow>(
+                        table),
                     $$AiConversationsTableReferences(db, table, e)
                   ))
               .toList(),
@@ -4835,8 +4840,8 @@ final class $$AiMessagesTableReferences
   $$AiMessagesTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static $AiConversationsTable _conversationIdTable(_$AppDatabase db) =>
-      db.aiConversations.createAlias($_aliasNameGenerator(
-          db.aiMessages.conversationId, db.aiConversations.id));
+      db.aiConversations
+          .createAlias('ai_messages__conversation_id__ai_conversations__id');
 
   $$AiConversationsTableProcessedTableManager get conversationId {
     final $_column = $_itemColumn<int>('conversation_id')!;
@@ -5057,7 +5062,7 @@ class $$AiMessagesTableTableManager extends RootTableManager<
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
-                    e.readTable(table),
+                    e.readTable<$AiMessagesTable, AiMessageRow>(table),
                     $$AiMessagesTableReferences(db, table, e)
                   ))
               .toList(),

@@ -1,4 +1,5 @@
 import 'package:flowline/core/providers.dart';
+import 'package:flowline/core/riverpod_config.dart';
 import 'package:flowline/data/local/drift/app_database.dart';
 import 'package:flowline/data/local/secure/secure_key_store.dart';
 import 'package:flowline/domain/entities/ai_provider_config.dart';
@@ -29,7 +30,7 @@ void main() {
 
   setUp(() {
     db = createTestDatabase();
-    container = ProviderContainer(overrides: [
+    container = ProviderContainer(retry: noAutomaticRetry, overrides: [
       appDatabaseProvider.overrideWith((ref) => db),
       secureKeyStoreProvider.overrideWith((ref) => _FakeKeyStore()),
     ]);

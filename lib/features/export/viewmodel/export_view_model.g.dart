@@ -6,21 +6,51 @@ part of 'export_view_model.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$exportViewModelHash() => r'457297a2b8cd56f1523b2af6df14f89dd2bd1085';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [ExportViewModel].
 @ProviderFor(ExportViewModel)
-final exportViewModelProvider =
-    AutoDisposeNotifierProvider<ExportViewModel, bool>.internal(
-  ExportViewModel.new,
-  name: r'exportViewModelProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$exportViewModelHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final exportViewModelProvider = ExportViewModelProvider._();
 
-typedef _$ExportViewModel = AutoDisposeNotifier<bool>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class ExportViewModelProvider
+    extends $NotifierProvider<ExportViewModel, bool> {
+  ExportViewModelProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'exportViewModelProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$exportViewModelHash();
+
+  @$internal
+  @override
+  ExportViewModel create() => ExportViewModel();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$exportViewModelHash() => r'724b8590df3d904c62bf6279cc6f63a1510207f7';
+
+abstract class _$ExportViewModel extends $Notifier<bool> {
+  bool build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<bool, bool>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<bool, bool>, bool, Object?, Object?>;
+    return element.handleCreate(ref, build);
+  }
+}

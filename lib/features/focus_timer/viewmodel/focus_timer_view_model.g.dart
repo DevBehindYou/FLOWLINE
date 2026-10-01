@@ -6,62 +6,229 @@ part of 'focus_timer_view_model.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(activeFocusSession)
+final activeFocusSessionProvider = ActiveFocusSessionProvider._();
+
+final class ActiveFocusSessionProvider extends $FunctionalProvider<
+        AsyncValue<FocusSession?>, FocusSession?, Stream<FocusSession?>>
+    with $FutureModifier<FocusSession?>, $StreamProvider<FocusSession?> {
+  ActiveFocusSessionProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'activeFocusSessionProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$activeFocusSessionHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<FocusSession?> $createElement(
+          $ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<FocusSession?> create(Ref ref) {
+    return activeFocusSession(ref);
+  }
+}
+
 String _$activeFocusSessionHash() =>
     r'ee71950e0aca9853b959c84ec38c3620eda4f2f7';
 
-/// See also [activeFocusSession].
-@ProviderFor(activeFocusSession)
-final activeFocusSessionProvider =
-    AutoDisposeStreamProvider<FocusSession?>.internal(
-  activeFocusSession,
-  name: r'activeFocusSessionProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$activeFocusSessionHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+@ProviderFor(todaysFocusSummary)
+final todaysFocusSummaryProvider = TodaysFocusSummaryProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef ActiveFocusSessionRef = AutoDisposeStreamProviderRef<FocusSession?>;
+final class TodaysFocusSummaryProvider extends $FunctionalProvider<
+        AsyncValue<
+            ({
+              int sessionCount,
+              int totalSeconds,
+            })>,
+        ({
+          int sessionCount,
+          int totalSeconds,
+        }),
+        Stream<
+            ({
+              int sessionCount,
+              int totalSeconds,
+            })>>
+    with
+        $FutureModifier<
+            ({
+              int sessionCount,
+              int totalSeconds,
+            })>,
+        $StreamProvider<
+            ({
+              int sessionCount,
+              int totalSeconds,
+            })> {
+  TodaysFocusSummaryProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'todaysFocusSummaryProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$todaysFocusSummaryHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<
+      ({
+        int sessionCount,
+        int totalSeconds,
+      })> $createElement(
+          $ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<
+      ({
+        int sessionCount,
+        int totalSeconds,
+      })> create(Ref ref) {
+    return todaysFocusSummary(ref);
+  }
+}
+
 String _$todaysFocusSummaryHash() =>
     r'b144a5355400521e543ccf3fd706736731785da4';
 
-/// See also [todaysFocusSummary].
-@ProviderFor(todaysFocusSummary)
-final todaysFocusSummaryProvider =
-    AutoDisposeStreamProvider<({int totalSeconds, int sessionCount})>.internal(
-  todaysFocusSummary,
-  name: r'todaysFocusSummaryProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$todaysFocusSummaryHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+@ProviderFor(SelectedSessionType)
+final selectedSessionTypeProvider = SelectedSessionTypeProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef TodaysFocusSummaryRef
-    = AutoDisposeStreamProviderRef<({int totalSeconds, int sessionCount})>;
+final class SelectedSessionTypeProvider
+    extends $NotifierProvider<SelectedSessionType, FocusSessionType> {
+  SelectedSessionTypeProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'selectedSessionTypeProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$selectedSessionTypeHash();
+
+  @$internal
+  @override
+  SelectedSessionType create() => SelectedSessionType();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(FocusSessionType value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<FocusSessionType>(value),
+    );
+  }
+}
+
 String _$selectedSessionTypeHash() =>
     r'640579a1695456633b2cd40118eb87cab5610793';
 
-/// See also [SelectedSessionType].
-@ProviderFor(SelectedSessionType)
-final selectedSessionTypeProvider =
-    AutoDisposeNotifierProvider<SelectedSessionType, FocusSessionType>.internal(
-  SelectedSessionType.new,
-  name: r'selectedSessionTypeProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$selectedSessionTypeHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+abstract class _$SelectedSessionType extends $Notifier<FocusSessionType> {
+  FocusSessionType build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<FocusSessionType, FocusSessionType>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<FocusSessionType, FocusSessionType>,
+        FocusSessionType,
+        Object?,
+        Object?>;
+    return element.handleCreate(ref, build);
+  }
+}
 
-typedef _$SelectedSessionType = AutoDisposeNotifier<FocusSessionType>;
+/// Staged task/subtask to attach to the *next* session that gets started —
+/// set from the Today or Task Detail screens before jumping to the Focus
+/// tab, consumed (and cleared) once a session actually starts.
+///
+/// keepAlive because it's a hand-off: it's written while nothing watches
+/// it (the Focus tab may never have been built yet), and an auto-dispose
+/// provider could drop the link before the Focus screen reads it (B9).
+
+@ProviderFor(PendingFocusLink)
+final pendingFocusLinkProvider = PendingFocusLinkProvider._();
+
+/// Staged task/subtask to attach to the *next* session that gets started —
+/// set from the Today or Task Detail screens before jumping to the Focus
+/// tab, consumed (and cleared) once a session actually starts.
+///
+/// keepAlive because it's a hand-off: it's written while nothing watches
+/// it (the Focus tab may never have been built yet), and an auto-dispose
+/// provider could drop the link before the Focus screen reads it (B9).
+final class PendingFocusLinkProvider extends $NotifierProvider<
+    PendingFocusLink,
+    ({
+      String label,
+      int? subtaskId,
+      int taskId,
+    })?> {
+  /// Staged task/subtask to attach to the *next* session that gets started —
+  /// set from the Today or Task Detail screens before jumping to the Focus
+  /// tab, consumed (and cleared) once a session actually starts.
+  ///
+  /// keepAlive because it's a hand-off: it's written while nothing watches
+  /// it (the Focus tab may never have been built yet), and an auto-dispose
+  /// provider could drop the link before the Focus screen reads it (B9).
+  PendingFocusLinkProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'pendingFocusLinkProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$pendingFocusLinkHash();
+
+  @$internal
+  @override
+  PendingFocusLink create() => PendingFocusLink();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(
+      ({
+        String label,
+        int? subtaskId,
+        int taskId,
+      })? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<
+          ({
+            String label,
+            int? subtaskId,
+            int taskId,
+          })?>(value),
+    );
+  }
+}
+
 String _$pendingFocusLinkHash() => r'9bec4a5989289614ab2a95a07036830d67a7b1fb';
 
 /// Staged task/subtask to attach to the *next* session that gets started —
@@ -71,38 +238,98 @@ String _$pendingFocusLinkHash() => r'9bec4a5989289614ab2a95a07036830d67a7b1fb';
 /// keepAlive because it's a hand-off: it's written while nothing watches
 /// it (the Focus tab may never have been built yet), and an auto-dispose
 /// provider could drop the link before the Focus screen reads it (B9).
-///
-/// Copied from [PendingFocusLink].
-@ProviderFor(PendingFocusLink)
-final pendingFocusLinkProvider = NotifierProvider<PendingFocusLink,
-    ({int taskId, int? subtaskId, String label})?>.internal(
-  PendingFocusLink.new,
-  name: r'pendingFocusLinkProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$pendingFocusLinkHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
 
-typedef _$PendingFocusLink
-    = Notifier<({int taskId, int? subtaskId, String label})?>;
-String _$focusTimerViewModelHash() =>
-    r'f0598b797dc17a0ad0f25fd3d8cf8e4a00c25738';
+abstract class _$PendingFocusLink extends $Notifier<
+    ({
+      String label,
+      int? subtaskId,
+      int taskId,
+    })?> {
+  ({
+    String label,
+    int? subtaskId,
+    int taskId,
+  })? build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<
+        ({
+          String label,
+          int? subtaskId,
+          int taskId,
+        })?,
+        ({
+          String label,
+          int? subtaskId,
+          int taskId,
+        })?>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<
+            ({
+              String label,
+              int? subtaskId,
+              int taskId,
+            })?,
+            ({
+              String label,
+              int? subtaskId,
+              int taskId,
+            })?>,
+        ({
+          String label,
+          int? subtaskId,
+          int taskId,
+        })?,
+        Object?,
+        Object?>;
+    return element.handleCreate(ref, build);
+  }
+}
 
-/// See also [FocusTimerViewModel].
 @ProviderFor(FocusTimerViewModel)
-final focusTimerViewModelProvider =
-    AutoDisposeNotifierProvider<FocusTimerViewModel, void>.internal(
-  FocusTimerViewModel.new,
-  name: r'focusTimerViewModelProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$focusTimerViewModelHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final focusTimerViewModelProvider = FocusTimerViewModelProvider._();
 
-typedef _$FocusTimerViewModel = AutoDisposeNotifier<void>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class FocusTimerViewModelProvider
+    extends $NotifierProvider<FocusTimerViewModel, void> {
+  FocusTimerViewModelProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'focusTimerViewModelProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$focusTimerViewModelHash();
+
+  @$internal
+  @override
+  FocusTimerViewModel create() => FocusTimerViewModel();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(void value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<void>(value),
+    );
+  }
+}
+
+String _$focusTimerViewModelHash() =>
+    r'8c2176a6f787876d3b38b6ae55b4838adad6735e';
+
+abstract class _$FocusTimerViewModel extends $Notifier<void> {
+  void build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<void, void>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<void, void>, void, Object?, Object?>;
+    return element.handleCreate(ref, build);
+  }
+}

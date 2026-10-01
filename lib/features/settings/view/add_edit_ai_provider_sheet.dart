@@ -87,8 +87,7 @@ class _AddEditAiProviderSheetState
   @override
   Widget build(BuildContext context) {
     final hasSavedKey =
-        ref.watch(providerHasKeyProvider(widget.config.id)).valueOrNull ??
-            false;
+        ref.watch(providerHasKeyProvider(widget.config.id)).value ?? false;
 
     return Padding(
       padding: EdgeInsets.only(

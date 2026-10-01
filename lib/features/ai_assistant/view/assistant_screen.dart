@@ -145,8 +145,7 @@ class _ChatBodyState extends ConsumerState<_ChatBody> {
                     minLines: 1,
                     maxLines: 4,
                     textInputAction: TextInputAction.send,
-                    onSubmitted: (_) =>
-                        _send(conversationAsync.valueOrNull?.id),
+                    onSubmitted: (_) => _send(conversationAsync.value?.id),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -155,7 +154,7 @@ class _ChatBodyState extends ConsumerState<_ChatBody> {
                   icon: const Icon(Icons.arrow_upward),
                   onPressed: isSending
                       ? null
-                      : () => _send(conversationAsync.valueOrNull?.id),
+                      : () => _send(conversationAsync.value?.id),
                 ),
               ],
             ),

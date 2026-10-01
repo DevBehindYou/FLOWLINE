@@ -8,7 +8,11 @@ import '../../../domain/time/calendar_day.dart';
 
 part 'export_view_model.g.dart';
 
-@riverpod
+// keepAlive (rule R11): an action surface whose methods use `ref` after
+// an `await`. Auto-dispose would let it be disposed mid-action (the sheet
+// or screen that called it closes), and Riverpod 3 throws on any use of a
+// disposed Ref.
+@Riverpod(keepAlive: true)
 class ExportViewModel extends _$ExportViewModel {
   @override
   bool build() => false; // true while an export is in flight

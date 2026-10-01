@@ -53,7 +53,7 @@ class _ProviderCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isOllama = config.id == AIProviderId.ollama;
     final hasKeyAsync = ref.watch(providerHasKeyProvider(config.id));
-    final canActivate = isOllama || hasKeyAsync.valueOrNull == true;
+    final canActivate = isOllama || hasKeyAsync.value == true;
 
     final String subtitle;
     if (isOllama) {

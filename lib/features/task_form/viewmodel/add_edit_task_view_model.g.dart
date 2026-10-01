@@ -6,22 +6,52 @@ part of 'add_edit_task_view_model.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$addEditTaskViewModelHash() =>
-    r'dffd204809926b834b322bc1c7d4b0831e3720b2';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [AddEditTaskViewModel].
 @ProviderFor(AddEditTaskViewModel)
-final addEditTaskViewModelProvider =
-    AutoDisposeNotifierProvider<AddEditTaskViewModel, void>.internal(
-  AddEditTaskViewModel.new,
-  name: r'addEditTaskViewModelProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$addEditTaskViewModelHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final addEditTaskViewModelProvider = AddEditTaskViewModelProvider._();
 
-typedef _$AddEditTaskViewModel = AutoDisposeNotifier<void>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class AddEditTaskViewModelProvider
+    extends $NotifierProvider<AddEditTaskViewModel, void> {
+  AddEditTaskViewModelProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'addEditTaskViewModelProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$addEditTaskViewModelHash();
+
+  @$internal
+  @override
+  AddEditTaskViewModel create() => AddEditTaskViewModel();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(void value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<void>(value),
+    );
+  }
+}
+
+String _$addEditTaskViewModelHash() =>
+    r'866860e092966211418a06349580d4b752f9cf39';
+
+abstract class _$AddEditTaskViewModel extends $Notifier<void> {
+  void build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<void, void>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<void, void>, void, Object?, Object?>;
+    return element.handleCreate(ref, build);
+  }
+}

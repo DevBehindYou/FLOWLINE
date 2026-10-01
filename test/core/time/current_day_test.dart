@@ -1,3 +1,4 @@
+import 'package:flowline/core/riverpod_config.dart';
 import 'package:flowline/core/time/current_day.dart';
 import 'package:flowline/domain/time/calendar_day.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,7 +13,7 @@ void main() {
 
   testWidgets('rolls over to the next day at midnight without a rebuild (K7)',
       (tester) async {
-    final container = ProviderContainer();
+    final container = ProviderContainer(retry: noAutomaticRetry);
     final seen = <DateTime>[];
     container.listen(currentDayProvider, (_, next) => seen.add(next),
         fireImmediately: true);
@@ -28,7 +29,7 @@ void main() {
   });
 
   testWidgets('keeps rolling over on later days', (tester) async {
-    final container = ProviderContainer();
+    final container = ProviderContainer(retry: noAutomaticRetry);
     final first = container.read(currentDayProvider);
     for (var i = 1; i <= 3; i++) {
       await tester.pump(const Duration(hours: 24));
@@ -39,7 +40,7 @@ void main() {
 
   testWidgets('refresh() is a no-op for listeners on the same day',
       (tester) async {
-    final container = ProviderContainer();
+    final container = ProviderContainer(retry: noAutomaticRetry);
     var notifications = 0;
     container.listen(currentDayProvider, (_, __) => notifications++);
 

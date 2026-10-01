@@ -6,7 +6,11 @@ import '../../ai_assistant/viewmodel/assistant_view_model.dart';
 
 part 'ai_providers_view_model.g.dart';
 
-@riverpod
+// keepAlive (rule R11): an action surface whose methods use `ref` after
+// an `await`. Auto-dispose would let it be disposed mid-action (the sheet
+// or screen that called it closes), and Riverpod 3 throws on any use of a
+// disposed Ref.
+@Riverpod(keepAlive: true)
 class AiProvidersViewModel extends _$AiProvidersViewModel {
   @override
   void build() {}
