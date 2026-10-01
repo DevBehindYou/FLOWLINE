@@ -4,6 +4,7 @@ import '../../../domain/entities/ai_message.dart';
 import '../../../domain/entities/ai_provider_config.dart';
 import '../../../domain/entities/ai_response.dart';
 import '../../../domain/repositories/ai_client.dart';
+import 'json_read.dart';
 import 'ai_error_mapper.dart';
 
 class GeminiClient implements AIClient {
@@ -40,7 +41,9 @@ class GeminiClient implements AIClient {
         },
       ];
 
-      final response = await _dio.post<Map<String, dynamic>>(
+      // Untyped on purpose: a 200 with an unexpected body must read as
+      // "empty response", not fail the cast and look like a network error.
+      final response = await _dio.post<Object?>(
         'https://generativelanguage.googleapis.com/v1beta/models/${config.defaultModel}:generateContent',
         options: Options(
           headers: {
@@ -53,12 +56,11 @@ class GeminiClient implements AIClient {
         data: {'contents': contents},
       );
 
-      final candidates = (response.data?['candidates'] as List?) ?? const [];
-      final parts = candidates.isEmpty
-          ? const []
-          : ((candidates.first as Map)['content']?['parts'] as List?) ??
-              const [];
-      final text = parts.map((p) => (p as Map)['text'] as String? ?? '').join();
+      final data = jsonMap(response.data);
+      final candidate = jsonMap(jsonList(data?['candidates']).firstOrNull);
+      final parts = jsonList(jsonMap(candidate?['content'])?['parts']);
+      final text =
+          parts.map((part) => jsonString(jsonMap(part)?['text']) ?? '').join();
 
       if (text.isEmpty) {
         return const AIResponse.error('Gemini returned an empty response.');
@@ -66,8 +68,11 @@ class GeminiClient implements AIClient {
       return AIResponse(text);
     } on DioException catch (e) {
       return AIResponse.error(describeDioError(e, 'Gemini'));
-    } catch (e) {
-      return AIResponse.error('Unexpected error talking to Gemini: $e');
+    } catch (_) {
+      // No exception text in the bubble (K9): it's unreadable for users and
+      // can include request details.
+      return const AIResponse.error(
+          'Something went wrong talking to Gemini. Please try again.');
     }
   }
 }

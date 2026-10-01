@@ -17,37 +17,60 @@ class TimerRing extends StatelessWidget {
     final progress =
         plannedSec == 0 ? 0.0 : (remainingSec / plannedSec).clamp(0.0, 1.0);
 
-    return SizedBox(
-      width: 240,
-      height: 240,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          SizedBox.expand(
-            child: CircularProgressIndicator(
-              value: 1,
-              strokeWidth: 10,
-              color: Theme.of(context).colorScheme.surfaceContainerHigh,
+    // One label for screen readers instead of three unlabeled progress
+    // indicators and a bare "12:34" (K13).
+    return Semantics(
+      label: 'Timer',
+      value: _spoken(remainingSec),
+      excludeSemantics: true,
+      child: SizedBox(
+        width: 240,
+        height: 240,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            SizedBox.expand(
+              child: CircularProgressIndicator(
+                value: 1,
+                strokeWidth: 10,
+                color: Theme.of(context).colorScheme.surfaceContainerHigh,
+              ),
             ),
-          ),
-          SizedBox.expand(
-            child: CircularProgressIndicator(
-              value: progress,
-              strokeWidth: 10,
-              color: color,
-              strokeCap: StrokeCap.round,
+            SizedBox.expand(
+              child: CircularProgressIndicator(
+                value: progress,
+                strokeWidth: 10,
+                color: color,
+                strokeCap: StrokeCap.round,
+              ),
             ),
-          ),
-          Text(
-            _format(remainingSec),
-            style: Theme.of(context)
-                .textTheme
-                .displaySmall
-                ?.copyWith(fontWeight: FontWeight.bold),
-          ),
-        ],
+            // Scales down inside the ring instead of overflowing it at large
+            // system font sizes (spec: survive 200% text scale).
+            Padding(
+              padding: const EdgeInsets.all(28),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  _format(remainingSec),
+                  style: Theme.of(context)
+                      .textTheme
+                      .displaySmall
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  String _spoken(int totalSeconds) {
+    final safe = totalSeconds < 0 ? 0 : totalSeconds;
+    final minutes = safe ~/ 60;
+    final seconds = safe % 60;
+    return '$minutes minute${minutes == 1 ? '' : 's'} '
+        '$seconds second${seconds == 1 ? '' : 's'} remaining';
   }
 
   String _format(int totalSeconds) {

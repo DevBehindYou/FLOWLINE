@@ -26,7 +26,7 @@ class InsightsScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.ios_share_outlined),
             tooltip: 'Export this week',
-            onPressed: () => showModalBottomSheet(
+            onPressed: () => showModalBottomSheet<void>(
               context: context,
               isScrollControlled: true,
               builder: (_) => const ExportSheet(),

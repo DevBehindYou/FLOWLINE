@@ -11,6 +11,11 @@ import '../../domain/services/focus_stats_calculator.dart';
 /// output, this depends directly on the `pdf` package's widget API, so
 /// it belongs with the other data-layer, package-specific concerns
 /// rather than pretending to be framework-free.
+///
+/// Text here must stay within Latin-1: the built-in PDF font (Helvetica)
+/// can't draw anything else, so an em dash or a non-Latin task title
+/// renders as an empty box (B25). Bundling a TTF (with the app fonts,
+/// Phase 3) lifts this; a test enforces it until then.
 class WeeklyPdfExporter {
   const WeeklyPdfExporter();
 
@@ -38,11 +43,11 @@ class WeeklyPdfExporter {
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Text(
-              'Flowline \u2014 Weekly Focus Summary',
+              'Flowline - Weekly Focus Summary',
               style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
             ),
             pw.SizedBox(height: 4),
-            pw.Text('${_fmtDate(rangeStart)} \u2013 ${_fmtDate(rangeEnd)}'),
+            pw.Text('${_fmtDate(rangeStart)} to ${_fmtDate(rangeEnd)}'),
             pw.SizedBox(height: 16),
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -86,7 +91,7 @@ class WeeklyPdfExporter {
                       _fmtTime(session.startedAt),
                       '${(session.plannedDurationSec / 60).round()}m',
                       session.actualDurationSec == null
-                          ? '\u2014'
+                          ? '-'
                           : '${(session.actualDurationSec! / 60).round()}m',
                       session.completedAt == null
                           ? 'In progress'

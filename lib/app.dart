@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -36,7 +38,8 @@ class _FlowlineAppState extends ConsumerState<FlowlineApp> {
   }
 
   void _reconcileFocusSession() {
-    ref.read(focusTimerViewModelProvider.notifier).completeIfElapsed();
+    unawaited(
+        ref.read(focusTimerViewModelProvider.notifier).completeIfElapsed());
   }
 
   @override

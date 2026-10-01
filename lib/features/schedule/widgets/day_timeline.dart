@@ -100,7 +100,7 @@ class _ScheduleBlockSection extends ConsumerWidget {
                 IconButton(
                   icon: const Icon(Icons.add, size: 20),
                   tooltip: 'Add task to this block',
-                  onPressed: () => showModalBottomSheet(
+                  onPressed: () => showModalBottomSheet<void>(
                     context: context,
                     isScrollControlled: true,
                     builder: (_) => AddEditTaskSheet(scheduleBlockId: block.id),

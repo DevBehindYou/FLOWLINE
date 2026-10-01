@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -26,7 +28,8 @@ class AiProvidersScreen extends ConsumerWidget {
           groupValue: providers.where((p) => p.isActive).firstOrNull?.id,
           onChanged: (id) {
             if (id == null) return;
-            ref.read(aiProvidersViewModelProvider.notifier).setActive(id);
+            unawaited(
+                ref.read(aiProvidersViewModelProvider.notifier).setActive(id));
           },
           child: ListView.separated(
             padding: const EdgeInsets.all(16),
@@ -85,7 +88,7 @@ class _ProviderCard extends ConsumerWidget {
             IconButton(
               icon: const Icon(Icons.edit_outlined),
               tooltip: 'Edit',
-              onPressed: () => showModalBottomSheet(
+              onPressed: () => showModalBottomSheet<void>(
                 context: context,
                 isScrollControlled: true,
                 builder: (_) => AddEditAiProviderSheet(config: config),

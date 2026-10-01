@@ -602,15 +602,19 @@ erDiagram
 
 ### 7.3 Migrations
 
-`AppDatabase.schemaVersion = 3`, additive only:
+`AppDatabase.schemaVersion = 4`. Snapshots of v3 (what every APK so far
+shipped) and v4 live in `drift_schemas/`; `test/drift/` verifies the
+upgrade schema and data. Run `dart run drift_dev make-migrations` after
+each bump.
 
 | From → to | Change |
 |---|---|
 | 1 → 2 | `createTable(focusSessions)` (Phase 2) |
 | 2 → 3 | `createTable(aiProviderConfigs, aiConversations, aiMessages)` (Phase 3) |
+| 3 → 4 | Repair data, then: unique partial index (one active session), `CHECK(end_time > start_time)`, `tasks.schedule_block_id` FK `ON DELETE SET NULL`, five performance indexes, `ai_messages.is_pending` |
 
-No schema-verification tests exist yet (Drift's `SchemaVerifier` is not set
-up). No build of the app has shipped, so there is no user data to migrate.
+Schema verification uses Drift's `SchemaVerifier` (generated tests plus a
+data-integrity test that upgrades a v3 database full of edge cases).
 
 ---
 
@@ -1323,7 +1327,7 @@ Severity: **P0** critical · **P1** major · **P2** moderate · **P3** minor.
 | K10 | P2 | AI | Full conversation history is sent on every message (unbounded payload) | Confirmed by reading |
 | K11 | P3 | Insights | Streak caps at 30 days (query window) | Confirmed by reading |
 | K12 | P3 | Insights | Focus footer buckets by `startedAt`, Insights by `completedAt`, so sessions that cross midnight are counted on different days | Fixed — every day window and bucket uses `completedAt` |
-| K13 | P3 | Accessibility | Unlabelled icon buttons (see §14.7); no timer semantics; 200% font untested | Partly fixed — tooltips on icon buttons; timer semantics and text-scale tests still open |
+| K13 | P3 | Accessibility | Unlabelled icon buttons (see §14.7); no timer semantics; 200% font untested | Fixed — tooltips, timer semantics, 200% text tests on a 360 dp screen (found and fixed overflows on Today, Insights, Focus) |
 | K14 | P3 | UX | Remove key and subtask delete have no confirmation | Fixed — shared confirmation dialog |
 | K15 | P3 | UX | "Edit times" on the conflict sheet just closes it | Known (README) |
 | K16 | P3 | Memory | `TextEditingController` in the "New subtask" dialog is never disposed | Fixed — dialog widget owns and disposes its controller |
@@ -1334,8 +1338,10 @@ Severity: **P0** critical · **P1** major · **P2** moderate · **P3** minor.
 
 New defects found in the full read for the forward plan are tracked as
 **B1–B30** in `docs/04-build-and-optimization-plan.md` §3. Fixed so far:
-B1 (DST-safe calendar math), B2, B3, B4, B5, B6, B7, B9, B11, B12, B13,
-B14, B15, B16, B17, B22, B27, B28, B29, B30.
+B1 (DST-safe calendar math), B2, B3, B4, B5, B6, B7, B8, B9, B11, B12,
+B13, B14, B15, B16, B17, B22, B23, B25 (interim: Latin-1 only), B26, B27,
+B28, B29, B30, and B31 (new: error bubbles were sent to the vendor as
+history). Schema is now v4 (see §7.3 and `drift_schemas/`).
 
 Fixed during the earlier QA pass (all verified by CI): never-compiled DB
 layer and API mismatches; nonexistent `flutter_timezone` version; missing
@@ -1380,7 +1386,7 @@ from the latest successful run on a phone and check:
 The ordered plan now lives in `docs/04-build-and-optimization-plan.md`
 (Phases 0–7 with exit gates, plus a release track). Phase 0 is done apart
 from the owner-only step (adding the signing secrets) and the device
-checklist; Phase 1 is in progress. The list below is the original scope
+checklist; Phase 1 is done (237 tests; 92% line coverage of domain + data). The list below is the original scope
 roadmap, kept for reference.
 
 

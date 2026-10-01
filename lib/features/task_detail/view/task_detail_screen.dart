@@ -31,7 +31,7 @@ class TaskDetailScreen extends ConsumerWidget {
                 : IconButton(
                     icon: const Icon(Icons.edit_outlined),
                     tooltip: 'Edit task',
-                    onPressed: () => showModalBottomSheet(
+                    onPressed: () => showModalBottomSheet<void>(
                       context: context,
                       isScrollControlled: true,
                       builder: (_) => AddEditTaskSheet(existingTask: task),

@@ -132,6 +132,7 @@ Found while reading every file for this plan. These are not in `PROJECT_OVERVIEW
 | **B28** | P3 | Confirmed | `d8fcf62` | `validateConflictSuggestion` and `parseConflictSuggestion` have no tests. | Unit tests: same day, length, overlap, locked block, end ≤ start, block crossing midnight | — |
 | **B29** | P3 | Confirmed | `watchBlocksForDay` | Only blocks that *start* that day are returned, so a block crossing midnight from the previous day is missed by the conflict check. | Use the overlap predicate `start < dayEnd AND end > dayStart` | Repository test |
 | **B30** | P3 | Confirmed | `focus_session_repository_impl.dart` `watchSessionsInRange` | Windows by `startedAt`, while stats bucket by `completedAt` (also K12). A session that crosses midnight can be dropped from a window. | Use one rule everywhere: bucket and window by `completedAt` (the natural end) | Calculator and repository tests |
+| **B31** | P2 | Fixed | `ai_repository_impl.dart` `sendMessage` | Error bubbles were sent back to the vendor as assistant turns in the conversation history. | `buildChatHistory`: only completed exchanges, alternation kept | `chat_history_test`, `ai_send_message_test` |
 
 Carry-overs from `PROJECT_OVERVIEW.md` §20 that are still open and scheduled below: **K2, K4, K5, K6, K7, K9, K10, K11, K12, K13, K14, K15, K16, K18, K20.**
 
@@ -442,18 +443,18 @@ Tick these in the PR that closes each item.
 - [x] 0.6 Conflict-suggestion tests, explicit offsets, whole-day prompt (B28, B13, B14)
 - [x] 0.7 Refresh the status sections of PROJECT_OVERVIEW and README
 
-**Phase 1 — Harden**
-- [ ] 1.1 Time helpers + `currentDayProvider` + grep guard (B1, K7)
-- [ ] 1.2 Error model + `ErrorView` with retry (K9)
-- [ ] 1.3 `runAction` busy/error guard everywhere (B6, B15, B16, B22)
-- [ ] 1.4 Repository guards and ordering (B5, B7, B12, B29, B30, K12)
-- [ ] 1.5 Schema v4 + snapshots + migration tests (B8, B23, B26)
-- [ ] 1.6 `copyWith` that can clear fields (B11)
-- [ ] 1.7 Dio timeouts, cancellation, limited retry (K5)
-- [ ] 1.8 AI provider settings fixes (K4, K14, K16, B17)
-- [ ] 1.9 Strict analysis + async lints
-- [ ] 1.10 `sqlite3.tempDirectory` (K18)
-- [ ] 1.11 Accessibility labels + timer semantics (K13)
+**Phase 1 — Harden** — done. Exit gate: 237 tests; domain + data line coverage 92% (table declarations excluded); code-rule tests enforce R7/R8; v3 → v4 migration tested with data (v1/v2 never shipped, so there are no snapshots for them). Cancellation and retry from 1.7 move to Phase 4 with the AIClient v2 interface. Found and fixed along the way: **B31** (error bubbles sent to the vendor as history), a 200 response with a non-object body reported as "couldn't reach", 200%-text overflows on Today/Insights/Focus, and **B25** confirmed (em/en dashes drawn as boxes in the PDF; now Latin-1 only).
+- [x] 1.1 Time helpers + `currentDayProvider` + grep guard (B1, K7)
+- [x] 1.2 Error model + `ErrorView` with retry (K9)
+- [x] 1.3 `runAction` busy/error guard everywhere (B6, B15, B16, B22)
+- [x] 1.4 Repository guards and ordering (B5, B7, B12, B29, B30, K12)
+- [x] 1.5 Schema v4 + snapshots + migration tests (B8, B23, B26)
+- [x] 1.6 `copyWith` that can clear fields (B11)
+- [x] 1.7 Dio timeouts, cancellation, limited retry (K5)
+- [x] 1.8 AI provider settings fixes (K4, K14, K16, B17)
+- [x] 1.9 Strict analysis + async lints
+- [x] 1.10 `sqlite3.tempDirectory` (K18)
+- [x] 1.11 Accessibility labels + timer semantics (K13)
 
 **Phase 2 — Toolchain**
 - [ ] 2.1 Riverpod 3 (B9, B10)

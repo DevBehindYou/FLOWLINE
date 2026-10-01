@@ -4,6 +4,7 @@ import '../../../domain/entities/ai_message.dart';
 import '../../../domain/entities/ai_provider_config.dart';
 import '../../../domain/entities/ai_response.dart';
 import '../../../domain/repositories/ai_client.dart';
+import 'json_read.dart';
 import 'ai_error_mapper.dart';
 
 class OpenAIClient implements AIClient {
@@ -32,7 +33,9 @@ class OpenAIClient implements AIClient {
         {'role': 'user', 'content': prompt},
       ];
 
-      final response = await _dio.post<Map<String, dynamic>>(
+      // Untyped on purpose: a 200 with an unexpected body must read as
+      // "empty response", not fail the cast and look like a network error.
+      final response = await _dio.post<Object?>(
         'https://api.openai.com/v1/chat/completions',
         options: Options(
           headers: {
@@ -46,10 +49,9 @@ class OpenAIClient implements AIClient {
         },
       );
 
-      final choices = (response.data?['choices'] as List?) ?? const [];
-      final text = choices.isEmpty
-          ? null
-          : (choices.first as Map)['message']?['content'] as String?;
+      final data = jsonMap(response.data);
+      final choice = jsonMap(jsonList(data?['choices']).firstOrNull);
+      final text = jsonString(jsonMap(choice?['message'])?['content']);
 
       if (text == null || text.isEmpty) {
         return const AIResponse.error('OpenAI returned an empty response.');
@@ -57,8 +59,11 @@ class OpenAIClient implements AIClient {
       return AIResponse(text);
     } on DioException catch (e) {
       return AIResponse.error(describeDioError(e, 'OpenAI'));
-    } catch (e) {
-      return AIResponse.error('Unexpected error talking to OpenAI: $e');
+    } catch (_) {
+      // No exception text in the bubble (K9): it's unreadable for users and
+      // can include request details.
+      return const AIResponse.error(
+          'Something went wrong talking to OpenAI. Please try again.');
     }
   }
 }

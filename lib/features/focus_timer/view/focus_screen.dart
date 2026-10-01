@@ -70,59 +70,45 @@ class _IdleViewState extends ConsumerState<_IdleView>
     final selectedType = ref.watch(selectedSessionTypeProvider);
     final pendingLink = ref.watch(pendingFocusLinkProvider);
 
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          if (pendingLink != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Chip(
-                  avatar: const Icon(Icons.link, size: 16),
-                  label:
-                      Text(pendingLink.label, overflow: TextOverflow.ellipsis),
-                  deleteButtonTooltipMessage: 'Unlink task',
-                  onDeleted: () =>
-                      ref.read(pendingFocusLinkProvider.notifier).clear(),
-                ),
+    return _ScrollSafeColumn(
+      children: [
+        if (pendingLink != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Chip(
+                avatar: const Icon(Icons.link, size: 16),
+                label: Text(pendingLink.label, overflow: TextOverflow.ellipsis),
+                deleteButtonTooltipMessage: 'Unlink task',
+                onDeleted: () =>
+                    ref.read(pendingFocusLinkProvider.notifier).clear(),
               ),
             ),
-          SegmentedButton<FocusSessionType>(
-            segments: const [
-              ButtonSegment(
-                  value: FocusSessionType.focus, label: Text('Focus (25m)')),
-              ButtonSegment(
-                  value: FocusSessionType.shortBreak,
-                  label: Text('Short (5m)')),
-              ButtonSegment(
-                  value: FocusSessionType.longBreak, label: Text('Long (15m)')),
-            ],
-            selected: {selectedType},
-            onSelectionChanged: (selection) => ref
-                .read(selectedSessionTypeProvider.notifier)
-                .set(selection.first),
           ),
-          const Spacer(),
-          Icon(Icons.hourglass_empty,
-              size: 64, color: Theme.of(context).colorScheme.outline),
-          const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: _busy
-                ? null
-                : () => guard(() => viewModel.startSession(
-                      type: selectedType,
-                      taskId: pendingLink?.taskId,
-                      subtaskId: pendingLink?.subtaskId,
-                    )),
-            icon: const Icon(Icons.play_arrow),
-            label: const Text('Start'),
-          ),
-          const Spacer(),
-          const _TodaysFocusFooter(),
-        ],
-      ),
+        _SessionTypeSelector(
+          selected: selectedType,
+          onChanged: (type) =>
+              ref.read(selectedSessionTypeProvider.notifier).set(type),
+        ),
+        const Spacer(),
+        Icon(Icons.hourglass_empty,
+            size: 64, color: Theme.of(context).colorScheme.outline),
+        const SizedBox(height: 24),
+        FilledButton.icon(
+          onPressed: _busy
+              ? null
+              : () => guard(() => viewModel.startSession(
+                    type: selectedType,
+                    taskId: pendingLink?.taskId,
+                    subtaskId: pendingLink?.subtaskId,
+                  )),
+          icon: const Icon(Icons.play_arrow),
+          label: const Text('Start'),
+        ),
+        const Spacer(),
+        const _TodaysFocusFooter(),
+      ],
     );
   }
 }
@@ -147,57 +133,55 @@ class _RunningViewState extends ConsumerState<_RunningView>
       FocusSessionType.longBreak => FlowlineSemanticColors.sessionLongBreak,
     };
 
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          if (session.taskId != null) _LinkedTaskChip(taskId: session.taskId!),
-          const SizedBox(height: 24),
-          _Countdown(session: session, color: color),
-          const SizedBox(height: 8),
-          Text(
-            session.isPaused ? 'PAUSED' : _typeLabel(session.sessionType),
-            style: Theme.of(context)
-                .textTheme
-                .labelLarge
-                ?.copyWith(color: color, fontWeight: FontWeight.w600),
-          ),
-          const Spacer(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _ControlButton(
-                icon: Icons.stop,
-                label: 'End',
-                onPressed: _busy
-                    ? null
-                    : () => guard(
-                        () => viewModel.complete(session, endedEarly: true)),
-              ),
-              const SizedBox(width: 24),
-              _ControlButton(
-                icon: session.isPaused ? Icons.play_arrow : Icons.pause,
-                label: session.isPaused ? 'Resume' : 'Pause',
-                filled: true,
-                onPressed: _busy
-                    ? null
-                    : () => guard(() => session.isPaused
-                        ? viewModel.resume(session)
-                        : viewModel.pause(session)),
-              ),
-              const SizedBox(width: 24),
-              _ControlButton(
-                icon: Icons.add,
-                label: '+5 min',
-                onPressed:
-                    _busy ? null : () => guard(() => viewModel.extend(session)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-          const _TodaysFocusFooter(),
-        ],
-      ),
+    return _ScrollSafeColumn(
+      children: [
+        if (session.taskId != null) _LinkedTaskChip(taskId: session.taskId!),
+        const SizedBox(height: 24),
+        _Countdown(session: session, color: color),
+        const SizedBox(height: 8),
+        Text(
+          session.isPaused ? 'PAUSED' : _typeLabel(session.sessionType),
+          style: Theme.of(context)
+              .textTheme
+              .labelLarge
+              ?.copyWith(color: color, fontWeight: FontWeight.w600),
+        ),
+        const Spacer(),
+        // Wraps onto two lines instead of overflowing at large text.
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 24,
+          runSpacing: 16,
+          children: [
+            _ControlButton(
+              icon: Icons.stop,
+              label: 'End',
+              onPressed: _busy
+                  ? null
+                  : () => guard(
+                      () => viewModel.complete(session, endedEarly: true)),
+            ),
+            _ControlButton(
+              icon: session.isPaused ? Icons.play_arrow : Icons.pause,
+              label: session.isPaused ? 'Resume' : 'Pause',
+              filled: true,
+              onPressed: _busy
+                  ? null
+                  : () => guard(() => session.isPaused
+                      ? viewModel.resume(session)
+                      : viewModel.pause(session)),
+            ),
+            _ControlButton(
+              icon: Icons.add,
+              label: '+5 min',
+              onPressed:
+                  _busy ? null : () => guard(() => viewModel.extend(session)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 32),
+        const _TodaysFocusFooter(),
+      ],
     );
   }
 
@@ -266,7 +250,8 @@ class _CountdownState extends ConsumerState<_Countdown> {
     _completionRequested = true;
     // Idempotent: the app-resume reconciliation may race this, and the
     // repository guarantees only one of them completes the session.
-    ref.read(focusTimerViewModelProvider.notifier).completeIfElapsed();
+    unawaited(
+        ref.read(focusTimerViewModelProvider.notifier).completeIfElapsed());
   }
 
   @override
@@ -283,6 +268,74 @@ class _CountdownState extends ConsumerState<_Countdown> {
         plannedSec: widget.session.plannedDurationSec,
         color: widget.color,
       ),
+    );
+  }
+}
+
+/// The Focus views' column: Spacers keep the ring centred on a normal
+/// screen, and the whole thing scrolls instead of clipping when a large
+/// system font or a short screen makes it taller than the viewport.
+class _ScrollSafeColumn extends StatelessWidget {
+  const _ScrollSafeColumn({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: (constraints.maxHeight - 48).clamp(0, double.infinity),
+          ),
+          child: IntrinsicHeight(child: Column(children: children)),
+        ),
+      ),
+    );
+  }
+}
+
+/// Focus / short break / long break. A segmented control at normal text
+/// sizes; wrapping chips when large text wouldn't fit three segments on
+/// one line (spec: survive 200% text scale).
+class _SessionTypeSelector extends StatelessWidget {
+  const _SessionTypeSelector({required this.selected, required this.onChanged});
+
+  final FocusSessionType selected;
+  final ValueChanged<FocusSessionType> onChanged;
+
+  static const _labels = {
+    FocusSessionType.focus: 'Focus (25m)',
+    FocusSessionType.shortBreak: 'Short (5m)',
+    FocusSessionType.longBreak: 'Long (15m)',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final largeText = MediaQuery.textScalerOf(context).scale(14) > 14 * 1.3;
+    if (largeText) {
+      return Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final entry in _labels.entries)
+            ChoiceChip(
+              label: Text(entry.value),
+              selected: entry.key == selected,
+              onSelected: (_) => onChanged(entry.key),
+            ),
+        ],
+      );
+    }
+    return SegmentedButton<FocusSessionType>(
+      segments: [
+        for (final entry in _labels.entries)
+          ButtonSegment(value: entry.key, label: Text(entry.value)),
+      ],
+      selected: {selected},
+      onSelectionChanged: (selection) => onChanged(selection.first),
     );
   }
 }
@@ -368,15 +421,19 @@ class _TodaysFocusFooter extends ConsumerWidget {
             color: Theme.of(context).colorScheme.surfaceContainerHigh,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 4,
             children: [
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.bolt,
                       size: 18, color: Theme.of(context).colorScheme.primary),
                   const SizedBox(width: 8),
-                  const Text("Today's Focus"),
+                  const Flexible(child: Text("Today's Focus")),
                 ],
               ),
               Text(

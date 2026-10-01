@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -83,21 +85,21 @@ class TodayScreen extends ConsumerWidget {
   }
 
   void _openAddTask(BuildContext context) {
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (_) => const AddEditTaskSheet(),
-    );
+    ));
   }
 
-  void _openAddBlock(BuildContext context, DateTime date) async {
+  Future<void> _openAddBlock(BuildContext context, DateTime date) async {
     final pendingConflict = await showModalBottomSheet<ScheduleConflictPending>(
       context: context,
       isScrollControlled: true,
       builder: (_) => AddEditScheduleBlockSheet(initialDate: date),
     );
     if (pendingConflict != null && context.mounted) {
-      showModalBottomSheet(
+      await showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
         builder: (_) => ConflictWarningSheet(

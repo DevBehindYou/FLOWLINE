@@ -4,6 +4,7 @@ import '../../../domain/entities/ai_message.dart';
 import '../../../domain/entities/ai_provider_config.dart';
 import '../../../domain/entities/ai_response.dart';
 import '../../../domain/repositories/ai_client.dart';
+import 'json_read.dart';
 
 class OllamaClient implements AIClient {
   OllamaClient(this._dio);
@@ -35,7 +36,9 @@ class OllamaClient implements AIClient {
         {'role': 'user', 'content': prompt},
       ];
 
-      final response = await _dio.post<Map<String, dynamic>>(
+      // Untyped on purpose: a 200 with an unexpected body must read as
+      // "empty response", not fail the cast and look like a network error.
+      final response = await _dio.post<Object?>(
         '$baseUrl/api/chat',
         data: {
           'model': config.defaultModel,
@@ -44,15 +47,19 @@ class OllamaClient implements AIClient {
         },
       );
 
-      final text = response.data?['message']?['content'] as String?;
+      final data = jsonMap(response.data);
+      final text = jsonString(jsonMap(data?['message'])?['content']);
       if (text == null || text.isEmpty) {
         return const AIResponse.error('Ollama returned an empty response.');
       }
       return AIResponse(text);
     } on DioException catch (e) {
       return AIResponse.error(_describeOllamaError(e, baseUrl));
-    } catch (e) {
-      return AIResponse.error('Unexpected error talking to Ollama: $e');
+    } catch (_) {
+      // No exception text in the bubble (K9): it's unreadable for users and
+      // can include request details.
+      return const AIResponse.error(
+          'Something went wrong talking to Ollama. Please try again.');
     }
   }
 
