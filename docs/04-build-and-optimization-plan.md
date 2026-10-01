@@ -511,7 +511,7 @@ Tick these in the PR that closes each item.
 **Process**
 - [x] `CLAUDE.md` with rules and definition of done
 - [ ] Format-fix workflow
-- [ ] Emulator integration job
+- [x] Emulator integration job (API 34, `integration_test/app_flow_test.dart`: fresh install → onboarding → task → focus session)
 - [x] Golden job (32 images: 8 screens x light/dark x 1x/2x text; diffs uploaded on failure)
 - [ ] Dependabot
 - [ ] Tagged release workflow
