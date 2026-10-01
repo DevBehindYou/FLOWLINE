@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
+import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/subtask.dart';
+import '../../../domain/services/task_due.dart';
 import '../../../shared_widgets/confirm_dialog.dart';
 import '../../../shared_widgets/error_view.dart';
 import '../../../shared_widgets/priority_chip.dart';
@@ -31,11 +34,17 @@ class TaskDetailScreen extends ConsumerWidget {
                 : IconButton(
                     icon: const Icon(Icons.edit_outlined),
                     tooltip: 'Edit task',
-                    onPressed: () => showModalBottomSheet<void>(
-                      context: context,
-                      isScrollControlled: true,
-                      builder: (_) => AddEditTaskSheet(existingTask: task),
-                    ),
+                    onPressed: () async {
+                      final deleted = await showModalBottomSheet<bool>(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (_) => AddEditTaskSheet(existingTask: task),
+                      );
+                      // Deleted from the sheet: nothing left to show here.
+                      if (deleted == true && context.mounted) {
+                        Navigator.of(context).pop();
+                      }
+                    },
                   ),
             orElse: () => const SizedBox.shrink(),
           ),
@@ -79,6 +88,27 @@ class TaskDetailScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               Text(task.title,
                   style: Theme.of(context).textTheme.headlineSmall),
+              if (task.dueAt != null) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(Icons.event_outlined,
+                        size: 18,
+                        color: dueStateOf(task) == DueState.overdue
+                            ? FlowlineSemanticColors.feedbackOverdue
+                            : Theme.of(context).colorScheme.onSurfaceVariant),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        '${dueStateOf(task) == DueState.overdue ? 'Overdue \u00b7 ' : 'Due '}'
+                        '${DateFormat('EEE, MMM d').format(task.dueAt!)} '
+                        '${DateFormat.jm().format(task.dueAt!)}',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               if (task.notes.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Text(task.notes, style: Theme.of(context).textTheme.bodyMedium),

@@ -49,11 +49,21 @@ class TodayActions extends _$TodayActions {
   @override
   void build() {}
 
-  Future<void> toggleTaskDone(Task task) {
+  /// Flips done/not done and returns the status it replaced, so the UI can
+  /// offer Undo that restores exactly what was there (e.g. "in progress").
+  Future<TaskStatus> toggleTaskDone(Task task) async {
     final next =
         task.status == TaskStatus.done ? TaskStatus.todo : TaskStatus.done;
-    return ref.read(taskRepositoryProvider).setTaskStatus(task.id, next);
+    await ref.read(taskRepositoryProvider).setTaskStatus(task.id, next);
+    return task.status;
   }
+
+  Future<void> setStatus(int taskId, TaskStatus status) =>
+      ref.read(taskRepositoryProvider).setTaskStatus(taskId, status);
+
+  Future<void> setPriority(Task task, TaskPriority priority) => ref
+      .read(taskRepositoryProvider)
+      .updateTask(task.copyWith(priority: priority));
 
   Future<void> deleteTask(int taskId) {
     return ref.read(taskRepositoryProvider).deleteTask(taskId);

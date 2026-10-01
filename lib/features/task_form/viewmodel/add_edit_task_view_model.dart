@@ -19,16 +19,22 @@ class AddEditTaskViewModel extends _$AddEditTaskViewModel {
     required String notes,
     required TaskPriority priority,
     int? scheduleBlockId,
+    DateTime? dueAt,
   }) {
     return ref.read(taskRepositoryProvider).createTask(
           title: title,
           notes: notes,
           priority: priority,
           scheduleBlockId: scheduleBlockId,
+          dueAt: dueAt,
         );
   }
 
   Future<void> updateTask(Task task) {
     return ref.read(taskRepositoryProvider).updateTask(task);
+  }
+
+  Future<void> deleteTask(int id) {
+    return ref.read(taskRepositoryProvider).deleteTask(id);
   }
 }
