@@ -223,7 +223,7 @@ lib/
 │   ├── repositories/             4 Drift-backed implementations
 │   └── export/                   ExportService, WeeklyPdfExporter
 ├── features/                     one folder per feature: view/ viewmodel/ [widgets/]
-│   ├── shell/                    AppShell (bottom navigation)
+│   ├── shell/                    AppShell (bottom bar or rail by window size)
 │   ├── schedule/                 Today screen, DayTimeline, TaskCard
 │   ├── task_form/                Add/Edit Task sheet
 │   ├── task_detail/              Task Detail screen
@@ -800,14 +800,17 @@ Bottom-nav tap on the already-selected tab resets that branch to its root
 For each screen: purpose, what it shows, actions, and its state model.
 
 ### 12.1 App shell — `AppShell`
-- `Scaffold` with the shell body and an M3 `NavigationBar`: **Today**
-  (calendar icon), **Focus** (hourglass), **Assistant** (sparkle), **Insights**
-  (bar chart). Outlined icon when inactive, filled when selected.
+- Four destinations: **Today** (calendar icon), **Focus** (hourglass),
+  **Assistant** (sparkle), **Insights** (bar chart). Outlined icon when
+  inactive, filled when selected.
+- Adapts by Material window size class (`core/layout/window_size.dart`):
+  compact (< 600dp) uses a bottom `NavigationBar`; medium uses a labelled
+  `NavigationRail`; expanded (≥ 840dp) uses an extended rail.
 
 ### 12.2 Today — `TodayScreen`
 - **App bar:** title "Flowline", settings icon (tooltip "Settings").
 - **Date header (`_DateHeader`):** previous/next day chevrons, date as
-  "EEEE, MMM d", and a "Jump to today" button only when another day is shown.
+  the locale's long day format ("Tuesday, March 10"), and a "Jump to today" button only when another day is shown.
 - **Body:** `DayTimeline` — one card per schedule block (time range,
   title, lock icon if locked, warning icon + red outline + "Overlaps another
   block" if it overlaps another block that day, "+" to add a task into
@@ -929,7 +932,7 @@ For each screen: purpose, what it shows, actions, and its state model.
 | `ConflictWarningSheet`, `_SuggestionCard`, `_RawAiTextCard`, `_ErrorCard` | `features/schedule_intelligence/view/` | ConsumerStateful / Stateless | Conflict resolution |
 | `TaskDetailScreen`, `_SubtaskList` | `features/task_detail/view/` | Consumer | Task detail + subtasks |
 | `FocusScreen`, `_IdleView`, `_RunningView`, `_LinkedTaskChip`, `_ControlButton`, `_TodaysFocusFooter` | `features/focus_timer/view/focus_screen.dart` | Consumer / Stateless | Focus tab |
-| `TimerRing` | `features/focus_timer/widgets/timer_ring.dart` | StatelessWidget | 240×240 countdown ring |
+| `TimerRing` | `features/focus_timer/widgets/timer_ring.dart` | StatelessWidget | Countdown ring sized from the window (160–360dp), tabular digits |
 | `AssistantScreen`, `_ChatBody`, `_MessageList` | `features/ai_assistant/view/` | Consumer / ConsumerStateful | Chat |
 | `ChatBubble` | `features/ai_assistant/widgets/chat_bubble.dart` | StatelessWidget | One message |
 | `InsightsScreen`, `_StatCard`, `_WeeklyBarChart` | `features/insights/view/` | Consumer / Stateless | Insights |
@@ -953,7 +956,7 @@ For each screen: purpose, what it shows, actions, and its state model.
 | Task Card/Row | `TaskCard` | No overdue state, no long-press menu |
 | Schedule Block Card | `_ScheduleBlockSection` | No current/past/future styling |
 | Day Timeline | `DayTimeline` | Eager `ListView(children:)`, not lazily built |
-| Timer Ring | `TimerRing` | No last-10 s emphasis, no semantics label, fixed 240 px |
+| Timer Ring | `TimerRing` | No last-10 s emphasis yet; one semantics label; scales with the window |
 | Session Type Selector | `SegmentedButton` | Hidden while running rather than disabled |
 | Session Controls | `_ControlButton` ×3 | No Skip |
 | Chat Bubble | `ChatBubble` | No streaming, retry or markdown |
@@ -1397,7 +1400,7 @@ from the owner-only step (adding the signing secrets) and the device
 checklist; Phase 1 is done (237 tests; 92% line coverage of domain + data);
 Phase 2 (Flutter 3.47 / Riverpod 3 / Drift 2.35) is done; Phase 3 is in
 progress (block editing, task form, settings, Session Summary, onboarding
-and splash, fonts and design tokens, l10n scaffolding are done). The list
+and splash, fonts and design tokens, l10n scaffolding, adaptive layout are done). The list
 below is the original scope
 roadmap, kept for reference.
 
