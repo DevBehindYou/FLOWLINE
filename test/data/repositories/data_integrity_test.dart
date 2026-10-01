@@ -75,7 +75,8 @@ void main() {
 
     await schedule.deleteBlock(blockId);
 
-    final unscheduled = await tasks.watchUnscheduledTasks().first;
+    final unscheduled =
+        await tasks.watchUnscheduledTasks(done: false, limit: 50).first;
     expect(unscheduled.map((t) => t.id), contains(taskId));
   });
 

@@ -370,7 +370,7 @@ final class FocusTimerViewModelProvider
 }
 
 String _$focusTimerViewModelHash() =>
-    r'4c5bea793a2e48d116b79485d3d6b111a7b8f8ba';
+    r'0444897237c3eda183826720e1b3d601ffc9e4ff';
 
 abstract class _$FocusTimerViewModel extends $Notifier<void> {
   void build();

@@ -1,3 +1,4 @@
+import '../entities/planned_block.dart';
 import '../entities/schedule_block.dart';
 
 abstract interface class ScheduleRepository {
@@ -10,6 +11,10 @@ abstract interface class ScheduleRepository {
   /// live query (and a watch stream's `.first` never completes under the
   /// widget tester's fake clock).
   Future<List<ScheduleBlock>> getBlocksForDay(DateTime day);
+
+  /// The same blocks as [watchBlocksForDay], each with its tasks, from a
+  /// single live query (the Today timeline).
+  Stream<List<PlannedBlock>> watchDayPlan(DateTime day);
 
   Future<int> createBlock({
     required String title,

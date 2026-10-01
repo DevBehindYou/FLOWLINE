@@ -623,5 +623,22 @@
   "notifyFocusComplete": "Focus session complete",
   "notifyShortBreakOver": "Short break over",
   "notifyLongBreakOver": "Long break over",
-  "notifyBody": "Tap to see what's next."
+  "notifyBody": "Tap to see what's next.",
+  "showMore": "Show more",
+  "showCompleted": "Show completed ({count})",
+  "@showCompleted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hideCompleted": "Hide completed ({count})",
+  "@hideCompleted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

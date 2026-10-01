@@ -1557,6 +1557,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap to see what\'s next.'**
   String get notifyBody;
+
+  /// No description provided for @showMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Show more'**
+  String get showMore;
+
+  /// No description provided for @showCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Show completed ({count})'**
+  String showCompleted(int count);
+
+  /// No description provided for @hideCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide completed ({count})'**
+  String hideCompleted(int count);
 }
 
 class _AppLocalizationsDelegate

@@ -474,7 +474,7 @@ Tick these in the PR that closes each item.
 - [x] Fonts + full token mapping + dark-primary decision (D8, K20, B25)
 - [x] l10n scaffolding; narrow weekday labels (B19). Follow-ups: AI error bubbles are stored as English text (typed errors with AIClient v2, Phase 4); the PDF export stays English; Devanagari needs a Noto fallback font
 - [x] Adaptive layout; scalable timer ring
-- [ ] Backlog filtering and pagination (B20); single-query timeline (B21)
+- [x] Backlog filtering and pagination (B20); single-query timeline (B21)
 
 **Phase 4 — AI v2**
 - [ ] `AIClient` v2 interface

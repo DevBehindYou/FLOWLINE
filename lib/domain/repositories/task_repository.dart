@@ -6,7 +6,17 @@ import '../entities/task.dart';
 /// nothing above this layer knows or cares that it's SQLite underneath.
 abstract interface class TaskRepository {
   Stream<List<Task>> watchTasksForBlock(int scheduleBlockId);
-  Stream<List<Task>> watchUnscheduledTasks();
+
+  /// Tasks in no block (the backlog), at most [limit]. Open tasks oldest
+  /// first, or with [done] the completed ones newest first, so the list
+  /// doesn't grow forever with finished work (B20).
+  Stream<List<Task>> watchUnscheduledTasks({
+    required bool done,
+    required int limit,
+  });
+
+  /// How many completed tasks are in the backlog.
+  Stream<int> watchUnscheduledDoneCount();
   Stream<Task?> watchTask(int id);
   Stream<List<Subtask>> watchSubtasks(int taskId);
 

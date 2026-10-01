@@ -64,98 +64,127 @@ abstract class _$SelectedDate extends $Notifier<DateTime> {
   }
 }
 
-@ProviderFor(tasksForBlock)
-final tasksForBlockProvider = TasksForBlockFamily._();
+/// The selected day's blocks with their tasks, from one query (B21).
 
-final class TasksForBlockProvider extends $FunctionalProvider<
-        AsyncValue<List<Task>>, List<Task>, Stream<List<Task>>>
-    with $FutureModifier<List<Task>>, $StreamProvider<List<Task>> {
-  TasksForBlockProvider._(
-      {required TasksForBlockFamily super.from, required int super.argument})
-      : super(
-          retry: null,
-          name: r'tasksForBlockProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+@ProviderFor(dayPlan)
+final dayPlanProvider = DayPlanProvider._();
 
-  @override
-  String debugGetCreateSourceHash() => _$tasksForBlockHash();
+/// The selected day's blocks with their tasks, from one query (B21).
 
-  @override
-  String toString() {
-    return r'tasksForBlockProvider'
-        ''
-        '($argument)';
-  }
-
-  @$internal
-  @override
-  $StreamProviderElement<List<Task>> $createElement($ProviderPointer pointer) =>
-      $StreamProviderElement(pointer);
-
-  @override
-  Stream<List<Task>> create(Ref ref) {
-    final argument = this.argument as int;
-    return tasksForBlock(
-      ref,
-      argument,
-    );
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is TasksForBlockProvider && other.argument == argument;
-  }
-
-  @override
-  int get hashCode {
-    return argument.hashCode;
-  }
-}
-
-String _$tasksForBlockHash() => r'5152f0be77b83e99d5503b1837dbe284ae708be5';
-
-final class TasksForBlockFamily extends $Family
-    with $FunctionalFamilyOverride<Stream<List<Task>>, int> {
-  TasksForBlockFamily._()
-      : super(
-          retry: null,
-          name: r'tasksForBlockProvider',
-          dependencies: null,
-          $allTransitiveDependencies: null,
-          isAutoDispose: true,
-        );
-
-  TasksForBlockProvider call(
-    int blockId,
-  ) =>
-      TasksForBlockProvider._(argument: blockId, from: this);
-
-  @override
-  String toString() => r'tasksForBlockProvider';
-}
-
-@ProviderFor(unscheduledTasks)
-final unscheduledTasksProvider = UnscheduledTasksProvider._();
-
-final class UnscheduledTasksProvider extends $FunctionalProvider<
-        AsyncValue<List<Task>>, List<Task>, Stream<List<Task>>>
-    with $FutureModifier<List<Task>>, $StreamProvider<List<Task>> {
-  UnscheduledTasksProvider._()
+final class DayPlanProvider extends $FunctionalProvider<
+        AsyncValue<List<PlannedBlock>>,
+        List<PlannedBlock>,
+        Stream<List<PlannedBlock>>>
+    with
+        $FutureModifier<List<PlannedBlock>>,
+        $StreamProvider<List<PlannedBlock>> {
+  /// The selected day's blocks with their tasks, from one query (B21).
+  DayPlanProvider._()
       : super(
           from: null,
           argument: null,
           retry: null,
-          name: r'unscheduledTasksProvider',
+          name: r'dayPlanProvider',
           isAutoDispose: true,
           dependencies: null,
           $allTransitiveDependencies: null,
         );
 
   @override
-  String debugGetCreateSourceHash() => _$unscheduledTasksHash();
+  String debugGetCreateSourceHash() => _$dayPlanHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<PlannedBlock>> $createElement(
+          $ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<PlannedBlock>> create(Ref ref) {
+    return dayPlan(ref);
+  }
+}
+
+String _$dayPlanHash() => r'f7bddf9cc5b012014b363d22320bff0f4287ddd0';
+
+/// How many open backlog tasks are shown; "Show more" raises it (B20).
+
+@ProviderFor(BacklogLimit)
+final backlogLimitProvider = BacklogLimitProvider._();
+
+/// How many open backlog tasks are shown; "Show more" raises it (B20).
+final class BacklogLimitProvider extends $NotifierProvider<BacklogLimit, int> {
+  /// How many open backlog tasks are shown; "Show more" raises it (B20).
+  BacklogLimitProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'backlogLimitProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$backlogLimitHash();
+
+  @$internal
+  @override
+  BacklogLimit create() => BacklogLimit();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(int value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<int>(value),
+    );
+  }
+}
+
+String _$backlogLimitHash() => r'5886af562555bf23c22821ffb40f034132b529ba';
+
+/// How many open backlog tasks are shown; "Show more" raises it (B20).
+
+abstract class _$BacklogLimit extends $Notifier<int> {
+  int build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<int, int>;
+    final element = ref.element
+        as $ClassProviderElement<AnyNotifier<int, int>, int, Object?, Object?>;
+    return element.handleCreate(ref, build);
+  }
+}
+
+/// Open backlog tasks. Reads one past the limit, so the view knows
+/// whether to offer "Show more" without a separate count query.
+
+@ProviderFor(openBacklog)
+final openBacklogProvider = OpenBacklogProvider._();
+
+/// Open backlog tasks. Reads one past the limit, so the view knows
+/// whether to offer "Show more" without a separate count query.
+
+final class OpenBacklogProvider extends $FunctionalProvider<
+        AsyncValue<List<Task>>, List<Task>, Stream<List<Task>>>
+    with $FutureModifier<List<Task>>, $StreamProvider<List<Task>> {
+  /// Open backlog tasks. Reads one past the limit, so the view knows
+  /// whether to offer "Show more" without a separate count query.
+  OpenBacklogProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'openBacklogProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$openBacklogHash();
 
   @$internal
   @override
@@ -164,11 +193,136 @@ final class UnscheduledTasksProvider extends $FunctionalProvider<
 
   @override
   Stream<List<Task>> create(Ref ref) {
-    return unscheduledTasks(ref);
+    return openBacklog(ref);
   }
 }
 
-String _$unscheduledTasksHash() => r'eb6903f9791f909da8764e2b6eb98d10b90bc385';
+String _$openBacklogHash() => r'13b00acb753f351d6e24818206f526c7d3fa323f';
+
+/// Whether completed backlog tasks are listed (collapsed by default).
+
+@ProviderFor(ShowCompletedBacklog)
+final showCompletedBacklogProvider = ShowCompletedBacklogProvider._();
+
+/// Whether completed backlog tasks are listed (collapsed by default).
+final class ShowCompletedBacklogProvider
+    extends $NotifierProvider<ShowCompletedBacklog, bool> {
+  /// Whether completed backlog tasks are listed (collapsed by default).
+  ShowCompletedBacklogProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'showCompletedBacklogProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$showCompletedBacklogHash();
+
+  @$internal
+  @override
+  ShowCompletedBacklog create() => ShowCompletedBacklog();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$showCompletedBacklogHash() =>
+    r'cc49c22b819ac252a461f5f5b5610ba5196fd247';
+
+/// Whether completed backlog tasks are listed (collapsed by default).
+
+abstract class _$ShowCompletedBacklog extends $Notifier<bool> {
+  bool build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<bool, bool>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<bool, bool>, bool, Object?, Object?>;
+    return element.handleCreate(ref, build);
+  }
+}
+
+@ProviderFor(completedBacklogCount)
+final completedBacklogCountProvider = CompletedBacklogCountProvider._();
+
+final class CompletedBacklogCountProvider
+    extends $FunctionalProvider<AsyncValue<int>, int, Stream<int>>
+    with $FutureModifier<int>, $StreamProvider<int> {
+  CompletedBacklogCountProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'completedBacklogCountProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$completedBacklogCountHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<int> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<int> create(Ref ref) {
+    return completedBacklogCount(ref);
+  }
+}
+
+String _$completedBacklogCountHash() =>
+    r'abe3ad556966293c5d3c6c1fbba6e4fc35e7df0b';
+
+/// The most recent completed backlog tasks, when they're shown.
+
+@ProviderFor(completedBacklog)
+final completedBacklogProvider = CompletedBacklogProvider._();
+
+/// The most recent completed backlog tasks, when they're shown.
+
+final class CompletedBacklogProvider extends $FunctionalProvider<
+        AsyncValue<List<Task>>, List<Task>, Stream<List<Task>>>
+    with $FutureModifier<List<Task>>, $StreamProvider<List<Task>> {
+  /// The most recent completed backlog tasks, when they're shown.
+  CompletedBacklogProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'completedBacklogProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$completedBacklogHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<Task>> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<Task>> create(Ref ref) {
+    return completedBacklog(ref);
+  }
+}
+
+String _$completedBacklogHash() => r'acacfd9ee9a2f20163e2f31d05c85ca90524ac5f';
 
 @ProviderFor(scheduleBlocksForSelectedDate)
 final scheduleBlocksForSelectedDateProvider =

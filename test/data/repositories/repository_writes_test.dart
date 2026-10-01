@@ -49,7 +49,8 @@ void main() {
     expect(updated.status, TaskStatus.inProgress);
     expect(updated.scheduleBlockId, isNull);
     expect(updated.dueAt, isNull);
-    expect(await tasks.watchUnscheduledTasks().first, hasLength(1));
+    expect(await tasks.watchUnscheduledTasks(done: false, limit: 50).first,
+        hasLength(1));
   });
 
   test('task status, subtask status and subtask delete', () async {

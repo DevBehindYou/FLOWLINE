@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/providers.dart';
 import '../../../core/time/current_day.dart';
+import '../../../domain/entities/planned_block.dart';
 import '../../../domain/entities/schedule_block.dart';
 import '../../../domain/entities/task.dart';
 import '../../../domain/time/calendar_day.dart';
@@ -20,15 +21,52 @@ class SelectedDate extends _$SelectedDate {
   void previousDay() => state = addDays(state, -1);
 }
 
+/// The selected day's blocks with their tasks, from one query (B21).
 @riverpod
-Stream<List<Task>> tasksForBlock(Ref ref, int blockId) {
-  return ref.watch(taskRepositoryProvider).watchTasksForBlock(blockId);
+Stream<List<PlannedBlock>> dayPlan(Ref ref) {
+  final date = ref.watch(selectedDateProvider);
+  return ref.watch(scheduleRepositoryProvider).watchDayPlan(date);
+}
+
+/// How many open backlog tasks are shown; "Show more" raises it (B20).
+@riverpod
+class BacklogLimit extends _$BacklogLimit {
+  static const pageSize = 50;
+
+  @override
+  int build() => pageSize;
+
+  void showMore() => state += pageSize;
+}
+
+/// Open backlog tasks. Reads one past the limit, so the view knows
+/// whether to offer "Show more" without a separate count query.
+@riverpod
+Stream<List<Task>> openBacklog(Ref ref) {
+  final limit = ref.watch(backlogLimitProvider);
+  return ref
+      .watch(taskRepositoryProvider)
+      .watchUnscheduledTasks(done: false, limit: limit + 1);
+}
+
+/// Whether completed backlog tasks are listed (collapsed by default).
+@riverpod
+class ShowCompletedBacklog extends _$ShowCompletedBacklog {
+  @override
+  bool build() => false;
+
+  void toggle() => state = !state;
 }
 
 @riverpod
-Stream<List<Task>> unscheduledTasks(Ref ref) {
-  return ref.watch(taskRepositoryProvider).watchUnscheduledTasks();
-}
+Stream<int> completedBacklogCount(Ref ref) =>
+    ref.watch(taskRepositoryProvider).watchUnscheduledDoneCount();
+
+/// The most recent completed backlog tasks, when they're shown.
+@riverpod
+Stream<List<Task>> completedBacklog(Ref ref) => ref
+    .watch(taskRepositoryProvider)
+    .watchUnscheduledTasks(done: true, limit: BacklogLimit.pageSize);
 
 @riverpod
 Stream<List<ScheduleBlock>> scheduleBlocksForSelectedDate(Ref ref) {

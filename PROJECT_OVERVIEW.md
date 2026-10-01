@@ -643,8 +643,8 @@ Riverpod.
 
 | Interface | Reads (streams) | Writes |
 |---|---|---|
-| `TaskRepository` | `watchTasksForBlock`, `watchUnscheduledTasks`, `watchTask`, `watchSubtasks` | `createTask`, `updateTask`, `deleteTask`, `setTaskStatus`, `createSubtask`, `setSubtaskStatus`, `deleteSubtask`, `incrementSubtaskCompletedSprints` |
-| `ScheduleRepository` | `watchBlocksForDay` | `createBlock`, `updateBlock`, `deleteBlock` |
+| `TaskRepository` | `watchTasksForBlock`, `watchUnscheduledTasks({done, limit})`, `watchUnscheduledDoneCount`, `watchTask`, `watchSubtasks` | `createTask`, `updateTask`, `deleteTask`, `setTaskStatus`, `createSubtask`, `setSubtaskStatus`, `deleteSubtask`, `incrementSubtaskCompletedSprints` |
+| `ScheduleRepository` | `watchBlocksForDay`, `getBlocksForDay`, `watchDayPlan` (blocks joined with their tasks, one query) | `createBlock`, `updateBlock`, `deleteBlock` |
 | `FocusSessionRepository` | `watchActiveSession`, `getActiveSession`, `watchSessionsForTask`, `watchTodaysSessions`, `watchSessionsInRange` | `startSession`, `pauseSession`, `resumeSession`, `extendSession`, `completeSession → bool` |
 | `AIRepository` | `watchProviders`, `watchActiveProvider`, `watchConversations`, `watchMessages`, `hasKey` | `saveProviderKey`, `setActiveProvider`, `removeProviderKey`, `createConversation`, `deleteConversation`, `sendMessage`, `completeOnce` |
 | `AIClient` (strategy) | — | `sendMessage(config, apiKey, prompt, history) → AIResponse` |
@@ -815,7 +815,10 @@ For each screen: purpose, what it shows, actions, and its state model.
   title, lock icon if locked, warning icon + red outline + "Overlaps another
   block" if it overlaps another block that day, "+" to add a task into
   it, nested task cards), an "Add schedule block" button, then an
-  "Unscheduled" section.
+  "Unscheduled" section. Built lazily (`ListView.builder`) from one joined
+  query for the day (`dayPlanProvider`). The backlog lists open tasks, 50
+  at a time with "Show more"; completed ones sit behind "Show completed
+  (N)".
 - **FAB:** extended "Add Task".
 - **Task card actions:** tap → Task Detail; leading circle → toggle done;
   swipe right → toggle done; swipe left → "Delete task?" dialog; ▶ → go to
@@ -1350,7 +1353,7 @@ Severity: **P0** critical · **P1** major · **P2** moderate · **P3** minor.
 New defects found in the full read for the forward plan are tracked as
 **B1–B30** in `docs/04-build-and-optimization-plan.md` §3. Fixed so far:
 B1 (DST-safe calendar math), B2, B3, B4, B5, B6, B7, B8, B9, B11, B12,
-B13, B14, B15, B16, B17, B19, B22, B23, B25, B26, B27,
+B13, B14, B15, B16, B17, B19, B20, B21, B22, B23, B25, B26, B27,
 B28, B29, B30, and B31 (new: error bubbles were sent to the vendor as
 history). Schema is now v4 (see §7.3 and `drift_schemas/`).
 
@@ -1400,7 +1403,8 @@ from the owner-only step (adding the signing secrets) and the device
 checklist; Phase 1 is done (237 tests; 92% line coverage of domain + data);
 Phase 2 (Flutter 3.47 / Riverpod 3 / Drift 2.35) is done; Phase 3 is in
 progress (block editing, task form, settings, Session Summary, onboarding
-and splash, fonts and design tokens, l10n scaffolding, adaptive layout are done). The list
+and splash, fonts and design tokens, l10n scaffolding, adaptive layout, backlog paging and the single-query
+timeline are done). The list
 below is the original scope
 roadmap, kept for reference.
 

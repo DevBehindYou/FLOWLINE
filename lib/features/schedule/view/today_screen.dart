@@ -20,8 +20,9 @@ class TodayScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedDate = ref.watch(selectedDateProvider);
-    final blocksAsync = ref.watch(scheduleBlocksForSelectedDateProvider);
-    final unscheduledAsync = ref.watch(unscheduledTasksProvider);
+    final planAsync = ref.watch(dayPlanProvider);
+    final backlogAsync = ref.watch(openBacklogProvider);
+    final doneCount = ref.watch(completedBacklogCountProvider).value ?? 0;
 
     return Scaffold(
       appBar: AppBar(
@@ -34,23 +35,22 @@ class TodayScreen extends ConsumerWidget {
         children: [
           _DateHeader(date: selectedDate),
           Expanded(
-            child: blocksAsync.when(
+            child: planAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, _) => ErrorView(
                 error: error,
-                onRetry: () =>
-                    ref.invalidate(scheduleBlocksForSelectedDateProvider),
+                onRetry: () => ref.invalidate(dayPlanProvider),
               ),
-              data: (blocks) {
-                return unscheduledAsync.when(
+              data: (plan) {
+                return backlogAsync.when(
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
                   error: (error, _) => ErrorView(
                     error: error,
-                    onRetry: () => ref.invalidate(unscheduledTasksProvider),
+                    onRetry: () => ref.invalidate(openBacklogProvider),
                   ),
-                  data: (unscheduled) {
-                    if (blocks.isEmpty && unscheduled.isEmpty) {
+                  data: (backlog) {
+                    if (plan.isEmpty && backlog.isEmpty && doneCount == 0) {
                       return EmptyState(
                         icon: Icons.calendar_today_outlined,
                         title: context.l10n.todayEmptyTitle,
@@ -60,8 +60,8 @@ class TodayScreen extends ConsumerWidget {
                       );
                     }
                     return DayTimeline(
-                      blocks: blocks,
-                      unscheduledTasks: unscheduled,
+                      plan: plan,
+                      openBacklog: backlog,
                       onAddBlock: () => _openAddBlock(context, selectedDate),
                     );
                   },

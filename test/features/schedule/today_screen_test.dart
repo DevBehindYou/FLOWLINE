@@ -60,4 +60,60 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Jump to today'), findsNothing);
   });
+
+  group('backlog (B20)', () {
+    testWidgets('completed tasks are hidden behind a toggle', (tester) async {
+      await tester.runAsync(() async {
+        final repo = TaskRepositoryImpl(db);
+        await repo.createTask(title: 'Still open', priority: TaskPriority.low);
+        final done = await repo.createTask(
+            title: 'Finished', priority: TaskPriority.low);
+        await repo.setTaskStatus(done, TaskStatus.done);
+      });
+      await pumpScreen(tester, db: db, child: const TodayScreen());
+
+      expect(find.text('Still open'), findsOneWidget);
+      expect(find.text('Finished'), findsNothing);
+
+      await tester.tap(find.text('Show completed (1)'));
+      await tester.pumpAndSettle();
+      expect(find.text('Finished'), findsOneWidget);
+      expect(find.text('Hide completed (1)'), findsOneWidget);
+    });
+
+    testWidgets(
+        'only completed tasks still show the toggle, not the empty state',
+        (tester) async {
+      await tester.runAsync(() async {
+        final repo = TaskRepositoryImpl(db);
+        final done = await repo.createTask(
+            title: 'Finished', priority: TaskPriority.low);
+        await repo.setTaskStatus(done, TaskStatus.done);
+      });
+      await pumpScreen(tester, db: db, child: const TodayScreen());
+
+      expect(find.text('No tasks yet'), findsNothing);
+      expect(find.text('Show completed (1)'), findsOneWidget);
+    });
+
+    testWidgets('a long backlog is paged with "Show more"', (tester) async {
+      await tester.runAsync(() async {
+        final repo = TaskRepositoryImpl(db);
+        for (var i = 0; i < 51; i++) {
+          await repo.createTask(title: 'Task $i', priority: TaskPriority.low);
+        }
+      });
+      await pumpScreen(tester, db: db, child: const TodayScreen());
+
+      final more = find.text('Show more');
+      await tester.scrollUntilVisible(more, 500);
+      expect(find.text('Task 50'), findsNothing);
+
+      await tester.tap(more);
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('Task 50'), 500);
+      expect(find.text('Task 50'), findsOneWidget);
+      expect(find.text('Show more'), findsNothing);
+    });
+  });
 }

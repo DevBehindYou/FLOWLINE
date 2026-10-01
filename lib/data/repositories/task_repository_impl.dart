@@ -4,6 +4,7 @@ import '../../domain/entities/subtask.dart';
 import '../../domain/entities/task.dart';
 import '../../domain/repositories/task_repository.dart';
 import '../local/drift/app_database.dart';
+import 'row_mappers.dart';
 
 class TaskRepositoryImpl implements TaskRepository {
   TaskRepositoryImpl(this._db);
@@ -18,10 +19,29 @@ class TaskRepositoryImpl implements TaskRepository {
   }
 
   @override
-  Stream<List<Task>> watchUnscheduledTasks() {
+  Stream<List<Task>> watchUnscheduledTasks({
+    required bool done,
+    required int limit,
+  }) {
     final query = _db.select(_db.tasks)
-      ..where((t) => t.scheduleBlockId.isNull());
+      ..where((t) {
+        final isDone = t.status.equalsValue(TaskStatus.done);
+        return t.scheduleBlockId.isNull() & (done ? isDone : isDone.not());
+      })
+      ..orderBy(
+          [(t) => done ? OrderingTerm.desc(t.id) : OrderingTerm.asc(t.id)])
+      ..limit(limit);
     return query.watch().map((rows) => rows.map(_mapTask).toList());
+  }
+
+  @override
+  Stream<int> watchUnscheduledDoneCount() {
+    final count = _db.tasks.id.count();
+    final query = _db.selectOnly(_db.tasks)
+      ..addColumns([count])
+      ..where(_db.tasks.scheduleBlockId.isNull() &
+          _db.tasks.status.equalsValue(TaskStatus.done));
+    return query.watchSingle().map((row) => row.read(count) ?? 0);
   }
 
   @override
@@ -125,18 +145,7 @@ class TaskRepositoryImpl implements TaskRepository {
     );
   }
 
-  Task _mapTask(TaskRow row) {
-    return Task(
-      id: row.id,
-      title: row.title,
-      notes: row.notes,
-      priority: row.priority,
-      status: row.status,
-      scheduleBlockId: row.scheduleBlockId,
-      dueAt: row.dueAt,
-      createdAt: row.createdAt,
-    );
-  }
+  Task _mapTask(TaskRow row) => taskFromRow(row);
 
   Subtask _mapSubtask(SubtaskRow row) {
     return Subtask(

@@ -906,4 +906,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notifyBody => 'Tap to see what\'s next.';
+
+  @override
+  String get showMore => 'Show more';
+
+  @override
+  String showCompleted(int count) {
+    return 'Show completed ($count)';
+  }
+
+  @override
+  String hideCompleted(int count) {
+    return 'Hide completed ($count)';
+  }
 }

@@ -1,56 +1,91 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../domain/entities/schedule_block.dart';
+import '../../../domain/entities/planned_block.dart';
 import '../../../domain/entities/task.dart';
 import '../../../domain/services/schedule_conflict_checker.dart';
-import '../../../shared_widgets/error_view.dart';
 import '../../schedule_block_form/view/schedule_block_flow.dart';
 import '../../task_form/view/add_edit_task_sheet.dart';
 import '../viewmodel/today_view_model.dart';
 import 'task_card.dart';
 import '../../../l10n/l10n.dart';
 
-class DayTimeline extends StatelessWidget {
+class DayTimeline extends ConsumerWidget {
   const DayTimeline({
     super.key,
-    required this.blocks,
-    required this.unscheduledTasks,
+    required this.plan,
+    required this.openBacklog,
     required this.onAddBlock,
   });
 
-  final List<ScheduleBlock> blocks;
-  final List<Task> unscheduledTasks;
+  final List<PlannedBlock> plan;
+
+  /// As read by [openBacklogProvider]: one more than the page size when
+  /// there are more to show.
+  final List<Task> openBacklog;
   final VoidCallback onAddBlock;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     // Cheap to compute here (a handful of blocks per day) rather than a
     // provider of its own — this is the same pure checker used to gate
     // saving a new block, just run over what's already on screen so a
     // "Save anyway" overlap doesn't quietly disappear from view.
-    final conflictingIds =
-        const ScheduleConflictChecker().findConflictingBlockIds(blocks);
+    final conflictingIds = const ScheduleConflictChecker()
+        .findConflictingBlockIds([for (final p in plan) p.block]);
 
-    return ListView(
+    final limit = ref.watch(backlogLimitProvider);
+    final hasMore = openBacklog.length > limit;
+    final open = hasMore ? openBacklog.take(limit).toList() : openBacklog;
+    final doneCount = ref.watch(completedBacklogCountProvider).value ?? 0;
+    final showDone = ref.watch(showCompletedBacklogProvider);
+    final done = showDone
+        ? ref.watch(completedBacklogProvider).value ?? const <Task>[]
+        : const <Task>[];
+
+    // Rows are built lazily by ListView.builder: only what's on screen
+    // is laid out, however long the backlog gets (B21).
+    final rows = <Widget Function()>[
+      for (final p in plan)
+        () => _ScheduleBlockSection(
+            planned: p, isConflicting: conflictingIds.contains(p.block.id)),
+      () => OutlinedButton.icon(
+            onPressed: onAddBlock,
+            icon: const Icon(Icons.add),
+            label: Text(l10n.addScheduleBlock),
+          ),
+      if (open.isNotEmpty || doneCount > 0)
+        () => Padding(
+              padding: const EdgeInsets.only(top: 24, bottom: 8),
+              child: Text(l10n.unscheduled,
+                  style: Theme.of(context).textTheme.titleMedium),
+            ),
+      for (final task in open) () => TaskCard(task: task),
+      if (hasMore)
+        () => TextButton(
+              onPressed: ref.read(backlogLimitProvider.notifier).showMore,
+              child: Text(l10n.showMore),
+            ),
+      if (doneCount > 0)
+        () => Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed:
+                    ref.read(showCompletedBacklogProvider.notifier).toggle,
+                icon: Icon(showDone ? Icons.expand_less : Icons.expand_more),
+                label: Text(showDone
+                    ? l10n.hideCompleted(doneCount)
+                    : l10n.showCompleted(doneCount)),
+              ),
+            ),
+      for (final task in done) () => TaskCard(task: task),
+    ];
+
+    return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-      children: [
-        for (final block in blocks)
-          _ScheduleBlockSection(
-              block: block, isConflicting: conflictingIds.contains(block.id)),
-        OutlinedButton.icon(
-          onPressed: onAddBlock,
-          icon: const Icon(Icons.add),
-          label: Text(context.l10n.addScheduleBlock),
-        ),
-        if (unscheduledTasks.isNotEmpty) ...[
-          const SizedBox(height: 24),
-          Text(context.l10n.unscheduled,
-              style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          for (final task in unscheduledTasks) TaskCard(task: task),
-        ],
-      ],
+      itemCount: rows.length,
+      itemBuilder: (context, index) => rows[index](),
     );
   }
 }
@@ -59,14 +94,15 @@ enum _BlockAction { edit, delete }
 
 class _ScheduleBlockSection extends ConsumerWidget {
   const _ScheduleBlockSection(
-      {required this.block, required this.isConflicting});
+      {required this.planned, required this.isConflicting});
 
-  final ScheduleBlock block;
+  final PlannedBlock planned;
   final bool isConflicting;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tasksAsync = ref.watch(tasksForBlockProvider(block.id));
+    final block = planned.block;
+    final tasks = planned.tasks;
     final l10n = context.l10n;
     final timeLabel =
         l10n.timeRange(l10n.time(block.startTime), l10n.time(block.endTime));
@@ -153,22 +189,11 @@ class _ScheduleBlockSection extends ConsumerWidget {
               ),
             ],
             const SizedBox(height: 12),
-            tasksAsync.when(
-              loading: () => const SizedBox.shrink(),
-              error: (error, _) => ErrorView(
-                error: error,
-                compact: true,
-                onRetry: () => ref.invalidate(tasksForBlockProvider(block.id)),
-              ),
-              data: (tasks) => tasks.isEmpty
-                  ? Text(
-                      l10n.blockEmpty,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    )
-                  : Column(children: [
-                      for (final task in tasks) TaskCard(task: task)
-                    ]),
-            ),
+            if (tasks.isEmpty)
+              Text(l10n.blockEmpty,
+                  style: Theme.of(context).textTheme.bodySmall)
+            else
+              for (final task in tasks) TaskCard(task: task),
           ],
         ),
       ),

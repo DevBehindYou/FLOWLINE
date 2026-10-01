@@ -76,7 +76,7 @@ final class ScheduleIntelligenceViewModelProvider
 }
 
 String _$scheduleIntelligenceViewModelHash() =>
-    r'41a78d6b6341462fbd53eb77750db162bb00ac6e';
+    r'd77dd4fb1f023dc17efd4c8b39d4b6d7de750102';
 
 /// No state of its own — this is a thin orchestration surface over
 /// `ScheduleRepository` + `AIRepository` + the pure domain services in
