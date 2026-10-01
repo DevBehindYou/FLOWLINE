@@ -12,10 +12,18 @@ import '../../domain/services/focus_stats_calculator.dart';
 /// it belongs with the other data-layer, package-specific concerns
 /// rather than pretending to be framework-free.
 ///
-/// Text here must stay within Latin-1: the built-in PDF font (Helvetica)
-/// can't draw anything else, so an em dash or a non-Latin task title
-/// renders as an empty box (B25). Bundling a TTF (with the app fonts,
-/// Phase 3) lifts this; a test enforces it until then.
+/// The document embeds the app's own font (Inter, passed in as [PdfFonts])
+/// instead of the PDF built-in Helvetica, which only covers Latin-1 and
+/// drew dashes and non-Latin text as empty boxes (B25).
+/// The TrueType fonts a PDF is set in. Loaded by the caller (from the
+/// asset bundle in the app, from disk in tests).
+class PdfFonts {
+  const PdfFonts({required this.regular, required this.bold});
+
+  final pw.Font regular;
+  final pw.Font bold;
+}
+
 class WeeklyPdfExporter {
   const WeeklyPdfExporter();
 
@@ -24,8 +32,11 @@ class WeeklyPdfExporter {
     required DateTime rangeEnd,
     required List<FocusSession> sessions,
     required int streak,
+    required PdfFonts fonts,
   }) async {
-    final doc = pw.Document();
+    final doc = pw.Document(
+      theme: pw.ThemeData.withFont(base: fonts.regular, bold: fonts.bold),
+    );
     final dailyTotals =
         const FocusStatsCalculator().dailyTotals(sessions, days: 7);
     final weekTotalSeconds =
@@ -43,12 +54,12 @@ class WeeklyPdfExporter {
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Text(
-              'Flowline - Weekly Focus Summary',
+              'Flowline — Weekly Focus Summary',
               style: const pw.TextStyle(
                   fontSize: 20, fontWeight: pw.FontWeight.bold),
             ),
             pw.SizedBox(height: 4),
-            pw.Text('${_fmtDate(rangeStart)} to ${_fmtDate(rangeEnd)}'),
+            pw.Text('${_fmtDate(rangeStart)} – ${_fmtDate(rangeEnd)}'),
             pw.SizedBox(height: 16),
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -92,7 +103,7 @@ class WeeklyPdfExporter {
                       _fmtTime(session.startedAt),
                       '${(session.plannedDurationSec / 60).round()}m',
                       session.actualDurationSec == null
-                          ? '-'
+                          ? '—'
                           : '${(session.actualDurationSec! / 60).round()}m',
                       session.completedAt == null
                           ? 'In progress'

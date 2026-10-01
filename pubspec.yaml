@@ -46,3 +46,27 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  # SIL OFL 1.1; licence texts sit next to the files and are registered
+  # with the LicenseRegistry in main.dart.
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700
+    - family: SpaceGrotesk
+      fonts:
+        - asset: assets/fonts/SpaceGrotesk-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/SpaceGrotesk-Bold.ttf
+          weight: 700
+
+  assets:
+    - assets/fonts/Inter-OFL.txt
+    - assets/fonts/SpaceGrotesk-OFL.txt

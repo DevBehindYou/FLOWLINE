@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -28,12 +30,19 @@ class ExportService {
       rangeEnd: rangeEnd,
       sessions: sessions,
       streak: streak,
+      fonts: await _pdfFonts(),
     );
     await Printing.sharePdf(
       bytes: bytes,
       filename: 'flowline-focus-${_fileStamp(rangeStart, rangeEnd)}.pdf',
     );
   }
+
+  static Future<PdfFonts> _pdfFonts() async => PdfFonts(
+        regular: pw.Font.ttf(
+            await rootBundle.load('assets/fonts/Inter-Regular.ttf')),
+        bold: pw.Font.ttf(await rootBundle.load('assets/fonts/Inter-Bold.ttf')),
+      );
 
   Future<void> shareCsv(
     List<FocusSession> sessions, {

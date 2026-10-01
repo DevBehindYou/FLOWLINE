@@ -130,7 +130,7 @@ just the caret constraints in `pubspec.yaml`.
 | HTTP | `dio` | 5.11.1 | One shared instance; connect 15 s / send 30 s / receive 120 s timeouts. |
 | Notifications | `flutter_local_notifications`, `timezone`, `flutter_timezone` | 22.3.1 / 0.11.1 / 5.1.0 | Inexact `zonedSchedule`; UTC fallback for unknown zones. |
 | Charts | `fl_chart` | 1.2.0 | Insights bar chart. |
-| Export | `pdf`, `printing`, `share_plus`, `path_provider` | 3.13.1 / 5.15.1 / 13.3.0 / 2.1.6 | PDF text kept Latin-1 until fonts are bundled (B25). |
+| Export | `pdf`, `printing`, `share_plus`, `path_provider` | 3.13.1 / 5.15.1 / 13.3.0 / 2.1.6 | PDF embeds the bundled Inter, so dashes and Latin/Greek/Cyrillic text render (B25). |
 | Formatting | `intl` | 0.20.3 | Date/time labels. |
 | Lints | `flutter_lints` + strict analyzer settings | 6.0.0 | See `analysis_options.yaml` (rule R15). |
 | Codegen runner | `build_runner` | 2.16.1 | |
@@ -989,26 +989,28 @@ For each screen: purpose, what it shows, actions, and its state model.
 
 ### 14.2 Theme implementation (`core/theme/app_theme.dart`)
 
-Both themes are `ColorScheme.fromSeed(primary)` with a handful of token
-overrides, fed into one shared `_buildTheme`:
+Both themes are explicit `ColorScheme`s with every role taken from
+the token files (no seed derivation), fed into one shared `_buildTheme`.
+Where the files disagree, `docs/design-tokens/DECISIONS.md` records the
+choice:
 
 | Token role | Light | Dark | Source token |
 |---|---|---|---|
-| `primary` (seed) | `#3525CD` | `#6366F1` | light `primary`; dark uses `semantic-session-focus`, **not** the dark file's `primary` `#C0C1FF` |
-| `onPrimary` | white | white | — |
+| `primary` / `onPrimary` | `#3525CD` / white | `#C0C1FF` / `#1000A9` | `primary`, `on-primary` (dark `#6366F1` failed AA) |
 | `surface` / scaffold | `#FAF8FF` | `#0F1117` | light `surface`; dark `surface-canvas` |
 | `onSurface` | `#131B2E` | `#F1F5F9` | light `on-surface`; dark `text-primary` |
-| `outlineVariant`, card border, divider | `#C7C4D8` | `#282E3E` | dark `surface-border`; light value ≠ light `surface-border` `#E2E8F0` |
-| `surfaceContainerHigh` (cards, inputs, sheets) | seed-derived | seed-derived | tokens define `#E2E8F0` / `#1F2430`, not applied |
+| `outlineVariant`, card border, divider | `#C7C4D8` | `#282E3E` | light `outline-variant`; dark `surface-border` |
+| `surfaceContainer*` | token values | token values | `surface-container-*` |
+| Card and sheet background | `#FFFFFF` | `#1F2430` | light `surface-card`; dark `surface-container-high` |
 
 Component theming:
 
 | Component | Setting |
 |---|---|
-| Card | `surfaceContainerHigh`, elevation 0, radius **16**, 1 px border |
+| Card | `surface-card` (light) / `surfaceContainerHigh` (dark), elevation 0, radius **16**, 1 px border |
 | Input | filled `surfaceContainerHigh`, radius **8**, focused border `primary` 1.5 px |
 | ElevatedButton | `primary` / `onPrimary`, min height **48**, full width, radius **12** |
-| Bottom sheet | `surfaceContainerHigh`, top radius **24** |
+| Bottom sheet | same as Card, top radius **24** |
 | NavigationBar | `surface` background, indicator `primary` at 16% opacity |
 | AppBar | `surface`, elevation 0, no surface tint |
 
@@ -1026,15 +1028,16 @@ Radii map onto the token scale: 8 = `DEFAULT`, 12 = `md`, 16 = `lg`,
 
 ### 14.4 Typography
 
-The design tokens specify **Space Grotesk** (display/headline) and
-**Inter** (body/label). Neither font is bundled yet, so the app uses the
-Material default (Roboto) with the M3 type scale. Large numerals use
-`displaySmall` bold (timer) and `headlineSmall` bold (stat cards).
+**Space Grotesk** (600/700, display and headline) and **Inter** (400–700,
+everything else) are bundled under `assets/fonts` (SIL OFL 1.1, licences
+on the Licenses page). The text theme is the token type scale at its
+mobile sizes (`AppTheme.textTheme`). The timer uses `displayLarge` with
+tabular figures; stat cards use `headlineSmall`.
 
 ### 14.5 Theme mode
 
-`ThemeMode.system` is hard-coded. There is no in-app theme switch and no
-dynamic colour (the spec's Appearance screen isn't built).
+System / Light / Dark, chosen in Settings → Appearance and stored in
+`app_settings`. No dynamic colour.
 
 ### 14.6 States matrix (as built)
 
@@ -1182,7 +1185,7 @@ assessment of each.
 | D5 | Spec: Settings icon on every tab | On every tab's app bar | Done (Phase 3c) | — |
 | D6 | Spec: onboarding, splash, Session Summary, Conversation History, Notifications, Appearance, Data & Privacy screens | All but Conversation History built (Phase 3) | Mostly done | Conversation History in Phase 4 |
 | D7 | Spec: theme mode System / Light / Dark setting | Appearance screen, stored in `app_settings` | Done (Phase 3e) | — |
-| D8 | Tokens: dark `primary` `#C0C1FF`, `surface-container-high` `#1F2430`, light `surface-border` `#E2E8F0`; Space Grotesk + Inter | Dark primary `#6366F1`; container colours seed-derived; light border `#C7C4D8`; Roboto | Unclear / partly intentional | Decide the canonical dark primary, apply container tokens, bundle fonts |
+| D8 | Tokens: dark `primary` `#C0C1FF`, `surface-container-high` `#1F2430`, light `surface-border` `#E2E8F0`; Space Grotesk + Inter | Dark primary `#C0C1FF`; every container token mapped; Space Grotesk + Inter bundled | Done (Phase 3) | Decisions in `docs/design-tokens/DECISIONS.md` |
 | D9 | `03` §7 model matrix: Claude 3.5 Sonnet, GPT-4o mini, Gemini 1.5 | Same seeded defaults | Likely stale today | Verify live, then update openly |
 | D10 | `03` §8 packages: `drift_flutter`, `freezed`, `json_serializable`, `csv`, `workmanager`, `mocktail` | None used | Intentional — not needed yet | Keep |
 | D11 | README: notification plugin "merges its own manifest requirements" | False since plugin v16; app must declare receivers | Bug (fixed) | README updated in `1f5d597` |
@@ -1338,12 +1341,12 @@ Severity: **P0** critical · **P1** major · **P2** moderate · **P3** minor.
 | K17 | P3 | Data | Enum index storage: reordering an enum corrupts stored rows | Design risk |
 | K18 | P3 | Android | Drift's recommended `sqlite3.tempDirectory` workaround isn't set; large sorts could fail on Android | Fixed — `sqlite3.tempDirectory` set on Android |
 | K19 | — | Release | APK signed with the debug key | Fixed (B2) — stable release key from CI secrets |
-| K20 | — | Design | Space Grotesk / Inter not bundled | Known (README) |
+| K20 | — | Design | Space Grotesk / Inter not bundled | Fixed (Phase 3): bundled under `assets/fonts`, OFL licences on the Licenses page |
 
 New defects found in the full read for the forward plan are tracked as
 **B1–B30** in `docs/04-build-and-optimization-plan.md` §3. Fixed so far:
 B1 (DST-safe calendar math), B2, B3, B4, B5, B6, B7, B8, B9, B11, B12,
-B13, B14, B15, B16, B17, B22, B23, B25 (interim: Latin-1 only), B26, B27,
+B13, B14, B15, B16, B17, B22, B23, B25, B26, B27,
 B28, B29, B30, and B31 (new: error bubbles were sent to the vendor as
 history). Schema is now v4 (see §7.3 and `drift_schemas/`).
 
@@ -1393,7 +1396,7 @@ from the owner-only step (adding the signing secrets) and the device
 checklist; Phase 1 is done (237 tests; 92% line coverage of domain + data);
 Phase 2 (Flutter 3.47 / Riverpod 3 / Drift 2.35) is done; Phase 3 is in
 progress (block editing, task form, settings, Session Summary, onboarding
-and splash are done). The list below is the original scope
+and splash, fonts and design tokens are done). The list below is the original scope
 roadmap, kept for reference.
 
 

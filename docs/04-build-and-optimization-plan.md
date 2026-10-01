@@ -471,7 +471,7 @@ Tick these in the PR that closes each item.
 - [x] Session Summary, Skip, custom durations, haptics, notification deep link (B24)
 - [x] Appearance, Notifications, Data & Privacy settings
 - [x] Onboarding + splash
-- [ ] Fonts + full token mapping + dark-primary decision (D8, K20, B25)
+- [x] Fonts + full token mapping + dark-primary decision (D8, K20, B25)
 - [ ] l10n scaffolding; narrow weekday labels (B19)
 - [ ] Adaptive layout; scalable timer ring
 - [ ] Backlog filtering and pagination (B20); single-query timeline (B21)

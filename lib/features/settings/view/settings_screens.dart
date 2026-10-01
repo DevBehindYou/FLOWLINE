@@ -275,6 +275,16 @@ class _DataPrivacyScreenState extends ConsumerState<DataPrivacyScreen> {
                 : const Icon(Icons.delete_forever_outlined),
             label: const Text('Clear all data'),
           ),
+          const SizedBox(height: 16),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.article_outlined),
+            title: const Text('Open-source licences'),
+            onTap: () => showLicensePage(
+              context: context,
+              applicationName: 'Flowline',
+            ),
+          ),
         ],
       ),
     );

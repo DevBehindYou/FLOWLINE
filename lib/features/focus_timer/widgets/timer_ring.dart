@@ -52,10 +52,11 @@ class TimerRing extends StatelessWidget {
                 fit: BoxFit.scaleDown,
                 child: Text(
                   _format(remainingSec),
-                  style: Theme.of(context)
-                      .textTheme
-                      .displaySmall
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  // Tabular figures: digits keep one width, so the
+                  // countdown doesn't shift sideways every second.
+                  style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
                 ),
               ),
             ),
