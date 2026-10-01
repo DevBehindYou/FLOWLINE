@@ -13,7 +13,7 @@ abstract interface class AIClient {
   /// [cancel] ends with `AIDone(stopReason: cancelled)`.
   Stream<AIEvent> send(AIRequest request, {AICancelToken? cancel});
 
-  /// The models this key can use. Throws on failure (the settings screen
-  /// shows it next to its Test connection button).
+  /// The models this key can use, by id. Throws [AIFailureException] on
+  /// failure (shown next to the settings screen's Test connection).
   Future<List<AIModelInfo>> listModels(AIProviderConfig config, String apiKey);
 }

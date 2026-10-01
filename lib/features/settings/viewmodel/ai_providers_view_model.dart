@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/providers.dart';
+import '../../../domain/ai/ai_contract.dart';
 import '../../../domain/entities/ai_provider_config.dart';
 import '../../ai_assistant/viewmodel/assistant_view_model.dart';
 
@@ -36,8 +37,33 @@ class AiProvidersViewModel extends _$AiProvidersViewModel {
     ref.invalidate(providerHasKeyProvider(id));
   }
 
+  /// "Test connection": lists the vendor's models with what the user
+  /// typed, remembering the list for the model picker (R21, K6).
+  Future<List<AIModelInfo>> testConnection({
+    required AIProviderId id,
+    String? apiKey,
+    String? baseUrl,
+  }) async {
+    final models = await ref
+        .read(aiRepositoryProvider)
+        .listModels(id: id, apiKey: apiKey, baseUrl: baseUrl);
+    ref.read(providerModelsProvider.notifier).put(id, models);
+    return models;
+  }
+
   Future<void> removeKey(AIProviderId id) async {
     await ref.read(aiRepositoryProvider).removeProviderKey(id);
     ref.invalidate(providerHasKeyProvider(id));
   }
+}
+
+/// The last model list fetched per provider in this session, so reopening
+/// the sheet doesn't need another Test connection.
+@Riverpod(keepAlive: true)
+class ProviderModels extends _$ProviderModels {
+  @override
+  Map<AIProviderId, List<AIModelInfo>> build() => const {};
+
+  void put(AIProviderId id, List<AIModelInfo> models) =>
+      state = {...state, id: models};
 }

@@ -20,6 +20,15 @@ abstract interface class AIRepository {
   /// reachability matters, which isn't checked here).
   Future<bool> hasKey(AIProviderId id);
 
+  /// "Test connection": the models [id] offers, using [apiKey] if given
+  /// (typed but not saved yet), else the saved key, and [baseUrl] for
+  /// Ollama. Throws [AIFailureException] with what went wrong.
+  Future<List<AIModelInfo>> listModels({
+    required AIProviderId id,
+    String? apiKey,
+    String? baseUrl,
+  });
+
   Stream<List<AIConversation>> watchConversations();
   Stream<List<AIMessage>> watchMessages(int conversationId);
   Future<int> createConversation(

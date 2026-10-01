@@ -94,12 +94,20 @@ abstract class HttpAIClient implements AIClient {
   Future<List<AIModelInfo>> listModels(
       AIProviderConfig config, String apiKey) async {
     final call = buildModels(config, apiKey);
-    final response = await dio.get<Object?>(
-      call.url,
-      options: Options(headers: call.headers),
-    );
+    final Response<Object?> response;
+    try {
+      response = await dio.get<Object?>(
+        call.url,
+        options: Options(headers: call.headers),
+      );
+    } on DioException catch (e) {
+      throw AIFailureException(_failureFor(e));
+    }
     final models = readModels(jsonMap(_decode(response.data)))
       ..sort((a, b) => a.id.compareTo(b.id));
+    if (models.isEmpty) {
+      throw const AIFailureException(AIFailure(AIFailureKind.emptyResponse));
+    }
     return models;
   }
 

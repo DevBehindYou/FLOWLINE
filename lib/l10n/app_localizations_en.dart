@@ -1017,4 +1017,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String aiErrorUnknown(String vendor) {
     return 'Something went wrong talking to $vendor. Please try again.';
   }
+
+  @override
+  String get testConnection => 'Test connection';
+
+  @override
+  String get chooseModel => 'Choose a model';
+
+  @override
+  String connectionOk(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count models',
+      one: '1 model',
+    );
+    return 'Connected — $_temp0 available.';
+  }
+
+  @override
+  String modelNotListed(String vendor) {
+    return 'Not in $vendor\'s list for this key. It may be retired; pick one from the list.';
+  }
 }

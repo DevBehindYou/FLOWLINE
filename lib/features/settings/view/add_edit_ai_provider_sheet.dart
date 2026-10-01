@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/app_theme.dart';
+import '../../../domain/ai/ai_contract.dart';
 import '../../../domain/entities/ai_provider_config.dart';
 import '../../../domain/services/ai_settings_validation.dart';
 import '../../../shared_widgets/confirm_dialog.dart';
@@ -38,6 +40,11 @@ class _AddEditAiProviderSheetState
   late final TextEditingController _baseUrlController =
       TextEditingController(text: widget.config.baseUrl ?? '');
   bool _obscureKey = true;
+
+  /// Test connection: running, its failure, or the models it found.
+  bool _testing = false;
+  AIFailure? _testFailure;
+  bool _tested = false;
   bool _saving = false;
   String? _error;
 
@@ -76,6 +83,60 @@ class _AddEditAiProviderSheetState
         .removeKey(widget.config.id));
   }
 
+  Future<void> _testConnection() async {
+    setState(() {
+      _testing = true;
+      _testFailure = null;
+      _tested = false;
+    });
+    AIFailure? failure;
+    try {
+      await ref.read(aiProvidersViewModelProvider.notifier).testConnection(
+            id: widget.config.id,
+            apiKey: _apiKeyController.text.trim(),
+            baseUrl: _requiresKey
+                ? null
+                : normalizeOllamaBaseUrl(_baseUrlController.text),
+          );
+    } on AIFailureException catch (e) {
+      failure = e.failure;
+    } catch (_) {
+      failure = const AIFailure(AIFailureKind.unknown);
+    }
+    if (!mounted) return;
+    setState(() {
+      _testing = false;
+      _testFailure = failure;
+      _tested = true;
+    });
+  }
+
+  Future<void> _chooseModel(List<AIModelInfo> models) async {
+    final chosen = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => SafeArea(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * 0.7),
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              for (final m in models)
+                ListTile(
+                  title: Text(m.label),
+                  subtitle: m.displayName == null ? null : Text(m.id),
+                  selected: m.id == _modelController.text.trim(),
+                  onTap: () => Navigator.pop(context, m.id),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (chosen != null) setState(() => _modelController.text = chosen);
+  }
+
   /// Busy flag, error message instead of a stuck spinner, close on success.
   Future<void> _run(Future<void> Function() action) async {
     setState(() {
@@ -100,6 +161,7 @@ class _AddEditAiProviderSheetState
     final l10n = context.l10n;
     final hasSavedKey =
         ref.watch(providerHasKeyProvider(widget.config.id)).value ?? false;
+    final models = ref.watch(providerModelsProvider)[widget.config.id];
 
     return Padding(
       padding: EdgeInsets.only(
@@ -161,10 +223,55 @@ class _AddEditAiProviderSheetState
               TextFormField(
                 controller: _modelController,
                 autocorrect: false,
+                onChanged: (_) => setState(() {}),
                 validator: (value) =>
                     _message(l10n, validateModelName(value ?? '')),
-                decoration: InputDecoration(labelText: l10n.model),
+                decoration: InputDecoration(
+                  labelText: l10n.model,
+                  helperText: models != null &&
+                          _modelController.text.trim().isNotEmpty &&
+                          !models
+                              .any((m) => m.id == _modelController.text.trim())
+                      ? l10n.modelNotListed(widget.config.displayName)
+                      : null,
+                  helperMaxLines: 2,
+                  suffixIcon: models == null
+                      ? null
+                      : IconButton(
+                          tooltip: l10n.chooseModel,
+                          icon: const Icon(Icons.arrow_drop_down),
+                          onPressed: () => _chooseModel(models),
+                        ),
+                ),
               ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: _testing || _saving ? null : _testConnection,
+                    icon: _testing
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.wifi_tethering),
+                    label: Text(l10n.testConnection),
+                  ),
+                ],
+              ),
+              if (_tested) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _testFailure == null
+                      ? l10n.connectionOk(models?.length ?? 0)
+                      : l10n.aiFailure(_testFailure!, widget.config),
+                  style: TextStyle(
+                    color: _testFailure == null
+                        ? FlowlineSemanticColors.statusDone
+                        : Theme.of(context).colorScheme.error,
+                  ),
+                ),
+              ],
               if (_error != null) ...[
                 const SizedBox(height: 12),
                 Text(

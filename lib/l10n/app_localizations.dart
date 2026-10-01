@@ -1731,6 +1731,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Something went wrong talking to {vendor}. Please try again.'**
   String aiErrorUnknown(String vendor);
+
+  /// No description provided for @testConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Test connection'**
+  String get testConnection;
+
+  /// No description provided for @chooseModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a model'**
+  String get chooseModel;
+
+  /// No description provided for @connectionOk.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected — {count, plural, =1{1 model} other{{count} models}} available.'**
+  String connectionOk(int count);
+
+  /// No description provided for @modelNotListed.
+  ///
+  /// In en, this message translates to:
+  /// **'Not in {vendor}\'s list for this key. It may be retired; pick one from the list.'**
+  String modelNotListed(String vendor);
 }
 
 class _AppLocalizationsDelegate

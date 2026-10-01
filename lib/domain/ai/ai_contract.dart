@@ -109,6 +109,16 @@ final class AIFailure extends AIEvent {
   final int? status;
 }
 
+/// Thrown by calls that return a value rather than a stream
+/// ([AIClient.listModels]), carrying the same typed failure.
+final class AIFailureException implements Exception {
+  const AIFailureException(this.failure);
+  final AIFailure failure;
+
+  @override
+  String toString() => 'AIFailureException(${failure.kind.name})';
+}
+
 /// Lets the caller stop a request in flight (the chat's Stop button).
 /// Plain Dart, so domain/ stays free of Dio; clients bridge it to their
 /// HTTP library.

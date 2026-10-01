@@ -732,5 +732,23 @@
         "type": "String"
       }
     }
+  },
+  "testConnection": "Test connection",
+  "chooseModel": "Choose a model",
+  "connectionOk": "Connected — {count, plural, =1{1 model} other{{count} models}} available.",
+  "@connectionOk": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "modelNotListed": "Not in {vendor}'s list for this key. It may be retired; pick one from the list.",
+  "@modelNotListed": {
+    "placeholders": {
+      "vendor": {
+        "type": "String"
+      }
+    }
   }
 }

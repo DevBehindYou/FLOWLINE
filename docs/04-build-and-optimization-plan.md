@@ -478,7 +478,7 @@ Tick these in the PR that closes each item.
 
 **Phase 4 — AI v2**
 - [x] `AIClient` v2 interface (typed failures stored with replies, schema v7; non-streaming until 4.3)
-- [ ] Model registry + Test connection (K6)
+- [x] Model registry + Test connection (K6): live model lists, picker, a warning when the saved model isn't offered
 - [ ] Streaming + Stop
 - [ ] Context windowing (K10)
 - [ ] Markdown, retry, "Fix in Settings"

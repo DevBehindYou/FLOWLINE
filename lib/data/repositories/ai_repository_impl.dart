@@ -152,6 +152,33 @@ class AIRepositoryImpl implements AIRepository {
   }
 
   @override
+  Future<List<AIModelInfo>> listModels({
+    required AIProviderId id,
+    String? apiKey,
+    String? baseUrl,
+  }) async {
+    await _seedFuture;
+    final row = await (_db.select(_db.aiProviderConfigs)
+          ..where((p) => p.providerId.equalsValue(id)))
+        .getSingle();
+    final saved = _mapProvider(row);
+    final config = AIProviderConfig(
+      id: saved.id,
+      displayName: saved.displayName,
+      defaultModel: saved.defaultModel,
+      baseUrl: baseUrl ?? saved.baseUrl,
+      isActive: saved.isActive,
+    );
+    final key = (apiKey != null && apiKey.isNotEmpty)
+        ? apiKey
+        : await _secureStore.getKey(id) ?? '';
+    if (config.requiresApiKey && key.isEmpty) {
+      throw const AIFailureException(AIFailure(AIFailureKind.missingKey));
+    }
+    return _clients[id]!.listModels(config, key);
+  }
+
+  @override
   Stream<List<AIConversation>> watchConversations() async* {
     await _seedFuture;
     final query = _db.select(_db.aiConversations)
