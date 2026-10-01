@@ -44,7 +44,8 @@ class WeeklyPdfExporter {
           children: [
             pw.Text(
               'Flowline - Weekly Focus Summary',
-              style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+              style: const pw.TextStyle(
+                  fontSize: 20, fontWeight: pw.FontWeight.bold),
             ),
             pw.SizedBox(height: 4),
             pw.Text('${_fmtDate(rangeStart)} to ${_fmtDate(rangeEnd)}'),
@@ -59,8 +60,8 @@ class WeeklyPdfExporter {
             ),
             pw.SizedBox(height: 20),
             pw.Text('Daily Breakdown',
-                style:
-                    pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                style: const pw.TextStyle(
+                    fontSize: 14, fontWeight: pw.FontWeight.bold)),
             pw.SizedBox(height: 8),
             pw.TableHelper.fromTextArray(
               headers: ['Date', 'Focus Time', 'Sessions'],
@@ -75,8 +76,8 @@ class WeeklyPdfExporter {
             ),
             pw.SizedBox(height: 20),
             pw.Text('Session Log',
-                style:
-                    pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                style: const pw.TextStyle(
+                    fontSize: 14, fontWeight: pw.FontWeight.bold)),
             pw.SizedBox(height: 8),
             if (focusSessions.isEmpty)
               pw.Text('No focus sessions logged this week.',
@@ -117,7 +118,8 @@ class WeeklyPdfExporter {
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.Text(value,
-            style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+            style: const pw.TextStyle(
+                fontSize: 18, fontWeight: pw.FontWeight.bold)),
         pw.Text(label,
             style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
       ],

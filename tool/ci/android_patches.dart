@@ -56,6 +56,8 @@ const desugarJdkLibs = 'com.android.tools:desugar_jdk_libs:2.1.4';
 const secureStoragePrefsFiles = [
   'FlutterSecureStorage.xml',
   'FlutterSecureKeyStorage.xml',
+  // flutter_secure_storage 10.x records its cipher configuration here.
+  'FlutterSecureStorageConfiguration.xml',
 ];
 
 String _excludeLines(String indent) => secureStoragePrefsFiles

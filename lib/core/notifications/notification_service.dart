@@ -25,8 +25,8 @@ class NotificationService {
 
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
-    await _plugin
-        .initialize(const InitializationSettings(android: androidSettings));
+    await _plugin.initialize(
+        settings: const InitializationSettings(android: androidSettings));
 
     await _plugin
         .resolvePlatformSpecificImplementation<
@@ -56,11 +56,11 @@ class NotificationService {
     required String body,
   }) async {
     await _plugin.zonedSchedule(
-      _sessionNotificationId,
-      title,
-      body,
-      tz.TZDateTime.from(fireAt, tz.local),
-      const NotificationDetails(
+      id: _sessionNotificationId,
+      title: title,
+      body: body,
+      scheduledDate: tz.TZDateTime.from(fireAt, tz.local),
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           _channelId,
           'Focus sessions',
@@ -74,13 +74,9 @@ class NotificationService {
       // real Play Store scrutiny for most apps, and a session-end alert
       // doesn't need split-second timing to still be useful.
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      // Required by v17's signature (iOS-only semantics); fireAt is an
-      // absolute instant, not a wall-clock time to re-interpret.
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
     );
   }
 
   Future<void> cancelSessionNotification() =>
-      _plugin.cancel(_sessionNotificationId);
+      _plugin.cancel(id: _sessionNotificationId);
 }
