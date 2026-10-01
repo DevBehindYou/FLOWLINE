@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/providers.dart';
 import 'core/router/app_router.dart';
+import 'domain/entities/app_settings.dart';
 import 'core/theme/app_theme.dart';
 import 'core/time/current_day.dart';
 import 'features/focus_timer/viewmodel/focus_timer_view_model.dart';
@@ -51,13 +53,19 @@ class _FlowlineAppState extends ConsumerState<FlowlineApp> {
   @override
   Widget build(BuildContext context) {
     final router = ref.watch(appRouterProvider);
+    final themeMode =
+        ref.watch(appSettingsProvider).value?.themeMode ?? AppThemeMode.system;
 
     return MaterialApp.router(
       title: 'Flowline',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
-      themeMode: ThemeMode.system,
+      themeMode: switch (themeMode) {
+        AppThemeMode.system => ThemeMode.system,
+        AppThemeMode.light => ThemeMode.light,
+        AppThemeMode.dark => ThemeMode.dark,
+      },
       routerConfig: router,
     );
   }

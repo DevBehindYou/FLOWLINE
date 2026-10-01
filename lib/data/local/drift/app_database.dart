@@ -17,6 +17,7 @@ import '../../../domain/entities/schedule_block.dart';
 import '../../../domain/entities/subtask.dart';
 import '../../../domain/entities/task.dart';
 import 'tables/ai_conversations_table.dart';
+import 'tables/app_settings_table.dart';
 import 'tables/ai_messages_table.dart';
 import 'tables/ai_provider_configs_table.dart';
 import 'tables/focus_sessions_table.dart';
@@ -27,6 +28,7 @@ import 'tables/tasks_table.dart';
 part 'app_database.g.dart';
 
 @DriftDatabase(tables: [
+  AppSettingsEntries,
   Tasks,
   Subtasks,
   ScheduleBlocks,
@@ -46,7 +48,7 @@ class AppDatabase extends _$AppDatabase {
   // Every bump: add a step below, then `dart run drift_dev make-migrations`
   // and commit drift_schemas/ and test/drift/ (rule R2).
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -82,6 +84,10 @@ class AppDatabase extends _$AppDatabase {
               await m.create(index);
             }
           }
+          // v4 -> v5: user preferences (Phase 3).
+          if (from < 5) {
+            await m.createTable(appSettingsEntries);
+          }
           await _assertForeignKeysIntact();
         },
         // SQLite ignores every `references(..., onDelete: ...)` above unless
@@ -91,6 +97,25 @@ class AppDatabase extends _$AppDatabase {
           await customStatement('PRAGMA foreign_keys = ON');
         },
       );
+
+  /// Deletes every row in every table, children first so no foreign key
+  /// is ever violated. Used by "Clear all data" (Data & privacy).
+  Future<void> wipeAllData() {
+    return transaction(() async {
+      for (final TableInfo<Table, Object?> table in [
+        aiMessages,
+        aiConversations,
+        focusSessions,
+        subtasks,
+        tasks,
+        scheduleBlocks,
+        aiProviderConfigs,
+        appSettingsEntries,
+      ]) {
+        await delete(table).go();
+      }
+    });
+  }
 
   /// Makes v3 data satisfy the v4 constraints before they're created.
   /// Each statement is a no-op on clean data.

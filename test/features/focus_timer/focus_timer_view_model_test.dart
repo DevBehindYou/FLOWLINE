@@ -3,6 +3,8 @@ import 'package:flowline/core/notifications/notification_service.dart';
 import 'package:flowline/core/providers.dart';
 import 'package:flowline/core/riverpod_config.dart';
 import 'package:flowline/data/local/drift/app_database.dart';
+import 'package:flowline/data/repositories/app_settings_repository_impl.dart';
+import 'package:flowline/domain/entities/app_settings.dart';
 import 'package:flowline/data/repositories/task_repository_impl.dart';
 import 'package:flowline/domain/entities/focus_session.dart';
 import 'package:flowline/domain/entities/task.dart';
@@ -14,6 +16,8 @@ import '../../support/test_database.dart';
 
 class _FakeNotificationService implements NotificationService {
   int cancels = 0;
+  int schedules = 0;
+  DateTime? lastFireAt;
 
   @override
   Future<void> init() async {}
@@ -23,7 +27,10 @@ class _FakeNotificationService implements NotificationService {
     required DateTime fireAt,
     required String title,
     required String body,
-  }) async {}
+  }) async {
+    schedules++;
+    lastFireAt = fireAt;
+  }
 
   @override
   Future<void> cancelSessionNotification() async => cancels++;
@@ -151,5 +158,23 @@ void main() {
           ..where((s) => s.id.equals(subtaskId)))
         .getSingle();
     expect(subtask.completedSprints, 1);
+  });
+
+  test('a session uses the focus length from settings', () async {
+    await AppSettingsRepositoryImpl(db)
+        .save(const AppSettings(focusMinutes: 50));
+    await viewModel().startSession(type: FocusSessionType.focus);
+    final row = await db.select(db.focusSessions).getSingle();
+    expect(row.plannedDurationSec, 50 * 60);
+    expect(notifications.schedules, 1);
+  });
+
+  test('no alert is scheduled when session alerts are off', () async {
+    await AppSettingsRepositoryImpl(db)
+        .save(const AppSettings(sessionAlerts: false));
+    await viewModel().startSession(type: FocusSessionType.shortBreak);
+    final row = await db.select(db.focusSessions).getSingle();
+    expect(row.plannedDurationSec, 5 * 60);
+    expect(notifications.schedules, 0);
   });
 }

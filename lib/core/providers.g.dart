@@ -135,6 +135,92 @@ final class ScheduleRepositoryProvider extends $FunctionalProvider<
 String _$scheduleRepositoryHash() =>
     r'0300f69ab3d681e5cb6f513e12f84c33c92ee242';
 
+@ProviderFor(appSettingsRepository)
+final appSettingsRepositoryProvider = AppSettingsRepositoryProvider._();
+
+final class AppSettingsRepositoryProvider extends $FunctionalProvider<
+    AppSettingsRepository,
+    AppSettingsRepository,
+    AppSettingsRepository> with $Provider<AppSettingsRepository> {
+  AppSettingsRepositoryProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'appSettingsRepositoryProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$appSettingsRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<AppSettingsRepository> $createElement(
+          $ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  AppSettingsRepository create(Ref ref) {
+    return appSettingsRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AppSettingsRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AppSettingsRepository>(value),
+    );
+  }
+}
+
+String _$appSettingsRepositoryHash() =>
+    r'48653f7ebc34f169089ed9578fa46718ae9237ab';
+
+/// Current preferences. Defaults until the first read completes, so
+/// nothing waits on (or flashes a spinner for) the settings table.
+
+@ProviderFor(appSettings)
+final appSettingsProvider = AppSettingsProvider._();
+
+/// Current preferences. Defaults until the first read completes, so
+/// nothing waits on (or flashes a spinner for) the settings table.
+
+final class AppSettingsProvider extends $FunctionalProvider<
+        AsyncValue<AppSettings>, AppSettings, Stream<AppSettings>>
+    with $FutureModifier<AppSettings>, $StreamProvider<AppSettings> {
+  /// Current preferences. Defaults until the first read completes, so
+  /// nothing waits on (or flashes a spinner for) the settings table.
+  AppSettingsProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'appSettingsProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$appSettingsHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<AppSettings> $createElement(
+          $ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<AppSettings> create(Ref ref) {
+    return appSettings(ref);
+  }
+}
+
+String _$appSettingsHash() => r'4d08b216e942c72cf0e47926c369baf7d0d42adc';
+
 @ProviderFor(focusSessionRepository)
 final focusSessionRepositoryProvider = FocusSessionRepositoryProvider._();
 

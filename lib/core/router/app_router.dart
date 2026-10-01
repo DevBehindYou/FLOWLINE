@@ -8,6 +8,7 @@ import '../../features/insights/view/insights_screen.dart';
 import '../../features/schedule/view/today_screen.dart';
 import '../../features/settings/view/ai_providers_screen.dart';
 import '../../features/settings/view/settings_home_screen.dart';
+import '../../features/settings/view/settings_screens.dart';
 import '../../features/shell/app_shell.dart';
 import '../../features/task_detail/view/task_detail_screen.dart';
 
@@ -80,6 +81,26 @@ GoRouter appRouter(Ref ref) {
             path: 'ai-providers',
             parentNavigatorKey: _rootNavigatorKey,
             builder: (context, state) => const AiProvidersScreen(),
+          ),
+          GoRoute(
+            path: 'focus',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const FocusTimerSettingsScreen(),
+          ),
+          GoRoute(
+            path: 'notifications',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const NotificationSettingsScreen(),
+          ),
+          GoRoute(
+            path: 'appearance',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const AppearanceScreen(),
+          ),
+          GoRoute(
+            path: 'data',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const DataPrivacyScreen(),
           ),
         ],
       ),

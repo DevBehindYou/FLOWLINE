@@ -9,12 +9,6 @@ import '../../../domain/time/calendar_day.dart';
 
 part 'focus_timer_view_model.g.dart';
 
-const _durationBySessionType = {
-  FocusSessionType.focus: 1500, // 25 min
-  FocusSessionType.shortBreak: 300, // 5 min
-  FocusSessionType.longBreak: 900, // 15 min
-};
-
 @riverpod
 Stream<FocusSession?> activeFocusSession(Ref ref) {
   return ref.watch(focusSessionRepositoryProvider).watchActiveSession();
@@ -79,14 +73,18 @@ class FocusTimerViewModel extends _$FocusTimerViewModel {
     int? taskId,
     int? subtaskId,
   }) async {
+    // Read fresh rather than from the stream provider, so a session started
+    // right after changing a duration in Settings uses the new value.
+    final settings = await ref.read(appSettingsRepositoryProvider).get();
+    final plannedSec = settings.minutesFor(type) * 60;
     await ref.read(focusSessionRepositoryProvider).startSession(
           sessionType: type,
-          plannedDurationSec: _durationBySessionType[type]!,
+          plannedDurationSec: plannedSec,
           taskId: taskId,
           subtaskId: subtaskId,
         );
     ref.read(pendingFocusLinkProvider.notifier).clear();
-    await _scheduleNotification(type, _durationBySessionType[type]!);
+    await _scheduleNotification(type, plannedSec);
   }
 
   Future<void> pause(FocusSession session) async {
@@ -145,7 +143,10 @@ class FocusTimerViewModel extends _$FocusTimerViewModel {
     await complete(session, endedEarly: false);
   }
 
-  Future<void> _scheduleNotification(FocusSessionType type, int inSeconds) {
+  Future<void> _scheduleNotification(
+      FocusSessionType type, int inSeconds) async {
+    final settings = await ref.read(appSettingsRepositoryProvider).get();
+    if (!settings.sessionAlerts) return;
     return _notify(
       (service) => service.scheduleSessionComplete(
         fireAt: clock.now().add(Duration(seconds: inSeconds)),

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'add_edit_task_view_model.dart';
+part of 'settings_view_model.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,28 +9,28 @@ part of 'add_edit_task_view_model.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(AddEditTaskViewModel)
-final addEditTaskViewModelProvider = AddEditTaskViewModelProvider._();
+@ProviderFor(SettingsViewModel)
+final settingsViewModelProvider = SettingsViewModelProvider._();
 
-final class AddEditTaskViewModelProvider
-    extends $NotifierProvider<AddEditTaskViewModel, void> {
-  AddEditTaskViewModelProvider._()
+final class SettingsViewModelProvider
+    extends $NotifierProvider<SettingsViewModel, void> {
+  SettingsViewModelProvider._()
       : super(
           from: null,
           argument: null,
           retry: null,
-          name: r'addEditTaskViewModelProvider',
+          name: r'settingsViewModelProvider',
           isAutoDispose: false,
           dependencies: null,
           $allTransitiveDependencies: null,
         );
 
   @override
-  String debugGetCreateSourceHash() => _$addEditTaskViewModelHash();
+  String debugGetCreateSourceHash() => _$settingsViewModelHash();
 
   @$internal
   @override
-  AddEditTaskViewModel create() => AddEditTaskViewModel();
+  SettingsViewModel create() => SettingsViewModel();
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(void value) {
@@ -41,10 +41,9 @@ final class AddEditTaskViewModelProvider
   }
 }
 
-String _$addEditTaskViewModelHash() =>
-    r'a15a97e2987506bc7295af2d684fb0cf5a3bad44';
+String _$settingsViewModelHash() => r'69852d10cf6b44f050fe1f4d2f1d402969dfe243';
 
-abstract class _$AddEditTaskViewModel extends $Notifier<void> {
+abstract class _$SettingsViewModel extends $Notifier<void> {
   void build();
   @$mustCallSuper
   @override

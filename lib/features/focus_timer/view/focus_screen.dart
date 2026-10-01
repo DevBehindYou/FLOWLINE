@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/async/run_action.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/providers.dart';
+import '../../../domain/entities/app_settings.dart';
 import '../../../domain/entities/focus_session.dart';
 import '../../../shared_widgets/error_view.dart';
 import '../../task_detail/viewmodel/task_detail_view_model.dart';
@@ -299,20 +301,26 @@ class _ScrollSafeColumn extends StatelessWidget {
 /// Focus / short break / long break. A segmented control at normal text
 /// sizes; wrapping chips when large text wouldn't fit three segments on
 /// one line (spec: survive 200% text scale).
-class _SessionTypeSelector extends StatelessWidget {
+class _SessionTypeSelector extends ConsumerWidget {
   const _SessionTypeSelector({required this.selected, required this.onChanged});
 
   final FocusSessionType selected;
   final ValueChanged<FocusSessionType> onChanged;
 
-  static const _labels = {
-    FocusSessionType.focus: 'Focus (25m)',
-    FocusSessionType.shortBreak: 'Short (5m)',
-    FocusSessionType.longBreak: 'Long (15m)',
+  static const _names = {
+    FocusSessionType.focus: 'Focus',
+    FocusSessionType.shortBreak: 'Short',
+    FocusSessionType.longBreak: 'Long',
   };
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings =
+        ref.watch(appSettingsProvider).value ?? const AppSettings();
+    final labels = {
+      for (final type in FocusSessionType.values)
+        type: '${_names[type]} (${settings.minutesFor(type)}m)',
+    };
     final largeText = MediaQuery.textScalerOf(context).scale(14) > 14 * 1.3;
     if (largeText) {
       return Wrap(
@@ -320,7 +328,7 @@ class _SessionTypeSelector extends StatelessWidget {
         spacing: 8,
         runSpacing: 8,
         children: [
-          for (final entry in _labels.entries)
+          for (final entry in labels.entries)
             ChoiceChip(
               label: Text(entry.value),
               selected: entry.key == selected,
@@ -331,7 +339,7 @@ class _SessionTypeSelector extends StatelessWidget {
     }
     return SegmentedButton<FocusSessionType>(
       segments: [
-        for (final entry in _labels.entries)
+        for (final entry in labels.entries)
           ButtonSegment(value: entry.key, label: Text(entry.value)),
       ],
       selected: {selected},

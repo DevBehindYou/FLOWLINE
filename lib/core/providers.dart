@@ -8,13 +8,16 @@ import '../data/remote/ai_clients/gemini_client.dart';
 import '../data/remote/ai_clients/ollama_client.dart';
 import '../data/remote/ai_clients/openai_client.dart';
 import '../data/repositories/ai_repository_impl.dart';
+import '../data/repositories/app_settings_repository_impl.dart';
 import '../data/repositories/focus_session_repository_impl.dart';
 import '../data/repositories/schedule_repository_impl.dart';
 import '../data/repositories/task_repository_impl.dart';
 import '../data/export/export_service.dart';
 import '../domain/entities/ai_provider_config.dart';
+import '../domain/entities/app_settings.dart';
 import '../domain/repositories/ai_client.dart';
 import '../domain/repositories/ai_repository.dart';
+import '../domain/repositories/app_settings_repository.dart';
 import '../domain/repositories/focus_session_repository.dart';
 import '../domain/repositories/schedule_repository.dart';
 import '../domain/repositories/task_repository.dart';
@@ -41,6 +44,18 @@ TaskRepository taskRepository(Ref ref) {
 @Riverpod(keepAlive: true)
 ScheduleRepository scheduleRepository(Ref ref) {
   return ScheduleRepositoryImpl(ref.watch(appDatabaseProvider));
+}
+
+@Riverpod(keepAlive: true)
+AppSettingsRepository appSettingsRepository(Ref ref) {
+  return AppSettingsRepositoryImpl(ref.watch(appDatabaseProvider));
+}
+
+/// Current preferences. Defaults until the first read completes, so
+/// nothing waits on (or flashes a spinner for) the settings table.
+@Riverpod(keepAlive: true)
+Stream<AppSettings> appSettings(Ref ref) {
+  return ref.watch(appSettingsRepositoryProvider).watch();
 }
 
 @Riverpod(keepAlive: true)
