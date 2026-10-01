@@ -102,16 +102,16 @@ fixed by aligning the fake clock in the test.
 
 | Module (from `03-scope…` §1) | Status | Notes |
 |---|---|---|
-| Task & schedule management | **Built, partial** | Tasks, subtasks, blocks, day switcher, unscheduled backlog, swipe complete/delete. **No UI to edit or delete a schedule block** (the repository supports both). No drag-and-drop timeline, no recurrence, no due-date picker. |
-| Focus timer | **Built** | 25/5/15 presets, start/pause/resume/end/+5 min, task/subtask linking, sprint credit, local notification. No Skip, no custom duration, no Session Summary sheet. |
+| Task & schedule management | **Built, partial** | Tasks, subtasks, blocks (create, edit, delete), day switcher, unscheduled backlog, swipe complete/delete with Undo, long-press action sheet, due dates with overdue state, block picker in the task form. No drag-and-drop timeline, no recurrence. |
+| Focus timer | **Built** | Configurable focus/break lengths, start/pause/resume/end/+5 min, Skip for breaks, task/subtask linking, sprint credit, local notification (tap opens Focus). Session Summary sheet suggests the next session (long break every N focus sessions); completion haptic. No last-10-seconds emphasis yet. |
 | AI assistant | **Built, partial** | Four vendors behind one strategy interface, one thread per provider, error bubbles. No streaming, no markdown, no conversation history screen, no Task Breakdown Engine, no "Add to Today". |
 | Schedule intelligence | **Built, partial** | Overlap detection on save, conflict sheet, one-shot AI time suggestion, overlap flagging on Today. No drift analysis, no manual timeline adjuster. |
 | Calendar sync (Google, read-only) | **Not built** | Deliberately deferred (needs the owner's OAuth client + release-key SHA-1). `ScheduleBlockSource.externalCalendar` and `isLocked` exist in the model already. |
 | Insights | **Built, partial** | Today / streak / week stat cards, 7-day bar chart. No monthly view, no heatmap, no adherence %. |
 | Export | **Built** | PDF, CSV, JSON of the last 7 days via the system share sheet. |
 | AI Monitoring (voice) | **Not built** | Designed in `03-scope…` §6 only. No microphone code or permission exists. |
-| Settings | **Built, partial** | Settings home + AI Providers only. No Notifications, Appearance/Theme, Data & Privacy, or AI Monitoring screens. |
-| Onboarding / splash | **Not built** | App opens straight to Today; Android's native launch screen is the only splash. |
+| Settings | **Built** | Settings home (reachable from every tab), AI Providers, Focus timer lengths, Notifications (session alerts on/off), Appearance (System/Light/Dark), Data & Privacy (clear all data). Stored in the `app_settings` table (schema v5). No AI Monitoring screen (voice isn't built). |
+| Onboarding / splash | **Built** | First launch opens a 3-step skippable onboarding (value, notification permission with rationale, optional AI provider); `onboarding_done` setting. The native launch screen uses the app's surface colour, light and dark (CI writes the resources, see `tool/ci/android_patches.dart`). |
 
 ---
 
@@ -861,8 +861,11 @@ For each screen: purpose, what it shows, actions, and its state model.
   **+5 min** — and the footer.
 - Completion at zero is triggered from the screen and, independently, from
   `FlowlineApp` after the first frame and on every resume.
-- Not present vs. spec: Skip, custom duration, Session Summary sheet,
-  last-10-seconds emphasis, haptics.
+- Ending or finishing a session opens the Session Summary sheet
+  (`session_summary_sheet.dart`): minutes logged, today's focus count,
+  and a button for the suggested next session. Breaks show **Skip**
+  instead of End. A heavy haptic fires on completion (not on End).
+- Not present vs. spec: last-10-seconds emphasis.
 
 ### 12.8 Assistant — `AssistantScreen`
 - App bar: "AI Providers" icon.
@@ -1175,10 +1178,10 @@ assessment of each.
 | D1 | Use Case layer between view models and repositories (`01`, `03`) | View models call repositories directly | Intentional (README) | Keep |
 | D2 | Google Calendar sync, locked external events (`03` §1, §5) | Not built; model fields exist | Intentional deferral | Keep deferred |
 | D3 | AI Monitoring / voice (`03` §6) | Not built | Planned future | Keep deferred |
-| D4 | README "Full CRUD … schedule blocks" | Create only in the UI; repository edit/delete unreachable | Incomplete | Build edit/delete UI or fix README |
-| D5 | Spec: Settings icon on every tab | Only on Today (Assistant has AI Providers) | Incomplete | Add to app bars |
-| D6 | Spec: onboarding, splash, Session Summary, Conversation History, Notifications, Appearance, Data & Privacy screens | None built | Incomplete | Roadmap |
-| D7 | Spec: theme mode System / Light / Dark setting | Hard-coded `ThemeMode.system` | Incomplete | Build Appearance |
+| D4 | README "Full CRUD … schedule blocks" | Create, edit and delete in the UI | Done (Phase 3a) | — |
+| D5 | Spec: Settings icon on every tab | On every tab's app bar | Done (Phase 3c) | — |
+| D6 | Spec: onboarding, splash, Session Summary, Conversation History, Notifications, Appearance, Data & Privacy screens | All but Conversation History built (Phase 3) | Mostly done | Conversation History in Phase 4 |
+| D7 | Spec: theme mode System / Light / Dark setting | Appearance screen, stored in `app_settings` | Done (Phase 3e) | — |
 | D8 | Tokens: dark `primary` `#C0C1FF`, `surface-container-high` `#1F2430`, light `surface-border` `#E2E8F0`; Space Grotesk + Inter | Dark primary `#6366F1`; container colours seed-derived; light border `#C7C4D8`; Roboto | Unclear / partly intentional | Decide the canonical dark primary, apply container tokens, bundle fonts |
 | D9 | `03` §7 model matrix: Claude 3.5 Sonnet, GPT-4o mini, Gemini 1.5 | Same seeded defaults | Likely stale today | Verify live, then update openly |
 | D10 | `03` §8 packages: `drift_flutter`, `freezed`, `json_serializable`, `csv`, `workmanager`, `mocktail` | None used | Intentional — not needed yet | Keep |
@@ -1387,7 +1390,10 @@ from the latest successful run on a phone and check:
 The ordered plan now lives in `docs/04-build-and-optimization-plan.md`
 (Phases 0–7 with exit gates, plus a release track). Phase 0 is done apart
 from the owner-only step (adding the signing secrets) and the device
-checklist; Phase 1 is done (237 tests; 92% line coverage of domain + data). The list below is the original scope
+checklist; Phase 1 is done (237 tests; 92% line coverage of domain + data);
+Phase 2 (Flutter 3.47 / Riverpod 3 / Drift 2.35) is done; Phase 3 is in
+progress (block editing, task form, settings, Session Summary, onboarding
+and splash are done). The list below is the original scope
 roadmap, kept for reference.
 
 

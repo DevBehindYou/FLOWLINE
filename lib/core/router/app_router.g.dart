@@ -8,13 +8,29 @@ part of 'app_router.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+/// Built once, after FlowlineApp has the stored settings: the first
+/// location is decided then, so a first launch opens onboarding without
+/// flashing Today first, and finishing it can't race a redirect against
+/// the settings stream. If the settings can't be read, the app opens
+/// normally rather than trapping the user in onboarding.
 
 @ProviderFor(appRouter)
 final appRouterProvider = AppRouterProvider._();
 
+/// Built once, after FlowlineApp has the stored settings: the first
+/// location is decided then, so a first launch opens onboarding without
+/// flashing Today first, and finishing it can't race a redirect against
+/// the settings stream. If the settings can't be read, the app opens
+/// normally rather than trapping the user in onboarding.
+
 final class AppRouterProvider
     extends $FunctionalProvider<GoRouter, GoRouter, GoRouter>
     with $Provider<GoRouter> {
+  /// Built once, after FlowlineApp has the stored settings: the first
+  /// location is decided then, so a first launch opens onboarding without
+  /// flashing Today first, and finishing it can't race a redirect against
+  /// the settings stream. If the settings can't be read, the app opens
+  /// normally rather than trapping the user in onboarding.
   AppRouterProvider._()
       : super(
           from: null,
@@ -48,4 +64,4 @@ final class AppRouterProvider
   }
 }
 
-String _$appRouterHash() => r'60b1401c1c9fdbdbbeb90a91e068db88f4928a06';
+String _$appRouterHash() => r'faa48e43f04163c2b1b7d75209668bf235bccaaa';

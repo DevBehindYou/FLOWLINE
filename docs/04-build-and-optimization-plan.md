@@ -464,13 +464,13 @@ Tick these in the PR that closes each item.
 - [x] 2.5 Remaining package majors (verified one at a time locally)
 
 **Phase 3 — Core UX**
-- [ ] Block edit/delete + "Edit times" hand-off (D4, K15)
+- [x] Block edit/delete + "Edit times" hand-off (D4, K15)
 - [ ] Recurrence
-- [ ] Full task form, overdue state, undo (B11 required)
-- [ ] Task Detail session history + subtask reorder
-- [ ] Session Summary, Skip, custom durations, haptics, notification deep link (B24)
-- [ ] Appearance, Notifications, Data & Privacy settings
-- [ ] Onboarding + splash
+- [x] Full task form, overdue state, undo (B11 required)
+- [ ] Task Detail session history (done) + subtask reorder
+- [x] Session Summary, Skip, custom durations, haptics, notification deep link (B24)
+- [x] Appearance, Notifications, Data & Privacy settings
+- [x] Onboarding + splash
 - [ ] Fonts + full token mapping + dark-primary decision (D8, K20, B25)
 - [ ] l10n scaffolding; narrow weekday labels (B19)
 - [ ] Adaptive layout; scalable timer ring

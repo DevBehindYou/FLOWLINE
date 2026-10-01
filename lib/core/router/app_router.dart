@@ -1,10 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../providers.dart';
+
 import '../../features/ai_assistant/view/assistant_screen.dart';
 import '../../features/focus_timer/view/focus_screen.dart';
 import '../../features/insights/view/insights_screen.dart';
+import '../../features/onboarding/onboarding_screen.dart';
 import '../../features/schedule/view/today_screen.dart';
 import '../../features/settings/view/ai_providers_screen.dart';
 import '../../features/settings/view/settings_home_screen.dart';
@@ -17,12 +22,29 @@ part 'app_router.g.dart';
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
+/// Built once, after FlowlineApp has the stored settings: the first
+/// location is decided then, so a first launch opens onboarding without
+/// flashing Today first, and finishing it can't race a redirect against
+/// the settings stream. If the settings can't be read, the app opens
+/// normally rather than trapping the user in onboarding.
 @Riverpod(keepAlive: true)
 GoRouter appRouter(Ref ref) {
+  final onboardingDone =
+      ref.read(appSettingsProvider).value?.onboardingDone ?? true;
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: '/today',
+    initialLocation: onboardingDone ? '/today' : '/onboarding',
     routes: [
+      GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => OnboardingScreen(
+          onFinished: (connectAi) {
+            final router = GoRouter.of(context);
+            router.go('/today');
+            if (connectAi) unawaited(router.push('/settings/ai-providers'));
+          },
+        ),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return AppShell(navigationShell: navigationShell);

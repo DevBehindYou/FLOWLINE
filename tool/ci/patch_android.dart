@@ -16,7 +16,8 @@ void main(List<String> args) {
   try {
     _patchFile('$androidDir/app/src/main/AndroidManifest.xml', patchManifest);
     _patchFile('$androidDir/app/build.gradle.kts', patchAppGradleKts);
-    backupResourceFiles.forEach((relativePath, content) {
+    <String, String>{...backupResourceFiles, ...splashResourceFiles}
+        .forEach((relativePath, content) {
       final file = File('$androidDir/$relativePath');
       file.parent.createSync(recursive: true);
       file.writeAsStringSync(content);

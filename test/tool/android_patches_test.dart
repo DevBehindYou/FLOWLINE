@@ -1,3 +1,5 @@
+import 'package:flowline/core/theme/app_theme.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../tool/ci/android_patches.dart';
@@ -234,6 +236,39 @@ void main() {
     test('Android 12+ rules cover both cloud backup and device transfer', () {
       expect(dataExtractionRulesXml, contains('<cloud-backup>'));
       expect(dataExtractionRulesXml, contains('<device-transfer>'));
+    });
+  });
+
+  group('launch screen', () {
+    String hex(Color c) =>
+        '#${(c.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
+
+    test('matches the app theme surfaces, so launch has no colour jump', () {
+      expect(splashColorLight, hex(AppTheme.light().colorScheme.surface));
+      expect(splashColorDark, hex(AppTheme.dark().colorScheme.surface));
+    });
+
+    test('every file is well-formed and uses the shared colour', () {
+      for (final entry in splashResourceFiles.entries) {
+        final xml = entry.value;
+        expect(xml, startsWith('<?xml'), reason: entry.key);
+        if (!entry.key.contains('flowline_colors')) {
+          expect(xml, contains('@color/flowline_splash_background'),
+              reason: entry.key);
+        }
+      }
+    });
+
+    test('Android 12+ themes set the splash background, light and night', () {
+      for (final (path, parent) in [
+        ('values-v31', 'Theme.Light.NoTitleBar'),
+        ('values-night-v31', 'Theme.Black.NoTitleBar'),
+      ]) {
+        final xml = splashResourceFiles['app/src/main/res/$path/styles.xml']!;
+        expect(xml, contains('name="LaunchTheme"'));
+        expect(xml, contains('parent="@android:style/$parent"'));
+        expect(xml, contains('android:windowSplashScreenBackground'));
+      }
     });
   });
 }

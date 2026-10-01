@@ -71,9 +71,15 @@ class _FlowlineAppState extends ConsumerState<FlowlineApp> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = ref.watch(appSettingsProvider);
+    // The native splash stays up until the first frame; until the settings
+    // are read (a local query, normally one frame) show the same plain
+    // surface, because the router's first location depends on them.
+    if (settings.isLoading && !settings.hasValue) {
+      return const _SplashSurface();
+    }
     final router = ref.watch(appRouterProvider);
-    final themeMode =
-        ref.watch(appSettingsProvider).value?.themeMode ?? AppThemeMode.system;
+    final themeMode = settings.value?.themeMode ?? AppThemeMode.system;
 
     return MaterialApp.router(
       title: 'Flowline',
@@ -86,6 +92,20 @@ class _FlowlineAppState extends ConsumerState<FlowlineApp> {
         AppThemeMode.dark => ThemeMode.dark,
       },
       routerConfig: router,
+    );
+  }
+}
+
+class _SplashSurface extends StatelessWidget {
+  const _SplashSurface();
+
+  @override
+  Widget build(BuildContext context) {
+    // Above MaterialApp there is no MediaQuery yet.
+    final dark = View.of(context).platformDispatcher.platformBrightness ==
+        Brightness.dark;
+    return ColoredBox(
+      color: (dark ? AppTheme.dark() : AppTheme.light()).colorScheme.surface,
     );
   }
 }

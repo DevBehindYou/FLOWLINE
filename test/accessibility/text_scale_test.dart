@@ -8,6 +8,7 @@ import 'package:flowline/data/repositories/task_repository_impl.dart';
 import 'package:flowline/domain/entities/focus_session.dart';
 import 'package:flowline/domain/entities/task.dart';
 import 'package:flowline/features/focus_timer/view/focus_screen.dart';
+import 'package:flowline/features/onboarding/onboarding_screen.dart';
 import 'package:flowline/features/insights/view/insights_screen.dart';
 import 'package:flowline/features/schedule/view/today_screen.dart';
 import 'package:flowline/features/settings/view/settings_home_screen.dart';
@@ -82,6 +83,7 @@ void main() {
     ('Settings', const SettingsHomeScreen()),
     ('Insights (empty)', const InsightsScreen()),
     ('Focus (idle)', const FocusScreen()),
+    ('Onboarding', OnboardingScreen(onFinished: (_) {})),
   ]) {
     testWidgets('$name fits at 200% text on a 360dp phone', (tester) async {
       smallPhone(tester);

@@ -89,6 +89,53 @@ Map<String, String> get backupResourceFiles => {
           dataExtractionRulesXml,
     };
 
+// Launch screen. The template's splash is a white window (black at
+// night) and Android 12+ draws the launcher icon on that. These files
+// replace it with the app's own surface colours, so the native splash,
+// the first Flutter frame and the first screen are one continuous colour
+// (spec §5.1). They are whole files Flowline owns rather than patches,
+// so a template change can't silently drop them. Keep the colours equal
+// to AppTheme's surfaces (test/tool/android_patches_test.dart checks).
+const splashColorLight = '#FAF8FF';
+const splashColorDark = '#0F1117';
+
+String _colorsXml(String color) => '<?xml version="1.0" encoding="utf-8"?>\n'
+    '<resources>\n'
+    '    <color name="flowline_splash_background">$color</color>\n'
+    '</resources>\n';
+
+const _launchBackgroundXml = '<?xml version="1.0" encoding="utf-8"?>\n'
+    '<layer-list xmlns:android="http://schemas.android.com/apk/res/android">\n'
+    '    <item android:drawable="@color/flowline_splash_background" />\n'
+    '</layer-list>\n';
+
+/// Android 12+ ignores windowBackground for the launch screen and uses
+/// these attributes instead. Only LaunchTheme is redefined: styles resolve
+/// by name, so the template's NormalTheme still applies.
+String _launchThemeV31(String parent) =>
+    '<?xml version="1.0" encoding="utf-8"?>\n'
+    '<resources>\n'
+    '    <style name="LaunchTheme" parent="$parent">\n'
+    '        <item name="android:windowBackground">@drawable/launch_background</item>\n'
+    '        <item name="android:windowSplashScreenBackground">@color/flowline_splash_background</item>\n'
+    '    </style>\n'
+    '</resources>\n';
+
+/// Keyed by path relative to the android/ directory.
+Map<String, String> get splashResourceFiles => {
+      'app/src/main/res/values/flowline_colors.xml':
+          _colorsXml(splashColorLight),
+      'app/src/main/res/values-night/flowline_colors.xml':
+          _colorsXml(splashColorDark),
+      'app/src/main/res/drawable/launch_background.xml': _launchBackgroundXml,
+      'app/src/main/res/drawable-v21/launch_background.xml':
+          _launchBackgroundXml,
+      'app/src/main/res/values-v31/styles.xml':
+          _launchThemeV31('@android:style/Theme.Light.NoTitleBar'),
+      'app/src/main/res/values-night-v31/styles.xml':
+          _launchThemeV31('@android:style/Theme.Black.NoTitleBar'),
+    };
+
 // Release signing. The template signs release builds with the debug key,
 // and every CI runner generates a fresh debug keystore, so each build had
 // a different signature: Android refuses to install it over the previous
