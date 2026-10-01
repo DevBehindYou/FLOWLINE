@@ -36,7 +36,26 @@ class ChatBubble extends StatelessWidget {
           color: bubbleColor,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Text(message.content, style: TextStyle(color: textColor)),
+        child: message.isPending
+            ? Semantics(
+                label: 'Waiting for a reply',
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: textColor),
+                    ),
+                    const SizedBox(width: 8),
+                    Text('Thinking\u2026',
+                        style: TextStyle(
+                            color: textColor, fontStyle: FontStyle.italic)),
+                  ],
+                ),
+              )
+            : Text(message.content, style: TextStyle(color: textColor)),
       ),
     );
   }

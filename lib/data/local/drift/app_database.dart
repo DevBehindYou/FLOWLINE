@@ -36,13 +36,17 @@ part 'app_database.g.dart';
   AiMessages,
 ])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  /// [executor] is for tests and migration verification; the app always
+  /// opens the on-device file.
+  AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @visibleForTesting
   AppDatabase.forTesting(super.executor);
 
+  // Every bump: add a step below, then `dart run drift_dev make-migrations`
+  // and commit drift_schemas/ and test/drift/ (rule R2).
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -62,6 +66,23 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(aiConversations);
             await m.createTable(aiMessages);
           }
+          // v3 -> v4: constraints and indexes (Phase 1 of
+          // docs/04-build-and-optimization-plan.md). Repair first, so no
+          // existing row can violate a new constraint, then rebuild.
+          if (from < 4) {
+            await _repairForV4();
+            // Rebuilds: CHECK(end_time > start_time) on schedule_blocks and
+            // the schedule_block_id foreign key on tasks. alterTable copies
+            // every row and turns foreign keys off while it runs, so the
+            // drop/re-create can't cascade into subtasks or sessions.
+            await m.alterTable(TableMigration(scheduleBlocks));
+            await m.alterTable(TableMigration(tasks));
+            await m.addColumn(aiMessages, aiMessages.isPending);
+            for (final index in allSchemaEntities.whereType<Index>()) {
+              await m.create(index);
+            }
+          }
+          await _assertForeignKeysIntact();
         },
         // SQLite ignores every `references(..., onDelete: ...)` above unless
         // this is set per connection; without it deleting a task orphans
@@ -70,6 +91,40 @@ class AppDatabase extends _$AppDatabase {
           await customStatement('PRAGMA foreign_keys = ON');
         },
       );
+
+  /// Makes v3 data satisfy the v4 constraints before they're created.
+  /// Each statement is a no-op on clean data.
+  Future<void> _repairForV4() async {
+    // A task pointing at a deleted block is in no block and not
+    // "unscheduled" either; unschedule it so the new FK holds.
+    await customStatement('UPDATE tasks SET schedule_block_id = NULL '
+        'WHERE schedule_block_id IS NOT NULL AND schedule_block_id NOT IN '
+        '(SELECT id FROM schedule_blocks)');
+    // Date-times are stored as Unix seconds: give a zero-length or
+    // inverted block one minute so CHECK(end_time > start_time) holds.
+    await customStatement(
+        'UPDATE schedule_blocks SET end_time = start_time + 60 '
+        'WHERE end_time <= start_time');
+    // Keep only the newest active focus session; close any older ones as
+    // ended early at their start, so the unique index can be created.
+    await customStatement('UPDATE focus_sessions '
+        'SET completed_at = started_at, actual_duration_sec = 0, '
+        'ended_early = 1, segment_started_at = NULL '
+        'WHERE completed_at IS NULL AND id <> '
+        '(SELECT MAX(id) FROM focus_sessions WHERE completed_at IS NULL)');
+  }
+
+  /// A migration must never leave a dangling reference behind. Cheap on a
+  /// phone-sized database, and it turns silent corruption into a loud,
+  /// testable failure.
+  Future<void> _assertForeignKeysIntact() async {
+    final violations = await customSelect('PRAGMA foreign_key_check').get();
+    if (violations.isNotEmpty) {
+      throw StateError(
+          'Migration left ${violations.length} foreign key violation(s): '
+          '${violations.map((r) => r.data).join(', ')}');
+    }
+  }
 
   static LazyDatabase _openConnection() {
     return LazyDatabase(() async {

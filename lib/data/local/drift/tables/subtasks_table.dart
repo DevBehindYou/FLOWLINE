@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import '../../../../domain/entities/subtask.dart';
 import 'tasks_table.dart';
 
+@TableIndex(name: 'subtasks_task_order', columns: {#taskId, #orderIndex})
 @DataClassName('SubtaskRow')
 class Subtasks extends Table {
   IntColumn get id => integer().autoIncrement()();

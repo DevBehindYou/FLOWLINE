@@ -3,6 +3,351 @@
 part of 'app_database.dart';
 
 // ignore_for_file: type=lint
+class $ScheduleBlocksTable extends ScheduleBlocks
+    with TableInfo<$ScheduleBlocksTable, ScheduleBlockRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ScheduleBlocksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+      'title', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _startTimeMeta =
+      const VerificationMeta('startTime');
+  @override
+  late final GeneratedColumn<DateTime> startTime = GeneratedColumn<DateTime>(
+      'start_time', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _endTimeMeta =
+      const VerificationMeta('endTime');
+  @override
+  late final GeneratedColumn<DateTime> endTime = GeneratedColumn<DateTime>(
+      'end_time', aliasedName, false,
+      check: () => ComparableExpr(endTime).isBiggerThan(startTime),
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: true);
+  @override
+  late final GeneratedColumnWithTypeConverter<ScheduleBlockSource, int> source =
+      GeneratedColumn<int>('source', aliasedName, false,
+              type: DriftSqlType.int,
+              requiredDuringInsert: false,
+              defaultValue: const Constant(0))
+          .withConverter<ScheduleBlockSource>(
+              $ScheduleBlocksTable.$convertersource);
+  static const VerificationMeta _isLockedMeta =
+      const VerificationMeta('isLocked');
+  @override
+  late final GeneratedColumn<bool> isLocked = GeneratedColumn<bool>(
+      'is_locked', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_locked" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, title, startTime, endTime, source, isLocked];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'schedule_blocks';
+  @override
+  VerificationContext validateIntegrity(Insertable<ScheduleBlockRow> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('start_time')) {
+      context.handle(_startTimeMeta,
+          startTime.isAcceptableOrUnknown(data['start_time']!, _startTimeMeta));
+    } else if (isInserting) {
+      context.missing(_startTimeMeta);
+    }
+    if (data.containsKey('end_time')) {
+      context.handle(_endTimeMeta,
+          endTime.isAcceptableOrUnknown(data['end_time']!, _endTimeMeta));
+    } else if (isInserting) {
+      context.missing(_endTimeMeta);
+    }
+    if (data.containsKey('is_locked')) {
+      context.handle(_isLockedMeta,
+          isLocked.isAcceptableOrUnknown(data['is_locked']!, _isLockedMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ScheduleBlockRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ScheduleBlockRow(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      title: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+      startTime: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}start_time'])!,
+      endTime: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}end_time'])!,
+      source: $ScheduleBlocksTable.$convertersource.fromSql(attachedDatabase
+          .typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}source'])!),
+      isLocked: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_locked'])!,
+    );
+  }
+
+  @override
+  $ScheduleBlocksTable createAlias(String alias) {
+    return $ScheduleBlocksTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<ScheduleBlockSource, int, int> $convertersource =
+      const EnumIndexConverter<ScheduleBlockSource>(ScheduleBlockSource.values);
+}
+
+class ScheduleBlockRow extends DataClass
+    implements Insertable<ScheduleBlockRow> {
+  final int id;
+  final String title;
+  final DateTime startTime;
+  final DateTime endTime;
+  final ScheduleBlockSource source;
+  final bool isLocked;
+  const ScheduleBlockRow(
+      {required this.id,
+      required this.title,
+      required this.startTime,
+      required this.endTime,
+      required this.source,
+      required this.isLocked});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['title'] = Variable<String>(title);
+    map['start_time'] = Variable<DateTime>(startTime);
+    map['end_time'] = Variable<DateTime>(endTime);
+    {
+      map['source'] =
+          Variable<int>($ScheduleBlocksTable.$convertersource.toSql(source));
+    }
+    map['is_locked'] = Variable<bool>(isLocked);
+    return map;
+  }
+
+  ScheduleBlocksCompanion toCompanion(bool nullToAbsent) {
+    return ScheduleBlocksCompanion(
+      id: Value(id),
+      title: Value(title),
+      startTime: Value(startTime),
+      endTime: Value(endTime),
+      source: Value(source),
+      isLocked: Value(isLocked),
+    );
+  }
+
+  factory ScheduleBlockRow.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ScheduleBlockRow(
+      id: serializer.fromJson<int>(json['id']),
+      title: serializer.fromJson<String>(json['title']),
+      startTime: serializer.fromJson<DateTime>(json['startTime']),
+      endTime: serializer.fromJson<DateTime>(json['endTime']),
+      source: $ScheduleBlocksTable.$convertersource
+          .fromJson(serializer.fromJson<int>(json['source'])),
+      isLocked: serializer.fromJson<bool>(json['isLocked']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'title': serializer.toJson<String>(title),
+      'startTime': serializer.toJson<DateTime>(startTime),
+      'endTime': serializer.toJson<DateTime>(endTime),
+      'source': serializer
+          .toJson<int>($ScheduleBlocksTable.$convertersource.toJson(source)),
+      'isLocked': serializer.toJson<bool>(isLocked),
+    };
+  }
+
+  ScheduleBlockRow copyWith(
+          {int? id,
+          String? title,
+          DateTime? startTime,
+          DateTime? endTime,
+          ScheduleBlockSource? source,
+          bool? isLocked}) =>
+      ScheduleBlockRow(
+        id: id ?? this.id,
+        title: title ?? this.title,
+        startTime: startTime ?? this.startTime,
+        endTime: endTime ?? this.endTime,
+        source: source ?? this.source,
+        isLocked: isLocked ?? this.isLocked,
+      );
+  ScheduleBlockRow copyWithCompanion(ScheduleBlocksCompanion data) {
+    return ScheduleBlockRow(
+      id: data.id.present ? data.id.value : this.id,
+      title: data.title.present ? data.title.value : this.title,
+      startTime: data.startTime.present ? data.startTime.value : this.startTime,
+      endTime: data.endTime.present ? data.endTime.value : this.endTime,
+      source: data.source.present ? data.source.value : this.source,
+      isLocked: data.isLocked.present ? data.isLocked.value : this.isLocked,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ScheduleBlockRow(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('startTime: $startTime, ')
+          ..write('endTime: $endTime, ')
+          ..write('source: $source, ')
+          ..write('isLocked: $isLocked')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, title, startTime, endTime, source, isLocked);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ScheduleBlockRow &&
+          other.id == this.id &&
+          other.title == this.title &&
+          other.startTime == this.startTime &&
+          other.endTime == this.endTime &&
+          other.source == this.source &&
+          other.isLocked == this.isLocked);
+}
+
+class ScheduleBlocksCompanion extends UpdateCompanion<ScheduleBlockRow> {
+  final Value<int> id;
+  final Value<String> title;
+  final Value<DateTime> startTime;
+  final Value<DateTime> endTime;
+  final Value<ScheduleBlockSource> source;
+  final Value<bool> isLocked;
+  const ScheduleBlocksCompanion({
+    this.id = const Value.absent(),
+    this.title = const Value.absent(),
+    this.startTime = const Value.absent(),
+    this.endTime = const Value.absent(),
+    this.source = const Value.absent(),
+    this.isLocked = const Value.absent(),
+  });
+  ScheduleBlocksCompanion.insert({
+    this.id = const Value.absent(),
+    required String title,
+    required DateTime startTime,
+    required DateTime endTime,
+    this.source = const Value.absent(),
+    this.isLocked = const Value.absent(),
+  })  : title = Value(title),
+        startTime = Value(startTime),
+        endTime = Value(endTime);
+  static Insertable<ScheduleBlockRow> custom({
+    Expression<int>? id,
+    Expression<String>? title,
+    Expression<DateTime>? startTime,
+    Expression<DateTime>? endTime,
+    Expression<int>? source,
+    Expression<bool>? isLocked,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (title != null) 'title': title,
+      if (startTime != null) 'start_time': startTime,
+      if (endTime != null) 'end_time': endTime,
+      if (source != null) 'source': source,
+      if (isLocked != null) 'is_locked': isLocked,
+    });
+  }
+
+  ScheduleBlocksCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? title,
+      Value<DateTime>? startTime,
+      Value<DateTime>? endTime,
+      Value<ScheduleBlockSource>? source,
+      Value<bool>? isLocked}) {
+    return ScheduleBlocksCompanion(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
+      source: source ?? this.source,
+      isLocked: isLocked ?? this.isLocked,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (startTime.present) {
+      map['start_time'] = Variable<DateTime>(startTime.value);
+    }
+    if (endTime.present) {
+      map['end_time'] = Variable<DateTime>(endTime.value);
+    }
+    if (source.present) {
+      map['source'] = Variable<int>(
+          $ScheduleBlocksTable.$convertersource.toSql(source.value));
+    }
+    if (isLocked.present) {
+      map['is_locked'] = Variable<bool>(isLocked.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ScheduleBlocksCompanion(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('startTime: $startTime, ')
+          ..write('endTime: $endTime, ')
+          ..write('source: $source, ')
+          ..write('isLocked: $isLocked')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $TasksTable extends Tasks with TableInfo<$TasksTable, TaskRow> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -22,7 +367,10 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, TaskRow> {
   @override
   late final GeneratedColumn<int> scheduleBlockId = GeneratedColumn<int>(
       'schedule_block_id', aliasedName, true,
-      type: DriftSqlType.int, requiredDuringInsert: false);
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES schedule_blocks (id) ON DELETE SET NULL'));
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
@@ -799,349 +1147,6 @@ class SubtasksCompanion extends UpdateCompanion<SubtaskRow> {
           ..write('plannedSprints: $plannedSprints, ')
           ..write('completedSprints: $completedSprints, ')
           ..write('orderIndex: $orderIndex')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $ScheduleBlocksTable extends ScheduleBlocks
-    with TableInfo<$ScheduleBlocksTable, ScheduleBlockRow> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $ScheduleBlocksTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-      'id', aliasedName, false,
-      hasAutoIncrement: true,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
-  static const VerificationMeta _titleMeta = const VerificationMeta('title');
-  @override
-  late final GeneratedColumn<String> title = GeneratedColumn<String>(
-      'title', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _startTimeMeta =
-      const VerificationMeta('startTime');
-  @override
-  late final GeneratedColumn<DateTime> startTime = GeneratedColumn<DateTime>(
-      'start_time', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
-  static const VerificationMeta _endTimeMeta =
-      const VerificationMeta('endTime');
-  @override
-  late final GeneratedColumn<DateTime> endTime = GeneratedColumn<DateTime>(
-      'end_time', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
-  @override
-  late final GeneratedColumnWithTypeConverter<ScheduleBlockSource, int> source =
-      GeneratedColumn<int>('source', aliasedName, false,
-              type: DriftSqlType.int,
-              requiredDuringInsert: false,
-              defaultValue: const Constant(0))
-          .withConverter<ScheduleBlockSource>(
-              $ScheduleBlocksTable.$convertersource);
-  static const VerificationMeta _isLockedMeta =
-      const VerificationMeta('isLocked');
-  @override
-  late final GeneratedColumn<bool> isLocked = GeneratedColumn<bool>(
-      'is_locked', aliasedName, false,
-      type: DriftSqlType.bool,
-      requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('CHECK ("is_locked" IN (0, 1))'),
-      defaultValue: const Constant(false));
-  @override
-  List<GeneratedColumn> get $columns =>
-      [id, title, startTime, endTime, source, isLocked];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'schedule_blocks';
-  @override
-  VerificationContext validateIntegrity(Insertable<ScheduleBlockRow> instance,
-      {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('title')) {
-      context.handle(
-          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
-    } else if (isInserting) {
-      context.missing(_titleMeta);
-    }
-    if (data.containsKey('start_time')) {
-      context.handle(_startTimeMeta,
-          startTime.isAcceptableOrUnknown(data['start_time']!, _startTimeMeta));
-    } else if (isInserting) {
-      context.missing(_startTimeMeta);
-    }
-    if (data.containsKey('end_time')) {
-      context.handle(_endTimeMeta,
-          endTime.isAcceptableOrUnknown(data['end_time']!, _endTimeMeta));
-    } else if (isInserting) {
-      context.missing(_endTimeMeta);
-    }
-    if (data.containsKey('is_locked')) {
-      context.handle(_isLockedMeta,
-          isLocked.isAcceptableOrUnknown(data['is_locked']!, _isLockedMeta));
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  ScheduleBlockRow map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return ScheduleBlockRow(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
-      title: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
-      startTime: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}start_time'])!,
-      endTime: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}end_time'])!,
-      source: $ScheduleBlocksTable.$convertersource.fromSql(attachedDatabase
-          .typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}source'])!),
-      isLocked: attachedDatabase.typeMapping
-          .read(DriftSqlType.bool, data['${effectivePrefix}is_locked'])!,
-    );
-  }
-
-  @override
-  $ScheduleBlocksTable createAlias(String alias) {
-    return $ScheduleBlocksTable(attachedDatabase, alias);
-  }
-
-  static JsonTypeConverter2<ScheduleBlockSource, int, int> $convertersource =
-      const EnumIndexConverter<ScheduleBlockSource>(ScheduleBlockSource.values);
-}
-
-class ScheduleBlockRow extends DataClass
-    implements Insertable<ScheduleBlockRow> {
-  final int id;
-  final String title;
-  final DateTime startTime;
-  final DateTime endTime;
-  final ScheduleBlockSource source;
-  final bool isLocked;
-  const ScheduleBlockRow(
-      {required this.id,
-      required this.title,
-      required this.startTime,
-      required this.endTime,
-      required this.source,
-      required this.isLocked});
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['title'] = Variable<String>(title);
-    map['start_time'] = Variable<DateTime>(startTime);
-    map['end_time'] = Variable<DateTime>(endTime);
-    {
-      map['source'] =
-          Variable<int>($ScheduleBlocksTable.$convertersource.toSql(source));
-    }
-    map['is_locked'] = Variable<bool>(isLocked);
-    return map;
-  }
-
-  ScheduleBlocksCompanion toCompanion(bool nullToAbsent) {
-    return ScheduleBlocksCompanion(
-      id: Value(id),
-      title: Value(title),
-      startTime: Value(startTime),
-      endTime: Value(endTime),
-      source: Value(source),
-      isLocked: Value(isLocked),
-    );
-  }
-
-  factory ScheduleBlockRow.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return ScheduleBlockRow(
-      id: serializer.fromJson<int>(json['id']),
-      title: serializer.fromJson<String>(json['title']),
-      startTime: serializer.fromJson<DateTime>(json['startTime']),
-      endTime: serializer.fromJson<DateTime>(json['endTime']),
-      source: $ScheduleBlocksTable.$convertersource
-          .fromJson(serializer.fromJson<int>(json['source'])),
-      isLocked: serializer.fromJson<bool>(json['isLocked']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'title': serializer.toJson<String>(title),
-      'startTime': serializer.toJson<DateTime>(startTime),
-      'endTime': serializer.toJson<DateTime>(endTime),
-      'source': serializer
-          .toJson<int>($ScheduleBlocksTable.$convertersource.toJson(source)),
-      'isLocked': serializer.toJson<bool>(isLocked),
-    };
-  }
-
-  ScheduleBlockRow copyWith(
-          {int? id,
-          String? title,
-          DateTime? startTime,
-          DateTime? endTime,
-          ScheduleBlockSource? source,
-          bool? isLocked}) =>
-      ScheduleBlockRow(
-        id: id ?? this.id,
-        title: title ?? this.title,
-        startTime: startTime ?? this.startTime,
-        endTime: endTime ?? this.endTime,
-        source: source ?? this.source,
-        isLocked: isLocked ?? this.isLocked,
-      );
-  ScheduleBlockRow copyWithCompanion(ScheduleBlocksCompanion data) {
-    return ScheduleBlockRow(
-      id: data.id.present ? data.id.value : this.id,
-      title: data.title.present ? data.title.value : this.title,
-      startTime: data.startTime.present ? data.startTime.value : this.startTime,
-      endTime: data.endTime.present ? data.endTime.value : this.endTime,
-      source: data.source.present ? data.source.value : this.source,
-      isLocked: data.isLocked.present ? data.isLocked.value : this.isLocked,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('ScheduleBlockRow(')
-          ..write('id: $id, ')
-          ..write('title: $title, ')
-          ..write('startTime: $startTime, ')
-          ..write('endTime: $endTime, ')
-          ..write('source: $source, ')
-          ..write('isLocked: $isLocked')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(id, title, startTime, endTime, source, isLocked);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is ScheduleBlockRow &&
-          other.id == this.id &&
-          other.title == this.title &&
-          other.startTime == this.startTime &&
-          other.endTime == this.endTime &&
-          other.source == this.source &&
-          other.isLocked == this.isLocked);
-}
-
-class ScheduleBlocksCompanion extends UpdateCompanion<ScheduleBlockRow> {
-  final Value<int> id;
-  final Value<String> title;
-  final Value<DateTime> startTime;
-  final Value<DateTime> endTime;
-  final Value<ScheduleBlockSource> source;
-  final Value<bool> isLocked;
-  const ScheduleBlocksCompanion({
-    this.id = const Value.absent(),
-    this.title = const Value.absent(),
-    this.startTime = const Value.absent(),
-    this.endTime = const Value.absent(),
-    this.source = const Value.absent(),
-    this.isLocked = const Value.absent(),
-  });
-  ScheduleBlocksCompanion.insert({
-    this.id = const Value.absent(),
-    required String title,
-    required DateTime startTime,
-    required DateTime endTime,
-    this.source = const Value.absent(),
-    this.isLocked = const Value.absent(),
-  })  : title = Value(title),
-        startTime = Value(startTime),
-        endTime = Value(endTime);
-  static Insertable<ScheduleBlockRow> custom({
-    Expression<int>? id,
-    Expression<String>? title,
-    Expression<DateTime>? startTime,
-    Expression<DateTime>? endTime,
-    Expression<int>? source,
-    Expression<bool>? isLocked,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (title != null) 'title': title,
-      if (startTime != null) 'start_time': startTime,
-      if (endTime != null) 'end_time': endTime,
-      if (source != null) 'source': source,
-      if (isLocked != null) 'is_locked': isLocked,
-    });
-  }
-
-  ScheduleBlocksCompanion copyWith(
-      {Value<int>? id,
-      Value<String>? title,
-      Value<DateTime>? startTime,
-      Value<DateTime>? endTime,
-      Value<ScheduleBlockSource>? source,
-      Value<bool>? isLocked}) {
-    return ScheduleBlocksCompanion(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      startTime: startTime ?? this.startTime,
-      endTime: endTime ?? this.endTime,
-      source: source ?? this.source,
-      isLocked: isLocked ?? this.isLocked,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (title.present) {
-      map['title'] = Variable<String>(title.value);
-    }
-    if (startTime.present) {
-      map['start_time'] = Variable<DateTime>(startTime.value);
-    }
-    if (endTime.present) {
-      map['end_time'] = Variable<DateTime>(endTime.value);
-    }
-    if (source.present) {
-      map['source'] = Variable<int>(
-          $ScheduleBlocksTable.$convertersource.toSql(source.value));
-    }
-    if (isLocked.present) {
-      map['is_locked'] = Variable<bool>(isLocked.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('ScheduleBlocksCompanion(')
-          ..write('id: $id, ')
-          ..write('title: $title, ')
-          ..write('startTime: $startTime, ')
-          ..write('endTime: $endTime, ')
-          ..write('source: $source, ')
-          ..write('isLocked: $isLocked')
           ..write(')'))
         .toString();
   }
@@ -2408,6 +2413,16 @@ class $AiMessagesTable extends AiMessages
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('CHECK ("is_error" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _isPendingMeta =
+      const VerificationMeta('isPending');
+  @override
+  late final GeneratedColumn<bool> isPending = GeneratedColumn<bool>(
+      'is_pending', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_pending" IN (0, 1))'),
+      defaultValue: const Constant(false));
   static const VerificationMeta _sentAtMeta = const VerificationMeta('sentAt');
   @override
   late final GeneratedColumn<DateTime> sentAt = GeneratedColumn<DateTime>(
@@ -2417,7 +2432,7 @@ class $AiMessagesTable extends AiMessages
       defaultValue: currentDateAndTime);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, conversationId, role, content, isError, sentAt];
+      [id, conversationId, role, content, isError, isPending, sentAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -2449,6 +2464,10 @@ class $AiMessagesTable extends AiMessages
       context.handle(_isErrorMeta,
           isError.isAcceptableOrUnknown(data['is_error']!, _isErrorMeta));
     }
+    if (data.containsKey('is_pending')) {
+      context.handle(_isPendingMeta,
+          isPending.isAcceptableOrUnknown(data['is_pending']!, _isPendingMeta));
+    }
     if (data.containsKey('sent_at')) {
       context.handle(_sentAtMeta,
           sentAt.isAcceptableOrUnknown(data['sent_at']!, _sentAtMeta));
@@ -2472,6 +2491,8 @@ class $AiMessagesTable extends AiMessages
           .read(DriftSqlType.string, data['${effectivePrefix}content'])!,
       isError: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_error'])!,
+      isPending: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_pending'])!,
       sentAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}sent_at'])!,
     );
@@ -2492,6 +2513,7 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
   final AIMessageRole role;
   final String content;
   final bool isError;
+  final bool isPending;
   final DateTime sentAt;
   const AiMessageRow(
       {required this.id,
@@ -2499,6 +2521,7 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
       required this.role,
       required this.content,
       required this.isError,
+      required this.isPending,
       required this.sentAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2510,6 +2533,7 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
     }
     map['content'] = Variable<String>(content);
     map['is_error'] = Variable<bool>(isError);
+    map['is_pending'] = Variable<bool>(isPending);
     map['sent_at'] = Variable<DateTime>(sentAt);
     return map;
   }
@@ -2521,6 +2545,7 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
       role: Value(role),
       content: Value(content),
       isError: Value(isError),
+      isPending: Value(isPending),
       sentAt: Value(sentAt),
     );
   }
@@ -2535,6 +2560,7 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
           .fromJson(serializer.fromJson<int>(json['role'])),
       content: serializer.fromJson<String>(json['content']),
       isError: serializer.fromJson<bool>(json['isError']),
+      isPending: serializer.fromJson<bool>(json['isPending']),
       sentAt: serializer.fromJson<DateTime>(json['sentAt']),
     );
   }
@@ -2548,6 +2574,7 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
           serializer.toJson<int>($AiMessagesTable.$converterrole.toJson(role)),
       'content': serializer.toJson<String>(content),
       'isError': serializer.toJson<bool>(isError),
+      'isPending': serializer.toJson<bool>(isPending),
       'sentAt': serializer.toJson<DateTime>(sentAt),
     };
   }
@@ -2558,6 +2585,7 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
           AIMessageRole? role,
           String? content,
           bool? isError,
+          bool? isPending,
           DateTime? sentAt}) =>
       AiMessageRow(
         id: id ?? this.id,
@@ -2565,6 +2593,7 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
         role: role ?? this.role,
         content: content ?? this.content,
         isError: isError ?? this.isError,
+        isPending: isPending ?? this.isPending,
         sentAt: sentAt ?? this.sentAt,
       );
   AiMessageRow copyWithCompanion(AiMessagesCompanion data) {
@@ -2576,6 +2605,7 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
       role: data.role.present ? data.role.value : this.role,
       content: data.content.present ? data.content.value : this.content,
       isError: data.isError.present ? data.isError.value : this.isError,
+      isPending: data.isPending.present ? data.isPending.value : this.isPending,
       sentAt: data.sentAt.present ? data.sentAt.value : this.sentAt,
     );
   }
@@ -2588,14 +2618,15 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
           ..write('role: $role, ')
           ..write('content: $content, ')
           ..write('isError: $isError, ')
+          ..write('isPending: $isPending, ')
           ..write('sentAt: $sentAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, conversationId, role, content, isError, sentAt);
+  int get hashCode => Object.hash(
+      id, conversationId, role, content, isError, isPending, sentAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2605,6 +2636,7 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
           other.role == this.role &&
           other.content == this.content &&
           other.isError == this.isError &&
+          other.isPending == this.isPending &&
           other.sentAt == this.sentAt);
 }
 
@@ -2614,6 +2646,7 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
   final Value<AIMessageRole> role;
   final Value<String> content;
   final Value<bool> isError;
+  final Value<bool> isPending;
   final Value<DateTime> sentAt;
   const AiMessagesCompanion({
     this.id = const Value.absent(),
@@ -2621,6 +2654,7 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
     this.role = const Value.absent(),
     this.content = const Value.absent(),
     this.isError = const Value.absent(),
+    this.isPending = const Value.absent(),
     this.sentAt = const Value.absent(),
   });
   AiMessagesCompanion.insert({
@@ -2629,6 +2663,7 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
     required AIMessageRole role,
     required String content,
     this.isError = const Value.absent(),
+    this.isPending = const Value.absent(),
     this.sentAt = const Value.absent(),
   })  : conversationId = Value(conversationId),
         role = Value(role),
@@ -2639,6 +2674,7 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
     Expression<int>? role,
     Expression<String>? content,
     Expression<bool>? isError,
+    Expression<bool>? isPending,
     Expression<DateTime>? sentAt,
   }) {
     return RawValuesInsertable({
@@ -2647,6 +2683,7 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
       if (role != null) 'role': role,
       if (content != null) 'content': content,
       if (isError != null) 'is_error': isError,
+      if (isPending != null) 'is_pending': isPending,
       if (sentAt != null) 'sent_at': sentAt,
     });
   }
@@ -2657,6 +2694,7 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
       Value<AIMessageRole>? role,
       Value<String>? content,
       Value<bool>? isError,
+      Value<bool>? isPending,
       Value<DateTime>? sentAt}) {
     return AiMessagesCompanion(
       id: id ?? this.id,
@@ -2664,6 +2702,7 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
       role: role ?? this.role,
       content: content ?? this.content,
       isError: isError ?? this.isError,
+      isPending: isPending ?? this.isPending,
       sentAt: sentAt ?? this.sentAt,
     );
   }
@@ -2687,6 +2726,9 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
     if (isError.present) {
       map['is_error'] = Variable<bool>(isError.value);
     }
+    if (isPending.present) {
+      map['is_pending'] = Variable<bool>(isPending.value);
+    }
     if (sentAt.present) {
       map['sent_at'] = Variable<DateTime>(sentAt.value);
     }
@@ -2701,6 +2743,7 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
           ..write('role: $role, ')
           ..write('content: $content, ')
           ..write('isError: $isError, ')
+          ..write('isPending: $isPending, ')
           ..write('sentAt: $sentAt')
           ..write(')'))
         .toString();
@@ -2710,31 +2753,58 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
+  late final $ScheduleBlocksTable scheduleBlocks = $ScheduleBlocksTable(this);
   late final $TasksTable tasks = $TasksTable(this);
   late final $SubtasksTable subtasks = $SubtasksTable(this);
-  late final $ScheduleBlocksTable scheduleBlocks = $ScheduleBlocksTable(this);
   late final $FocusSessionsTable focusSessions = $FocusSessionsTable(this);
   late final $AiProviderConfigsTable aiProviderConfigs =
       $AiProviderConfigsTable(this);
   late final $AiConversationsTable aiConversations =
       $AiConversationsTable(this);
   late final $AiMessagesTable aiMessages = $AiMessagesTable(this);
+  late final Index tasksScheduleBlockId = Index('tasks_schedule_block_id',
+      'CREATE INDEX tasks_schedule_block_id ON tasks (schedule_block_id)');
+  late final Index subtasksTaskOrder = Index('subtasks_task_order',
+      'CREATE INDEX subtasks_task_order ON subtasks (task_id, order_index)');
+  late final Index scheduleBlocksStartTime = Index('schedule_blocks_start_time',
+      'CREATE INDEX schedule_blocks_start_time ON schedule_blocks (start_time)');
+  late final Index focusSessionsOneActive = Index('focus_sessions_one_active',
+      'CREATE UNIQUE INDEX focus_sessions_one_active ON focus_sessions (completed_at IS NULL) WHERE completed_at IS NULL');
+  late final Index focusSessionsCompletedAt = Index(
+      'focus_sessions_completed_at',
+      'CREATE INDEX focus_sessions_completed_at ON focus_sessions (completed_at)');
+  late final Index aiMessagesConversationOrder = Index(
+      'ai_messages_conversation_order',
+      'CREATE INDEX ai_messages_conversation_order ON ai_messages (conversation_id, sent_at, id)');
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
+        scheduleBlocks,
         tasks,
         subtasks,
-        scheduleBlocks,
         focusSessions,
         aiProviderConfigs,
         aiConversations,
-        aiMessages
+        aiMessages,
+        tasksScheduleBlockId,
+        subtasksTaskOrder,
+        scheduleBlocksStartTime,
+        focusSessionsOneActive,
+        focusSessionsCompletedAt,
+        aiMessagesConversationOrder
       ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
         [
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('schedule_blocks',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('tasks', kind: UpdateKind.update),
+            ],
+          ),
           WritePropagation(
             on: TableUpdateQuery.onTableName('tasks',
                 limitUpdateKind: UpdateKind.delete),
@@ -2767,6 +2837,274 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       );
 }
 
+typedef $$ScheduleBlocksTableCreateCompanionBuilder = ScheduleBlocksCompanion
+    Function({
+  Value<int> id,
+  required String title,
+  required DateTime startTime,
+  required DateTime endTime,
+  Value<ScheduleBlockSource> source,
+  Value<bool> isLocked,
+});
+typedef $$ScheduleBlocksTableUpdateCompanionBuilder = ScheduleBlocksCompanion
+    Function({
+  Value<int> id,
+  Value<String> title,
+  Value<DateTime> startTime,
+  Value<DateTime> endTime,
+  Value<ScheduleBlockSource> source,
+  Value<bool> isLocked,
+});
+
+final class $$ScheduleBlocksTableReferences extends BaseReferences<
+    _$AppDatabase, $ScheduleBlocksTable, ScheduleBlockRow> {
+  $$ScheduleBlocksTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$TasksTable, List<TaskRow>> _tasksRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.tasks,
+          aliasName: $_aliasNameGenerator(
+              db.scheduleBlocks.id, db.tasks.scheduleBlockId));
+
+  $$TasksTableProcessedTableManager get tasksRefs {
+    final manager = $$TasksTableTableManager($_db, $_db.tasks).filter(
+        (f) => f.scheduleBlockId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_tasksRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$ScheduleBlocksTableFilterComposer
+    extends Composer<_$AppDatabase, $ScheduleBlocksTable> {
+  $$ScheduleBlocksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get startTime => $composableBuilder(
+      column: $table.startTime, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get endTime => $composableBuilder(
+      column: $table.endTime, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<ScheduleBlockSource, ScheduleBlockSource, int>
+      get source => $composableBuilder(
+          column: $table.source,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<bool> get isLocked => $composableBuilder(
+      column: $table.isLocked, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> tasksRefs(
+      Expression<bool> Function($$TasksTableFilterComposer f) f) {
+    final $$TasksTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.tasks,
+        getReferencedColumn: (t) => t.scheduleBlockId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TasksTableFilterComposer(
+              $db: $db,
+              $table: $db.tasks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$ScheduleBlocksTableOrderingComposer
+    extends Composer<_$AppDatabase, $ScheduleBlocksTable> {
+  $$ScheduleBlocksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get startTime => $composableBuilder(
+      column: $table.startTime, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get endTime => $composableBuilder(
+      column: $table.endTime, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get source => $composableBuilder(
+      column: $table.source, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isLocked => $composableBuilder(
+      column: $table.isLocked, builder: (column) => ColumnOrderings(column));
+}
+
+class $$ScheduleBlocksTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ScheduleBlocksTable> {
+  $$ScheduleBlocksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get startTime =>
+      $composableBuilder(column: $table.startTime, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get endTime =>
+      $composableBuilder(column: $table.endTime, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<ScheduleBlockSource, int> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<bool> get isLocked =>
+      $composableBuilder(column: $table.isLocked, builder: (column) => column);
+
+  Expression<T> tasksRefs<T extends Object>(
+      Expression<T> Function($$TasksTableAnnotationComposer a) f) {
+    final $$TasksTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.tasks,
+        getReferencedColumn: (t) => t.scheduleBlockId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TasksTableAnnotationComposer(
+              $db: $db,
+              $table: $db.tasks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$ScheduleBlocksTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ScheduleBlocksTable,
+    ScheduleBlockRow,
+    $$ScheduleBlocksTableFilterComposer,
+    $$ScheduleBlocksTableOrderingComposer,
+    $$ScheduleBlocksTableAnnotationComposer,
+    $$ScheduleBlocksTableCreateCompanionBuilder,
+    $$ScheduleBlocksTableUpdateCompanionBuilder,
+    (ScheduleBlockRow, $$ScheduleBlocksTableReferences),
+    ScheduleBlockRow,
+    PrefetchHooks Function({bool tasksRefs})> {
+  $$ScheduleBlocksTableTableManager(
+      _$AppDatabase db, $ScheduleBlocksTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ScheduleBlocksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ScheduleBlocksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ScheduleBlocksTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> title = const Value.absent(),
+            Value<DateTime> startTime = const Value.absent(),
+            Value<DateTime> endTime = const Value.absent(),
+            Value<ScheduleBlockSource> source = const Value.absent(),
+            Value<bool> isLocked = const Value.absent(),
+          }) =>
+              ScheduleBlocksCompanion(
+            id: id,
+            title: title,
+            startTime: startTime,
+            endTime: endTime,
+            source: source,
+            isLocked: isLocked,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String title,
+            required DateTime startTime,
+            required DateTime endTime,
+            Value<ScheduleBlockSource> source = const Value.absent(),
+            Value<bool> isLocked = const Value.absent(),
+          }) =>
+              ScheduleBlocksCompanion.insert(
+            id: id,
+            title: title,
+            startTime: startTime,
+            endTime: endTime,
+            source: source,
+            isLocked: isLocked,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$ScheduleBlocksTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({tasksRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (tasksRefs) db.tasks],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (tasksRefs)
+                    await $_getPrefetchedData<ScheduleBlockRow,
+                            $ScheduleBlocksTable, TaskRow>(
+                        currentTable: table,
+                        referencedTable:
+                            $$ScheduleBlocksTableReferences._tasksRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$ScheduleBlocksTableReferences(db, table, p0)
+                                .tasksRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.scheduleBlockId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$ScheduleBlocksTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $ScheduleBlocksTable,
+    ScheduleBlockRow,
+    $$ScheduleBlocksTableFilterComposer,
+    $$ScheduleBlocksTableOrderingComposer,
+    $$ScheduleBlocksTableAnnotationComposer,
+    $$ScheduleBlocksTableCreateCompanionBuilder,
+    $$ScheduleBlocksTableUpdateCompanionBuilder,
+    (ScheduleBlockRow, $$ScheduleBlocksTableReferences),
+    ScheduleBlockRow,
+    PrefetchHooks Function({bool tasksRefs})>;
 typedef $$TasksTableCreateCompanionBuilder = TasksCompanion Function({
   Value<int> id,
   Value<int?> scheduleBlockId,
@@ -2791,6 +3129,21 @@ typedef $$TasksTableUpdateCompanionBuilder = TasksCompanion Function({
 final class $$TasksTableReferences
     extends BaseReferences<_$AppDatabase, $TasksTable, TaskRow> {
   $$TasksTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ScheduleBlocksTable _scheduleBlockIdTable(_$AppDatabase db) =>
+      db.scheduleBlocks.createAlias(
+          $_aliasNameGenerator(db.tasks.scheduleBlockId, db.scheduleBlocks.id));
+
+  $$ScheduleBlocksTableProcessedTableManager? get scheduleBlockId {
+    final $_column = $_itemColumn<int>('schedule_block_id');
+    if ($_column == null) return null;
+    final manager = $$ScheduleBlocksTableTableManager($_db, $_db.scheduleBlocks)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_scheduleBlockIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
 
   static MultiTypedResultKey<$SubtasksTable, List<SubtaskRow>>
       _subtasksRefsTable(_$AppDatabase db) =>
@@ -2833,10 +3186,6 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
   ColumnFilters<int> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<int> get scheduleBlockId => $composableBuilder(
-      column: $table.scheduleBlockId,
-      builder: (column) => ColumnFilters(column));
-
   ColumnFilters<String> get title => $composableBuilder(
       column: $table.title, builder: (column) => ColumnFilters(column));
 
@@ -2858,6 +3207,26 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  $$ScheduleBlocksTableFilterComposer get scheduleBlockId {
+    final $$ScheduleBlocksTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.scheduleBlockId,
+        referencedTable: $db.scheduleBlocks,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ScheduleBlocksTableFilterComposer(
+              $db: $db,
+              $table: $db.scheduleBlocks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
   Expression<bool> subtasksRefs(
       Expression<bool> Function($$SubtasksTableFilterComposer f) f) {
@@ -2914,10 +3283,6 @@ class $$TasksTableOrderingComposer
   ColumnOrderings<int> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<int> get scheduleBlockId => $composableBuilder(
-      column: $table.scheduleBlockId,
-      builder: (column) => ColumnOrderings(column));
-
   ColumnOrderings<String> get title => $composableBuilder(
       column: $table.title, builder: (column) => ColumnOrderings(column));
 
@@ -2935,6 +3300,26 @@ class $$TasksTableOrderingComposer
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  $$ScheduleBlocksTableOrderingComposer get scheduleBlockId {
+    final $$ScheduleBlocksTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.scheduleBlockId,
+        referencedTable: $db.scheduleBlocks,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ScheduleBlocksTableOrderingComposer(
+              $db: $db,
+              $table: $db.scheduleBlocks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
 class $$TasksTableAnnotationComposer
@@ -2948,9 +3333,6 @@ class $$TasksTableAnnotationComposer
   });
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<int> get scheduleBlockId => $composableBuilder(
-      column: $table.scheduleBlockId, builder: (column) => column);
 
   GeneratedColumn<String> get title =>
       $composableBuilder(column: $table.title, builder: (column) => column);
@@ -2969,6 +3351,26 @@ class $$TasksTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$ScheduleBlocksTableAnnotationComposer get scheduleBlockId {
+    final $$ScheduleBlocksTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.scheduleBlockId,
+        referencedTable: $db.scheduleBlocks,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ScheduleBlocksTableAnnotationComposer(
+              $db: $db,
+              $table: $db.scheduleBlocks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
   Expression<T> subtasksRefs<T extends Object>(
       Expression<T> Function($$SubtasksTableAnnotationComposer a) f) {
@@ -3024,7 +3426,8 @@ class $$TasksTableTableManager extends RootTableManager<
     $$TasksTableUpdateCompanionBuilder,
     (TaskRow, $$TasksTableReferences),
     TaskRow,
-    PrefetchHooks Function({bool subtasksRefs, bool focusSessionsRefs})> {
+    PrefetchHooks Function(
+        {bool scheduleBlockId, bool subtasksRefs, bool focusSessionsRefs})> {
   $$TasksTableTableManager(_$AppDatabase db, $TasksTable table)
       : super(TableManagerState(
           db: db,
@@ -3080,14 +3483,41 @@ class $$TasksTableTableManager extends RootTableManager<
                   (e.readTable(table), $$TasksTableReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: (
-              {subtasksRefs = false, focusSessionsRefs = false}) {
+              {scheduleBlockId = false,
+              subtasksRefs = false,
+              focusSessionsRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
                 if (subtasksRefs) db.subtasks,
                 if (focusSessionsRefs) db.focusSessions
               ],
-              addJoins: null,
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (scheduleBlockId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.scheduleBlockId,
+                    referencedTable:
+                        $$TasksTableReferences._scheduleBlockIdTable(db),
+                    referencedColumn:
+                        $$TasksTableReferences._scheduleBlockIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (subtasksRefs)
@@ -3132,7 +3562,8 @@ typedef $$TasksTableProcessedTableManager = ProcessedTableManager<
     $$TasksTableUpdateCompanionBuilder,
     (TaskRow, $$TasksTableReferences),
     TaskRow,
-    PrefetchHooks Function({bool subtasksRefs, bool focusSessionsRefs})>;
+    PrefetchHooks Function(
+        {bool scheduleBlockId, bool subtasksRefs, bool focusSessionsRefs})>;
 typedef $$SubtasksTableCreateCompanionBuilder = SubtasksCompanion Function({
   Value<int> id,
   required int taskId,
@@ -3505,191 +3936,6 @@ typedef $$SubtasksTableProcessedTableManager = ProcessedTableManager<
     (SubtaskRow, $$SubtasksTableReferences),
     SubtaskRow,
     PrefetchHooks Function({bool taskId, bool focusSessionsRefs})>;
-typedef $$ScheduleBlocksTableCreateCompanionBuilder = ScheduleBlocksCompanion
-    Function({
-  Value<int> id,
-  required String title,
-  required DateTime startTime,
-  required DateTime endTime,
-  Value<ScheduleBlockSource> source,
-  Value<bool> isLocked,
-});
-typedef $$ScheduleBlocksTableUpdateCompanionBuilder = ScheduleBlocksCompanion
-    Function({
-  Value<int> id,
-  Value<String> title,
-  Value<DateTime> startTime,
-  Value<DateTime> endTime,
-  Value<ScheduleBlockSource> source,
-  Value<bool> isLocked,
-});
-
-class $$ScheduleBlocksTableFilterComposer
-    extends Composer<_$AppDatabase, $ScheduleBlocksTable> {
-  $$ScheduleBlocksTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get title => $composableBuilder(
-      column: $table.title, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<DateTime> get startTime => $composableBuilder(
-      column: $table.startTime, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<DateTime> get endTime => $composableBuilder(
-      column: $table.endTime, builder: (column) => ColumnFilters(column));
-
-  ColumnWithTypeConverterFilters<ScheduleBlockSource, ScheduleBlockSource, int>
-      get source => $composableBuilder(
-          column: $table.source,
-          builder: (column) => ColumnWithTypeConverterFilters(column));
-
-  ColumnFilters<bool> get isLocked => $composableBuilder(
-      column: $table.isLocked, builder: (column) => ColumnFilters(column));
-}
-
-class $$ScheduleBlocksTableOrderingComposer
-    extends Composer<_$AppDatabase, $ScheduleBlocksTable> {
-  $$ScheduleBlocksTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get title => $composableBuilder(
-      column: $table.title, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<DateTime> get startTime => $composableBuilder(
-      column: $table.startTime, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<DateTime> get endTime => $composableBuilder(
-      column: $table.endTime, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get source => $composableBuilder(
-      column: $table.source, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<bool> get isLocked => $composableBuilder(
-      column: $table.isLocked, builder: (column) => ColumnOrderings(column));
-}
-
-class $$ScheduleBlocksTableAnnotationComposer
-    extends Composer<_$AppDatabase, $ScheduleBlocksTable> {
-  $$ScheduleBlocksTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get title =>
-      $composableBuilder(column: $table.title, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get startTime =>
-      $composableBuilder(column: $table.startTime, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get endTime =>
-      $composableBuilder(column: $table.endTime, builder: (column) => column);
-
-  GeneratedColumnWithTypeConverter<ScheduleBlockSource, int> get source =>
-      $composableBuilder(column: $table.source, builder: (column) => column);
-
-  GeneratedColumn<bool> get isLocked =>
-      $composableBuilder(column: $table.isLocked, builder: (column) => column);
-}
-
-class $$ScheduleBlocksTableTableManager extends RootTableManager<
-    _$AppDatabase,
-    $ScheduleBlocksTable,
-    ScheduleBlockRow,
-    $$ScheduleBlocksTableFilterComposer,
-    $$ScheduleBlocksTableOrderingComposer,
-    $$ScheduleBlocksTableAnnotationComposer,
-    $$ScheduleBlocksTableCreateCompanionBuilder,
-    $$ScheduleBlocksTableUpdateCompanionBuilder,
-    (
-      ScheduleBlockRow,
-      BaseReferences<_$AppDatabase, $ScheduleBlocksTable, ScheduleBlockRow>
-    ),
-    ScheduleBlockRow,
-    PrefetchHooks Function()> {
-  $$ScheduleBlocksTableTableManager(
-      _$AppDatabase db, $ScheduleBlocksTable table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$ScheduleBlocksTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$ScheduleBlocksTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$ScheduleBlocksTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            Value<String> title = const Value.absent(),
-            Value<DateTime> startTime = const Value.absent(),
-            Value<DateTime> endTime = const Value.absent(),
-            Value<ScheduleBlockSource> source = const Value.absent(),
-            Value<bool> isLocked = const Value.absent(),
-          }) =>
-              ScheduleBlocksCompanion(
-            id: id,
-            title: title,
-            startTime: startTime,
-            endTime: endTime,
-            source: source,
-            isLocked: isLocked,
-          ),
-          createCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            required String title,
-            required DateTime startTime,
-            required DateTime endTime,
-            Value<ScheduleBlockSource> source = const Value.absent(),
-            Value<bool> isLocked = const Value.absent(),
-          }) =>
-              ScheduleBlocksCompanion.insert(
-            id: id,
-            title: title,
-            startTime: startTime,
-            endTime: endTime,
-            source: source,
-            isLocked: isLocked,
-          ),
-          withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
-              .toList(),
-          prefetchHooksCallback: null,
-        ));
-}
-
-typedef $$ScheduleBlocksTableProcessedTableManager = ProcessedTableManager<
-    _$AppDatabase,
-    $ScheduleBlocksTable,
-    ScheduleBlockRow,
-    $$ScheduleBlocksTableFilterComposer,
-    $$ScheduleBlocksTableOrderingComposer,
-    $$ScheduleBlocksTableAnnotationComposer,
-    $$ScheduleBlocksTableCreateCompanionBuilder,
-    $$ScheduleBlocksTableUpdateCompanionBuilder,
-    (
-      ScheduleBlockRow,
-      BaseReferences<_$AppDatabase, $ScheduleBlocksTable, ScheduleBlockRow>
-    ),
-    ScheduleBlockRow,
-    PrefetchHooks Function()>;
 typedef $$FocusSessionsTableCreateCompanionBuilder = FocusSessionsCompanion
     Function({
   Value<int> id,
@@ -4571,6 +4817,7 @@ typedef $$AiMessagesTableCreateCompanionBuilder = AiMessagesCompanion Function({
   required AIMessageRole role,
   required String content,
   Value<bool> isError,
+  Value<bool> isPending,
   Value<DateTime> sentAt,
 });
 typedef $$AiMessagesTableUpdateCompanionBuilder = AiMessagesCompanion Function({
@@ -4579,6 +4826,7 @@ typedef $$AiMessagesTableUpdateCompanionBuilder = AiMessagesCompanion Function({
   Value<AIMessageRole> role,
   Value<String> content,
   Value<bool> isError,
+  Value<bool> isPending,
   Value<DateTime> sentAt,
 });
 
@@ -4626,6 +4874,9 @@ class $$AiMessagesTableFilterComposer
   ColumnFilters<bool> get isError => $composableBuilder(
       column: $table.isError, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<bool> get isPending => $composableBuilder(
+      column: $table.isPending, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<DateTime> get sentAt => $composableBuilder(
       column: $table.sentAt, builder: (column) => ColumnFilters(column));
 
@@ -4671,6 +4922,9 @@ class $$AiMessagesTableOrderingComposer
   ColumnOrderings<bool> get isError => $composableBuilder(
       column: $table.isError, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<bool> get isPending => $composableBuilder(
+      column: $table.isPending, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<DateTime> get sentAt => $composableBuilder(
       column: $table.sentAt, builder: (column) => ColumnOrderings(column));
 
@@ -4715,6 +4969,9 @@ class $$AiMessagesTableAnnotationComposer
 
   GeneratedColumn<bool> get isError =>
       $composableBuilder(column: $table.isError, builder: (column) => column);
+
+  GeneratedColumn<bool> get isPending =>
+      $composableBuilder(column: $table.isPending, builder: (column) => column);
 
   GeneratedColumn<DateTime> get sentAt =>
       $composableBuilder(column: $table.sentAt, builder: (column) => column);
@@ -4768,6 +5025,7 @@ class $$AiMessagesTableTableManager extends RootTableManager<
             Value<AIMessageRole> role = const Value.absent(),
             Value<String> content = const Value.absent(),
             Value<bool> isError = const Value.absent(),
+            Value<bool> isPending = const Value.absent(),
             Value<DateTime> sentAt = const Value.absent(),
           }) =>
               AiMessagesCompanion(
@@ -4776,6 +5034,7 @@ class $$AiMessagesTableTableManager extends RootTableManager<
             role: role,
             content: content,
             isError: isError,
+            isPending: isPending,
             sentAt: sentAt,
           ),
           createCompanionCallback: ({
@@ -4784,6 +5043,7 @@ class $$AiMessagesTableTableManager extends RootTableManager<
             required AIMessageRole role,
             required String content,
             Value<bool> isError = const Value.absent(),
+            Value<bool> isPending = const Value.absent(),
             Value<DateTime> sentAt = const Value.absent(),
           }) =>
               AiMessagesCompanion.insert(
@@ -4792,6 +5052,7 @@ class $$AiMessagesTableTableManager extends RootTableManager<
             role: role,
             content: content,
             isError: isError,
+            isPending: isPending,
             sentAt: sentAt,
           ),
           withReferenceMapper: (p0) => p0
@@ -4854,12 +5115,12 @@ typedef $$AiMessagesTableProcessedTableManager = ProcessedTableManager<
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
+  $$ScheduleBlocksTableTableManager get scheduleBlocks =>
+      $$ScheduleBlocksTableTableManager(_db, _db.scheduleBlocks);
   $$TasksTableTableManager get tasks =>
       $$TasksTableTableManager(_db, _db.tasks);
   $$SubtasksTableTableManager get subtasks =>
       $$SubtasksTableTableManager(_db, _db.subtasks);
-  $$ScheduleBlocksTableTableManager get scheduleBlocks =>
-      $$ScheduleBlocksTableTableManager(_db, _db.scheduleBlocks);
   $$FocusSessionsTableTableManager get focusSessions =>
       $$FocusSessionsTableTableManager(_db, _db.focusSessions);
   $$AiProviderConfigsTableTableManager get aiProviderConfigs =>

@@ -6,6 +6,7 @@ import '../../domain/entities/ai_provider_config.dart';
 import '../../domain/entities/ai_response.dart';
 import '../../domain/repositories/ai_client.dart';
 import '../../domain/repositories/ai_repository.dart';
+import '../../domain/services/chat_history.dart';
 import '../local/drift/app_database.dart';
 import '../local/secure/secure_key_store.dart';
 
@@ -36,15 +37,39 @@ List<OrderClauseGenerator<$AiMessagesTable>> get _messageOrder => [
       (m) => OrderingTerm.asc(m.id),
     ];
 
+/// Shown in place of a reply that was still pending when the app was
+/// closed or killed.
+const interruptedReplyMessage =
+    "No reply \u2014 Flowline was closed before it arrived. Send your message again.";
+
 class AIRepositoryImpl implements AIRepository {
   AIRepositoryImpl(this._db, this._secureStore, this._clients) {
-    _seedFuture = _ensureSeeded();
+    _seedFuture = _initialize();
   }
 
   final AppDatabase _db;
   final SecureKeyStore _secureStore;
   final Map<AIProviderId, AIClient> _clients;
   late final Future<void> _seedFuture;
+
+  /// Runs once per process, before any read or write.
+  Future<void> _initialize() async {
+    await _ensureSeeded();
+    await _failInterruptedReplies();
+  }
+
+  /// A reply still pending when the repository starts was interrupted:
+  /// the process died (or was killed in the background) mid-request, so it
+  /// will never arrive. Turn it into a visible error instead of leaving the
+  /// prompt unanswered forever (B23).
+  Future<void> _failInterruptedReplies() {
+    return (_db.update(_db.aiMessages)..where((m) => m.isPending.equals(true)))
+        .write(const AiMessagesCompanion(
+      isPending: Value(false),
+      isError: Value(true),
+      content: Value(interruptedReplyMessage),
+    ));
+  }
 
   Future<void> _ensureSeeded() async {
     final existing = await _db.select(_db.aiProviderConfigs).get();
@@ -132,18 +157,20 @@ class AIRepositoryImpl implements AIRepository {
   }
 
   @override
-  Stream<List<AIConversation>> watchConversations() {
+  Stream<List<AIConversation>> watchConversations() async* {
+    await _seedFuture;
     final query = _db.select(_db.aiConversations)
       ..orderBy([(c) => OrderingTerm.desc(c.createdAt)]);
-    return query.watch().map((rows) => rows.map(_mapConversation).toList());
+    yield* query.watch().map((rows) => rows.map(_mapConversation).toList());
   }
 
   @override
-  Stream<List<AIMessage>> watchMessages(int conversationId) {
+  Stream<List<AIMessage>> watchMessages(int conversationId) async* {
+    await _seedFuture;
     final query = _db.select(_db.aiMessages)
       ..where((m) => m.conversationId.equals(conversationId))
       ..orderBy(_messageOrder);
-    return query.watch().map((rows) => rows.map(_mapMessage).toList());
+    yield* query.watch().map((rows) => rows.map(_mapMessage).toList());
   }
 
   @override
@@ -166,21 +193,51 @@ class AIRepositoryImpl implements AIRepository {
   @override
   Future<void> sendMessage(
       {required int conversationId, required String prompt}) async {
+    await _seedFuture;
     // History BEFORE inserting the new user message, so it isn't
-    // duplicated when the client builds its request.
+    // duplicated when the client builds its request; only completed
+    // exchanges, never error bubbles (B31).
     final historyRows = await (_db.select(_db.aiMessages)
           ..where((m) => m.conversationId.equals(conversationId))
           ..orderBy(_messageOrder))
         .get();
-    final history = historyRows.map(_mapMessage).toList();
+    final history = buildChatHistory(historyRows.map(_mapMessage).toList());
 
-    await _db.into(_db.aiMessages).insert(
-          AiMessagesCompanion.insert(
-              conversationId: conversationId,
-              role: AIMessageRole.user,
-              content: prompt),
-        );
+    // The prompt and a pending placeholder for its reply are written
+    // together, before the network call: if the process dies mid-request,
+    // the next launch turns the placeholder into an error (B23).
+    final replyId = await _db.transaction(() async {
+      await _db.into(_db.aiMessages).insert(AiMessagesCompanion.insert(
+            conversationId: conversationId,
+            role: AIMessageRole.user,
+            content: prompt,
+          ));
+      return _db.into(_db.aiMessages).insert(AiMessagesCompanion.insert(
+            conversationId: conversationId,
+            role: AIMessageRole.assistant,
+            content: '',
+            isPending: const Value(true),
+          ));
+    });
 
+    final AIResponse response;
+    try {
+      response = await _requestReply(conversationId, prompt, history);
+    } catch (_) {
+      // Clients turn every expected failure into AIResponse.error; this is
+      // the safety net that keeps the placeholder from staying pending.
+      await _completeReply(replyId,
+          const AIResponse.error('Something went wrong getting a reply.'));
+      rethrow;
+    }
+    await _completeReply(replyId, response);
+  }
+
+  Future<AIResponse> _requestReply(
+    int conversationId,
+    String prompt,
+    List<AIMessage> history,
+  ) async {
     final conversationRow = await (_db.select(_db.aiConversations)
           ..where((c) => c.id.equals(conversationId)))
         .getSingle();
@@ -192,40 +249,25 @@ class AIRepositoryImpl implements AIRepository {
 
     final apiKey = await _secureStore.getKey(providerId) ?? '';
     if (config.requiresApiKey && apiKey.isEmpty) {
-      await _insertAssistantReply(
-        conversationId,
-        content:
-            'No API key saved for ${config.displayName} yet \u2014 add one in Settings.',
-        isError: true,
-      );
-      return;
+      return AIResponse.error(
+          'No API key saved for ${config.displayName} yet \u2014 add one in Settings.');
     }
 
-    final client = _clients[providerId]!;
-    final response = await client.sendMessage(
+    return _clients[providerId]!.sendMessage(
       config: config,
       apiKey: apiKey,
       prompt: prompt,
       history: history,
     );
-
-    await _insertAssistantReply(conversationId,
-        content: response.content, isError: response.isError);
   }
 
-  Future<void> _insertAssistantReply(
-    int conversationId, {
-    required String content,
-    required bool isError,
-  }) {
-    return _db.into(_db.aiMessages).insert(
-          AiMessagesCompanion.insert(
-            conversationId: conversationId,
-            role: AIMessageRole.assistant,
-            content: content,
-            isError: Value(isError),
-          ),
-        );
+  Future<void> _completeReply(int replyId, AIResponse response) {
+    return (_db.update(_db.aiMessages)..where((m) => m.id.equals(replyId)))
+        .write(AiMessagesCompanion(
+      content: Value(response.content),
+      isError: Value(response.isError),
+      isPending: const Value(false),
+    ));
   }
 
   @override
@@ -275,6 +317,7 @@ class AIRepositoryImpl implements AIRepository {
       role: row.role,
       content: row.content,
       isError: row.isError,
+      isPending: row.isPending,
       sentAt: row.sentAt,
     );
   }

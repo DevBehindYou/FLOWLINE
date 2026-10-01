@@ -4,6 +4,14 @@ import '../../../../domain/entities/focus_session.dart';
 import 'subtasks_table.dart';
 import 'tasks_table.dart';
 
+// "At most one active session" (rule R3, B8) enforced by SQLite, not only
+// by FocusSessionRepositoryImpl.startSession: every active row has
+// `completed_at IS NULL` = 1, so a unique index over that expression,
+// limited to active rows, admits exactly one. (A plain unique index on
+// completed_at wouldn't work: SQL treats NULLs as distinct.)
+@TableIndex.sql('CREATE UNIQUE INDEX focus_sessions_one_active '
+    'ON focus_sessions (completed_at IS NULL) WHERE completed_at IS NULL')
+@TableIndex(name: 'focus_sessions_completed_at', columns: {#completedAt})
 @DataClassName('FocusSessionRow')
 class FocusSessions extends Table {
   IntColumn get id => integer().autoIncrement()();

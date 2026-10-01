@@ -7,6 +7,7 @@ class AIMessage {
     required this.role,
     required this.content,
     this.isError = false,
+    this.isPending = false,
     required this.sentAt,
   });
 
@@ -20,6 +21,10 @@ class AIMessage {
   /// bubble renders these distinctly rather than pretending they're a
   /// normal assistant response.
   final bool isError;
+
+  /// An assistant reply that has been requested but hasn't arrived yet.
+  /// Rendered as a placeholder; never sent to a vendor as history.
+  final bool isPending;
 
   final DateTime sentAt;
 }
