@@ -2,6 +2,7 @@ import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' show Ref;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/notifications/notification_service.dart';
 import '../../../core/providers.dart';
 import '../../../domain/entities/focus_session.dart';
 
@@ -80,8 +81,7 @@ class FocusTimerViewModel extends _$FocusTimerViewModel {
 
   Future<void> pause(FocusSession session) async {
     await ref.read(focusSessionRepositoryProvider).pauseSession(session.id);
-    final notifier = await ref.read(notificationServiceProvider.future);
-    await notifier.cancelSessionNotification();
+    await _notify((service) => service.cancelSessionNotification());
   }
 
   Future<void> resume(FocusSession session) async {
@@ -108,9 +108,9 @@ class FocusTimerViewModel extends _$FocusTimerViewModel {
     // than once around zero): crediting again would double-count sprints.
     if (!completedNow) return;
 
-    final notifier = await ref.read(notificationServiceProvider.future);
-    await notifier.cancelSessionNotification();
-
+    // Data first: completeSession already returned true, so this is the
+    // only chance to credit the sprint. A notification failure below must
+    // not be able to skip it.
     final shouldCountSprint = !endedEarly &&
         session.sessionType == FocusSessionType.focus &&
         session.subtaskId != null;
@@ -119,6 +119,8 @@ class FocusTimerViewModel extends _$FocusTimerViewModel {
           .read(taskRepositoryProvider)
           .incrementSubtaskCompletedSprints(session.subtaskId!);
     }
+
+    await _notify((service) => service.cancelSessionNotification());
   }
 
   /// Completes the active session if its time already ran out while
@@ -133,17 +135,33 @@ class FocusTimerViewModel extends _$FocusTimerViewModel {
     await complete(session, endedEarly: false);
   }
 
-  Future<void> _scheduleNotification(
-      FocusSessionType type, int inSeconds) async {
-    final notifier = await ref.read(notificationServiceProvider.future);
-    await notifier.scheduleSessionComplete(
-      fireAt: clock.now().add(Duration(seconds: inSeconds)),
-      title: switch (type) {
-        FocusSessionType.focus => 'Focus session complete',
-        FocusSessionType.shortBreak => 'Short break over',
-        FocusSessionType.longBreak => 'Long break over',
-      },
-      body: 'Tap to see what\'s next.',
+  Future<void> _scheduleNotification(FocusSessionType type, int inSeconds) {
+    return _notify(
+      (service) => service.scheduleSessionComplete(
+        fireAt: clock.now().add(Duration(seconds: inSeconds)),
+        title: switch (type) {
+          FocusSessionType.focus => 'Focus session complete',
+          FocusSessionType.shortBreak => 'Short break over',
+          FocusSessionType.longBreak => 'Long break over',
+        },
+        body: 'Tap to see what\'s next.',
+      ),
     );
+  }
+
+  /// Notifications are a convenience on top of the timer, never part of
+  /// its correctness: the session state is already persisted by the time
+  /// this runs. A failing plugin (permission revoked, unknown timezone,
+  /// OEM quirk) must not turn a successful start/pause/complete into an
+  /// error, so failures are swallowed here.
+  Future<void> _notify(
+    Future<void> Function(NotificationService service) action,
+  ) async {
+    try {
+      final service = await ref.read(notificationServiceProvider.future);
+      await action(service);
+    } catch (_) {
+      // Deliberately ignored; see above.
+    }
   }
 }

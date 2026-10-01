@@ -21,10 +21,7 @@ class NotificationService {
     if (_initialized) return;
 
     tz_data.initializeTimeZones();
-    // v5's getLocalTimezone() returns a TimezoneInfo, not a bare String
-    // (pinned constraint was ^1.1.0, which no longer resolves on pub.dev).
-    final timezoneInfo = await FlutterTimezone.getLocalTimezone();
-    tz.setLocalLocation(tz.getLocation(timezoneInfo.identifier));
+    tz.setLocalLocation(await _resolveLocalLocation());
 
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -37,6 +34,20 @@ class NotificationService {
         ?.requestNotificationsPermission();
 
     _initialized = true;
+  }
+
+  /// The device's IANA zone, or UTC when the platform reports one the
+  /// bundled tz database doesn't know (old OEM aliases, a failing
+  /// plugin). Scheduling still works under UTC because `fireAt` is an
+  /// absolute instant; only the zone label differs.
+  static Future<tz.Location> _resolveLocalLocation() async {
+    try {
+      // v5's getLocalTimezone() returns a TimezoneInfo, not a bare String.
+      final timezoneInfo = await FlutterTimezone.getLocalTimezone();
+      return tz.getLocation(timezoneInfo.identifier);
+    } catch (_) {
+      return tz.UTC;
+    }
   }
 
   Future<void> scheduleSessionComplete({

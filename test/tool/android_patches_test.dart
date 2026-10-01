@@ -102,9 +102,35 @@ void main() {
       expect(applicationBody, contains('ScheduledNotificationBootReceiver"'));
     });
 
+    test('keeps the receivers aligned with </application>', () {
+      expect(patched, contains('\n        <receiver\n'));
+      expect(patched, contains('\n    </application>'));
+    });
+
+    test('points both backup attributes at the bundled rule files', () {
+      final applicationTag = patched.substring(
+          patched.indexOf('<application'), patched.indexOf('<activity'));
+      expect(applicationTag,
+          contains('android:fullBackupContent="@xml/flowline_backup_rules"'));
+      expect(
+          applicationTag,
+          contains('android:dataExtractionRules='
+              '"@xml/flowline_data_extraction_rules"'));
+      for (final name in [
+        'flowline_backup_rules',
+        'flowline_data_extraction_rules'
+      ]) {
+        expect(
+          backupResourceFiles.keys,
+          contains('app/src/main/res/xml/$name.xml'),
+        );
+      }
+    });
+
     test('is idempotent', () {
       expect(patchManifest(patched), patched);
       expect(_count(patched, 'android.permission.INTERNET'), 1);
+      expect(_count(patched, 'android:fullBackupContent'), 1);
     });
 
     test('fails loudly when the template has no <application> tag', () {
@@ -136,11 +162,56 @@ void main() {
       expect(patchAppGradleKts(patched), patched);
     });
 
+    test(
+        'signs release builds with the release config when key.properties '
+        'exists, falling back to the debug key otherwise', () {
+      expect(patched, isNot(contains(templateReleaseSigning)));
+      expect(patched, contains(flowlineReleaseSigning));
+      expect(
+        patched.indexOf('val keystorePropertiesFile'),
+        lessThan(patched.indexOf('android {')),
+        reason: 'the properties must be declared before android {} uses them',
+      );
+      final signingConfigs = patched.indexOf('signingConfigs {');
+      expect(signingConfigs, greaterThan(patched.indexOf('android {')));
+      expect(signingConfigs, lessThan(patched.indexOf('buildTypes {')));
+      expect(patched, contains('create("release")'));
+    });
+
+    test('fails loudly when the release signingConfig line is missing', () {
+      expect(
+        () => patchAppGradleKts(_gradleTemplate.replaceFirst(
+            templateReleaseSigning, 'signingConfig = null')),
+        throwsA(isA<AndroidPatchException>()),
+      );
+    });
+
     test('fails loudly when compileOptions is missing', () {
       expect(
         () => patchAppGradleKts('android {\n}\n'),
         throwsA(isA<AndroidPatchException>()),
       );
+    });
+  });
+
+  group('backup rules', () {
+    for (final entry in backupResourceFiles.entries) {
+      test('${entry.key} excludes every secure-storage preferences file', () {
+        for (final prefs in secureStoragePrefsFiles) {
+          expect(
+            entry.value,
+            contains('<exclude domain="sharedpref" path="$prefs"/>'),
+          );
+        }
+        // Include rules would turn the backup into an allow-list and drop
+        // the database; only excludes are allowed here.
+        expect(entry.value, isNot(contains('<include')));
+      });
+    }
+
+    test('Android 12+ rules cover both cloud backup and device transfer', () {
+      expect(dataExtractionRulesXml, contains('<cloud-backup>'));
+      expect(dataExtractionRulesXml, contains('<device-transfer>'));
     });
   });
 }

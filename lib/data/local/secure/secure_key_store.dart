@@ -9,13 +9,27 @@ class SecureKeyStore {
   const SecureKeyStore();
 
   static const _storage = FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+      // If the stored values can't be decrypted (the Keystore key is gone,
+      // e.g. data restored onto a new phone), wipe them instead of failing
+      // every read: the user re-enters a key, which beats a broken screen.
+      resetOnError: true,
+    ),
   );
 
   String _storageKey(AIProviderId id) => 'flowline_ai_api_key_${id.name}';
 
-  Future<String?> getKey(AIProviderId id) =>
-      _storage.read(key: _storageKey(id));
+  /// Null when no key is saved, and also when the stored one can't be
+  /// read: an unreadable key is treated as "not connected" so the UI can
+  /// ask for it again rather than surfacing a platform exception.
+  Future<String?> getKey(AIProviderId id) async {
+    try {
+      return await _storage.read(key: _storageKey(id));
+    } catch (_) {
+      return null;
+    }
+  }
 
   Future<void> setKey(AIProviderId id, String value) =>
       _storage.write(key: _storageKey(id), value: value);

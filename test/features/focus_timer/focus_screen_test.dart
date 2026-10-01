@@ -40,8 +40,7 @@ void main() {
 
   // Inside testWidgets, clock.now() is FakeAsync's clock, so an anchor
   // taken from it gives exact, deterministic remaining times.
-  Future<int> insertRunning(
-      {required int elapsedSec, int plannedSec = 1500}) {
+  Future<int> insertRunning({required int elapsedSec, int plannedSec = 1500}) {
     final anchor = clock.now().subtract(Duration(seconds: elapsedSec));
     return db.into(db.focusSessions).insert(
           FocusSessionsCompanion.insert(

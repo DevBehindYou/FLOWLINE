@@ -20,29 +20,57 @@ class ConflictResolutionSuggestion {
 /// has something reliable to work with across four very different vendors
 /// (including a user's own local Ollama model, whose instruction-following
 /// quality is unpredictable).
+///
+/// [dayBlocks] is every block already on that day, not just [conflicts]:
+/// a suggestion is validated against the whole day before it can be
+/// applied, so a model that only saw the clashing blocks kept proposing
+/// slots that hit one it was never told about. Every time carries an
+/// explicit UTC offset so a reply in UTC ("Z") converts correctly instead
+/// of being misread as local time.
 String buildConflictResolutionPrompt({
   required String pendingTitle,
   required DateTime pendingStart,
   required DateTime pendingEnd,
   required List<ScheduleBlock> conflicts,
+  List<ScheduleBlock> dayBlocks = const [],
 }) {
   final duration = pendingEnd.difference(pendingStart).inMinutes;
-  final conflictLines = conflicts
-      .map((c) =>
-          '- "${c.title}" from ${c.startTime.toIso8601String()} to ${c.endTime.toIso8601String()}')
-      .join('\n');
+  String line(ScheduleBlock b) => '- "${b.title}" from '
+      '${formatWithOffset(b.startTime)} to ${formatWithOffset(b.endTime)}'
+      '${b.isLocked ? ' (fixed, cannot move)' : ''}';
+
+  final conflictIds = {for (final c in conflicts) c.id};
+  final otherBlocks =
+      dayBlocks.where((b) => !conflictIds.contains(b.id)).toList();
+  final busySection = otherBlocks.isEmpty
+      ? ''
+      : '\nThe rest of that day is also already booked:\n'
+          '${otherBlocks.map(line).join('\n')}\n';
 
   return '''
-I want to schedule a block titled "$pendingTitle" from ${pendingStart.toIso8601String()} to ${pendingEnd.toIso8601String()} ($duration minutes), but it overlaps with:
-$conflictLines
+I want to schedule a block titled "$pendingTitle" from ${formatWithOffset(pendingStart)} to ${formatWithOffset(pendingEnd)} ($duration minutes), but it overlaps with:
+${conflicts.map(line).join('\n')}
+$busySection
+Suggest a new time for "$pendingTitle" later the same day that does not overlap ANY block listed above and keeps the same $duration-minute duration.
 
-Suggest a new time for "$pendingTitle" later the same day that does not overlap any of the above and keeps the same $duration-minute duration.
-
-Respond with EXACTLY these three lines and nothing else — no greeting, no explanation outside the REASON line:
-SUGGESTED_START=<ISO8601 datetime>
-SUGGESTED_END=<ISO8601 datetime>
+Respond with EXACTLY these three lines and nothing else — no greeting, no explanation outside the REASON line. Use the same ISO 8601 format and UTC offset as the times above:
+SUGGESTED_START=<ISO 8601 datetime with offset>
+SUGGESTED_END=<ISO 8601 datetime with offset>
 REASON=<one short sentence>
 ''';
+}
+
+/// ISO 8601 with the local UTC offset, e.g. `2026-10-01T14:00:00+05:30`.
+/// Dart's own `toIso8601String()` omits the offset for local times, which
+/// leaves a model free to guess (often wrongly) that they're UTC.
+String formatWithOffset(DateTime local) {
+  String two(int n) => n.toString().padLeft(2, '0');
+  final offset = local.timeZoneOffset;
+  final sign = offset.isNegative ? '-' : '+';
+  final minutes = offset.inMinutes.abs();
+  return '${local.year.toString().padLeft(4, '0')}-${two(local.month)}-'
+      '${two(local.day)}T${two(local.hour)}:${two(local.minute)}:'
+      '${two(local.second)}$sign${two(minutes ~/ 60)}:${two(minutes % 60)}';
 }
 
 /// Returns null (rather than throwing) on anything unparseable — a model
@@ -57,8 +85,10 @@ ConflictResolutionSuggestion? parseConflictSuggestion(String aiText) {
   if (startMatch == null || endMatch == null) return null;
 
   try {
-    // A reply with "Z" or an offset parses as UTC; the rest of the app
-    // (display, same-day checks) works in local time.
+    // A reply with "Z" or an offset parses as that instant in UTC and is
+    // converted to local time; the prompt sends explicit offsets, so that
+    // conversion is correct rather than a guess. A reply with no offset is
+    // read as local clock time.
     final start = DateTime.parse(startMatch.group(1)!).toLocal();
     final end = DateTime.parse(endMatch.group(1)!).toLocal();
     if (!end.isAfter(start)) return null;

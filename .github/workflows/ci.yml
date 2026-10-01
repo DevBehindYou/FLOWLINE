@@ -141,8 +141,65 @@ jobs:
         timeout-minutes: 10
         run: dart run build_runner build --delete-conflicting-outputs
 
+      # One stable release key (repository secrets) so every CI build can
+      # be installed over the previous one. Without it each fresh runner
+      # signs with a new throwaway debug key, and Android only accepts the
+      # update after an uninstall, which deletes the app's local data.
+      # Without the secrets (forks, PRs from forks, before setup) a
+      # throwaway key is generated instead, so the release signing path is
+      # still exercised on every run, with a warning that the APK can't
+      # update an existing install.
+      - name: Configure release signing
+        id: signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${KEYSTORE_BASE64}" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Release signing not configured::ANDROID_KEYSTORE_BASE64 is not set, so this APK is signed with a throwaway key and cannot be installed over another build. See README > Release signing."
+            KEYSTORE_PASSWORD="$(openssl rand -hex 16)"
+            KEY_PASSWORD="${KEYSTORE_PASSWORD}"
+            KEY_ALIAS="ephemeral"
+            keytool -genkeypair -keystore android/app/flowline-release.jks \
+              -storetype PKCS12 -alias "${KEY_ALIAS}" -keyalg RSA -keysize 2048 \
+              -validity 30 -storepass "${KEYSTORE_PASSWORD}" -keypass "${KEY_PASSWORD}" \
+              -dname "CN=Flowline CI throwaway" > /dev/null
+          else
+            printf '%s' "${KEYSTORE_BASE64}" | base64 --decode > android/app/flowline-release.jks
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+          {
+            echo "storeFile=flowline-release.jks"
+            echo "storePassword=${KEYSTORE_PASSWORD}"
+            echo "keyAlias=${KEY_ALIAS}"
+            echo "keyPassword=${KEY_PASSWORD}"
+          } > android/key.properties
+
+      # The run number makes versionCode increase on every build, which
+      # Android requires for an update to install.
       - name: flutter build apk --release --split-per-abi
-        run: flutter build apk --release --split-per-abi
+        run: flutter build apk --release --split-per-abi --build-number=${{ github.run_number }}
+
+      - name: Verify APK signature and version
+        id: verify
+        run: |
+          set -euo pipefail
+          tools="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)"
+          expected="$(tr -d '[:space:]' < tool/ci/release_cert_sha256.txt)"
+          for apk in build/app/outputs/flutter-apk/app-*-release.apk; do
+            actual="$("${tools}apksigner" verify --print-certs "$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
+            version="$("${tools}aapt2" dump badging "$apk" | sed -n "s/.*versionCode='\([0-9]*\)'.*/\1/p")"
+            echo "$(basename "$apk"): versionCode=${version} cert=${actual}"
+            if [ "${{ steps.signing.outputs.configured }}" = "true" ] && [ "$actual" != "$expected" ]; then
+              echo "::error title=Wrong signing key::$(basename "$apk") is signed with ${actual}, expected ${expected} (tool/ci/release_cert_sha256.txt)."
+              exit 1
+            fi
+          done
+          echo "cert=${actual}" >> "$GITHUB_OUTPUT"
 
       - name: Rename APKs with commit SHA
         run: |
@@ -169,7 +226,12 @@ jobs:
             echo "## Flowline Android build"
             echo "- Commit: \`${GITHUB_SHA}\`"
             echo "- Flutter: ${FLUTTER_VERSION}"
-            echo "- Build type: release (signed with the template's debug key — sideload only, not Play Store)"
+            if [ "${{ steps.signing.outputs.configured }}" = "true" ]; then
+              echo "- Signing: release key \`${{ steps.verify.outputs.cert }}\` (installs over earlier builds)"
+            else
+              echo "- Signing: :warning: **throwaway key** \`${{ steps.verify.outputs.cert }}\` — this APK will not install over another build. Add the ANDROID_* secrets (README > Release signing)."
+            fi
+            echo "- Build number (versionCode base): ${{ github.run_number }}"
             echo "- APKs:"
             ls build/app/outputs/flutter-apk/flowline-*.apk 2>/dev/null | sed 's#.*/#  - #' || echo "  - none (build failed)"
           } >> "$GITHUB_STEP_SUMMARY"

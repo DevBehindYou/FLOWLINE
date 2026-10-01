@@ -16,6 +16,12 @@ void main(List<String> args) {
   try {
     _patchFile('$androidDir/app/src/main/AndroidManifest.xml', patchManifest);
     _patchFile('$androidDir/app/build.gradle.kts', patchAppGradleKts);
+    backupResourceFiles.forEach((relativePath, content) {
+      final file = File('$androidDir/$relativePath');
+      file.parent.createSync(recursive: true);
+      file.writeAsStringSync(content);
+      stdout.writeln('Wrote:     ${file.path}');
+    });
   } on AndroidPatchException catch (e) {
     stderr.writeln(e);
     exit(1);

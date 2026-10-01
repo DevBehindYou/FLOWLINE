@@ -121,4 +121,34 @@ void main() {
     expect(subtask.completedSprints, 1);
     expect(notifications.cancels, 1);
   });
+
+  test('a failing notification service never costs the sprint credit (B4)',
+      () async {
+    // Notification init can fail on a real device (unknown timezone id,
+    // revoked permission). The session is completed in the database
+    // before notifications run, so the credit must not depend on them.
+    final failing = ProviderContainer(overrides: [
+      appDatabaseProvider.overrideWith((ref) => db),
+      notificationServiceProvider
+          .overrideWith((ref) async => throw StateError('plugin failed')),
+    ]);
+    addTearDown(failing.dispose);
+
+    final tasks = TaskRepositoryImpl(db);
+    final taskId =
+        await tasks.createTask(title: 'Write', priority: TaskPriority.high);
+    final subtaskId = await tasks.createSubtask(taskId: taskId, title: 'Draft');
+    final id = await insertSession(
+        anchor: DateTime(2026, 1, 1, 9), subtaskId: subtaskId);
+
+    await failing
+        .read(focusTimerViewModelProvider.notifier)
+        .completeIfElapsed();
+
+    expect((await sessionRow(id)).completedAt, isNotNull);
+    final subtask = await (db.select(db.subtasks)
+          ..where((s) => s.id.equals(subtaskId)))
+        .getSingle();
+    expect(subtask.completedSprints, 1);
+  });
 }

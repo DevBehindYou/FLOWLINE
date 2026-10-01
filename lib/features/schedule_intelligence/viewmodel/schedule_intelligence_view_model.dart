@@ -43,12 +43,23 @@ class ScheduleIntelligenceViewModel extends _$ScheduleIntelligenceViewModel {
     required DateTime pendingStart,
     required DateTime pendingEnd,
     required List<ScheduleBlock> conflicts,
-  }) {
+    int? excludeBlockId,
+  }) async {
+    // The whole day, minus the block being edited (its old slot is about
+    // to be freed), so the model sees everything the suggestion will be
+    // validated against.
+    final dayBlocks = (await ref
+            .read(scheduleRepositoryProvider)
+            .watchBlocksForDay(pendingStart)
+            .first)
+        .where((b) => b.id != excludeBlockId)
+        .toList();
     final prompt = buildConflictResolutionPrompt(
       pendingTitle: pendingTitle,
       pendingStart: pendingStart,
       pendingEnd: pendingEnd,
       conflicts: conflicts,
+      dayBlocks: dayBlocks,
     );
     return ref.read(aiRepositoryProvider).completeOnce(prompt: prompt);
   }

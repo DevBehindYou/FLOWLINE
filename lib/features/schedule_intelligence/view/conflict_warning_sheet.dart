@@ -71,6 +71,7 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
       pendingStart: widget.pendingStart,
       pendingEnd: widget.pendingEnd,
       conflicts: widget.conflicts,
+      excludeBlockId: widget.existingBlock?.id,
     );
 
     if (!mounted) return;
