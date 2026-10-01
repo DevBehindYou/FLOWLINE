@@ -958,4 +958,63 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reorderSubtask => 'Drag to reorder';
+
+  @override
+  String get aiProviderGeneric => 'the AI provider';
+
+  @override
+  String aiErrorInvalidKey(String vendor) {
+    return 'That API key was rejected by $vendor.';
+  }
+
+  @override
+  String aiErrorRateLimited(String vendor) {
+    return '$vendor rate-limited this request — try again shortly.';
+  }
+
+  @override
+  String aiErrorServer(String vendor, int status) {
+    return '$vendor returned an error (HTTP $status).';
+  }
+
+  @override
+  String aiErrorUnreachable(String vendor) {
+    return 'Couldn\'t reach $vendor — check your connection.';
+  }
+
+  @override
+  String aiErrorOllamaUnreachable(String url) {
+    return 'Couldn\'t reach Ollama at $url. If it\'s running on a computer, use that computer\'s LAN IP here, not \"localhost\" — on a phone, localhost means the phone itself.';
+  }
+
+  @override
+  String aiErrorEmpty(String vendor) {
+    return '$vendor returned an empty response.';
+  }
+
+  @override
+  String aiErrorModelNotFound(String model) {
+    return 'Ollama responded, but that model isn\'t pulled yet. Run: ollama pull $model';
+  }
+
+  @override
+  String aiErrorMissingKey(String vendor) {
+    return 'No API key saved for $vendor yet — add one in Settings.';
+  }
+
+  @override
+  String get aiErrorNoProvider =>
+      'No AI provider is active — connect one in Settings.';
+
+  @override
+  String get aiStopped => 'Stopped.';
+
+  @override
+  String get aiErrorInterrupted =>
+      'No reply — Flowline was closed before it arrived. Send your message again.';
+
+  @override
+  String aiErrorUnknown(String vendor) {
+    return 'Something went wrong talking to $vendor. Please try again.';
+  }
 }

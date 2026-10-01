@@ -1,7 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/providers.dart';
-import '../../../domain/entities/ai_response.dart';
+import '../../../domain/ai/ai_contract.dart';
 import '../../../domain/entities/schedule_block.dart';
 import '../../../domain/services/conflict_resolution_ai.dart';
 import '../../../domain/services/schedule_conflict_checker.dart';
@@ -40,7 +40,7 @@ class ScheduleIntelligenceViewModel extends _$ScheduleIntelligenceViewModel {
     );
   }
 
-  Future<AIResponse> suggestResolution({
+  Future<AICompletion> suggestResolution({
     required String pendingTitle,
     required DateTime pendingStart,
     required DateTime pendingEnd,

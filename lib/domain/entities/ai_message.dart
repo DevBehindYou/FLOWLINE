@@ -1,3 +1,5 @@
+import '../ai/ai_contract.dart';
+
 enum AIMessageRole { user, assistant }
 
 class AIMessage {
@@ -9,6 +11,7 @@ class AIMessage {
     this.isError = false,
     this.isPending = false,
     required this.sentAt,
+    this.failure,
   });
 
   final int id;
@@ -27,4 +30,8 @@ class AIMessage {
   final bool isPending;
 
   final DateTime sentAt;
+
+  /// For an error reply written since schema v7: what went wrong, for the
+  /// UI to word. Null for older error rows, whose [content] is the text.
+  final AIFailure? failure;
 }

@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 
 import '../../../domain/entities/ai_message.dart';
+import '../../../domain/entities/ai_provider_config.dart';
 
 import '../../../l10n/l10n.dart';
 
 class ChatBubble extends StatelessWidget {
-  const ChatBubble({super.key, required this.message});
+  const ChatBubble({super.key, required this.message, this.provider});
 
   final AIMessage message;
+
+  /// The conversation's provider, to name it in an error.
+  final AIProviderConfig? provider;
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +61,11 @@ class ChatBubble extends StatelessWidget {
                   ],
                 ),
               )
-            : Text(message.content, style: TextStyle(color: textColor)),
+            : Text(
+                message.failure == null
+                    ? message.content
+                    : context.l10n.aiFailure(message.failure!, provider),
+                style: TextStyle(color: textColor)),
       ),
     );
   }

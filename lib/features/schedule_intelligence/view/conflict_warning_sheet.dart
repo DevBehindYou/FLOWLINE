@@ -8,6 +8,8 @@ import '../../schedule_block_form/viewmodel/add_edit_schedule_block_view_model.d
 import '../viewmodel/schedule_intelligence_view_model.dart';
 import '../../../l10n/l10n.dart';
 import '../../../domain/recurrence/recurrence_rule.dart';
+import '../../ai_assistant/viewmodel/assistant_view_model.dart';
+import '../../../domain/ai/ai_contract.dart';
 
 /// Shown instead of saving directly when the pending block overlaps one
 /// or more existing blocks. Three ways out: ask the AI for a suggested
@@ -52,7 +54,7 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
   /// Why [_suggestion] can't be applied; null when it passed validation.
   SuggestionProblem? _suggestionProblem;
   String? _aiRawText;
-  String? _aiError;
+  AIFailure? _aiError;
 
   ScheduleIntelligenceViewModel get _viewModel =>
       ref.read(scheduleIntelligenceViewModelProvider.notifier);
@@ -86,15 +88,19 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
 
     if (!mounted) return;
 
-    if (response.isError) {
-      setState(() {
-        _asking = false;
-        _aiError = response.content;
-      });
-      return;
+    final String text;
+    switch (response) {
+      case AIError(:final failure):
+        setState(() {
+          _asking = false;
+          _aiError = failure;
+        });
+        return;
+      case AIText():
+        text = response.text;
     }
 
-    final parsed = parseConflictSuggestion(response.content);
+    final parsed = parseConflictSuggestion(text);
     final problem = parsed == null ? null : await _validate(parsed);
     if (!mounted) return;
     setState(() {
@@ -103,7 +109,7 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
         _suggestion = parsed;
         _suggestionProblem = problem;
       } else {
-        _aiRawText = response.content;
+        _aiRawText = text;
       }
     });
   }
@@ -200,7 +206,11 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
                 problem: _suggestionProblem,
               ),
             if (_aiRawText != null) _RawAiTextCard(text: _aiRawText!),
-            if (_aiError != null) _ErrorCard(message: _aiError!),
+            if (_aiError != null)
+              _ErrorCard(
+                message: context.l10n.aiFailure(
+                    _aiError!, ref.watch(activeAiProviderProvider).value),
+              ),
             const SizedBox(height: 12),
             if (_suggestion != null) ...[
               ElevatedButton.icon(

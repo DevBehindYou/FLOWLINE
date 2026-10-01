@@ -266,7 +266,7 @@ final class TaskDetailActionsProvider
   }
 }
 
-String _$taskDetailActionsHash() => r'67fd43bfb8625709d6de0ff12d280d6ecb631689';
+String _$taskDetailActionsHash() => r'dd25deea9c15b58731f61947672b50f6dc9ff422';
 
 abstract class _$TaskDetailActions extends $Notifier<void> {
   void build();

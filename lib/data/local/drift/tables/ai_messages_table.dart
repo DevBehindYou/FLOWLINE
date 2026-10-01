@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../../../domain/ai/ai_contract.dart';
 import '../../../../domain/entities/ai_message.dart';
 import 'ai_conversations_table.dart';
 
@@ -20,4 +21,10 @@ class AiMessages extends Table {
   // into an error on the next launch, instead of an orphaned prompt (B23).
   BoolColumn get isPending => boolean().withDefault(const Constant(false))();
   DateTimeColumn get sentAt => dateTime().withDefault(currentDateAndTime)();
+
+  // Since schema v7: what went wrong with an error reply, so the chat can
+  // word it in the user's language. Rows from before v7 keep their
+  // English text in `content` and have no kind.
+  IntColumn get errorKind => intEnum<AIFailureKind>().nullable()();
+  IntColumn get errorStatus => integer().nullable()();
 }

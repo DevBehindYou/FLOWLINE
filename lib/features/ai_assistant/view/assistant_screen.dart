@@ -129,7 +129,8 @@ class _ChatBodyState extends ConsumerState<_ChatBody> {
                   message: context.l10n.assistantEmptyMessage,
                 );
               }
-              return _MessageList(conversationId: conversation.id);
+              return _MessageList(
+                  conversationId: conversation.id, provider: widget.provider);
             },
           ),
         ),
@@ -169,9 +170,10 @@ class _ChatBodyState extends ConsumerState<_ChatBody> {
 }
 
 class _MessageList extends ConsumerWidget {
-  const _MessageList({required this.conversationId});
+  const _MessageList({required this.conversationId, required this.provider});
 
   final int conversationId;
+  final AIProviderConfig provider;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -199,7 +201,7 @@ class _MessageList extends ConsumerWidget {
           itemCount: messages.length,
           itemBuilder: (context, index) {
             final message = messages[messages.length - 1 - index];
-            return ChatBubble(message: message);
+            return ChatBubble(message: message, provider: provider);
           },
         );
       },

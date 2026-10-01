@@ -1,9 +1,9 @@
 import 'package:drift/drift.dart';
 
+import '../../domain/ai/ai_contract.dart';
 import '../../domain/entities/ai_conversation.dart';
 import '../../domain/entities/ai_message.dart';
 import '../../domain/entities/ai_provider_config.dart';
-import '../../domain/entities/ai_response.dart';
 import '../../domain/repositories/ai_client.dart';
 import '../../domain/repositories/ai_repository.dart';
 import '../../domain/services/chat_history.dart';
@@ -37,11 +37,6 @@ List<OrderClauseGenerator<$AiMessagesTable>> get _messageOrder => [
       (m) => OrderingTerm.asc(m.id),
     ];
 
-/// Shown in place of a reply that was still pending when the app was
-/// closed or killed.
-const interruptedReplyMessage =
-    "No reply \u2014 Flowline was closed before it arrived. Send your message again.";
-
 class AIRepositoryImpl implements AIRepository {
   AIRepositoryImpl(this._db, this._secureStore, this._clients) {
     _seedFuture = _initialize();
@@ -67,7 +62,7 @@ class AIRepositoryImpl implements AIRepository {
         .write(const AiMessagesCompanion(
       isPending: Value(false),
       isError: Value(true),
-      content: Value(interruptedReplyMessage),
+      errorKind: Value(AIFailureKind.interrupted),
     ));
   }
 
@@ -191,8 +186,11 @@ class AIRepositoryImpl implements AIRepository {
   }
 
   @override
-  Future<void> sendMessage(
-      {required int conversationId, required String prompt}) async {
+  Future<void> sendMessage({
+    required int conversationId,
+    required String prompt,
+    AICancelToken? cancel,
+  }) async {
     await _seedFuture;
     // History BEFORE inserting the new user message, so it isn't
     // duplicated when the client builds its request; only completed
@@ -220,75 +218,112 @@ class AIRepositoryImpl implements AIRepository {
           ));
     });
 
-    final AIResponse response;
+    final reply = StringBuffer();
     try {
-      response = await _requestReply(conversationId, prompt, history);
+      final conversation = await (_db.select(_db.aiConversations)
+            ..where((c) => c.id.equals(conversationId)))
+          .getSingle();
+      final events = await _events(
+        conversation.providerId,
+        prompt: prompt,
+        history: history,
+        cancel: cancel,
+      );
+      await for (final event in events) {
+        switch (event) {
+          case AITextDelta(:final text):
+            reply.write(text);
+          case AIDone(:final stopReason):
+            await _finishReply(replyId, reply.toString(), stopReason);
+            return;
+          case AIFailure():
+            await _failReply(replyId, event);
+            return;
+        }
+      }
+      // A stream that ended without Done or Failure broke the contract.
+      await _failReply(replyId, const AIFailure(AIFailureKind.unknown));
     } catch (_) {
-      // Clients turn every expected failure into AIResponse.error; this is
-      // the safety net that keeps the placeholder from staying pending.
-      await _completeReply(replyId,
-          const AIResponse.error('Something went wrong getting a reply.'));
+      // The safety net that keeps the placeholder from staying pending.
+      await _failReply(replyId, const AIFailure(AIFailureKind.unknown));
       rethrow;
     }
-    await _completeReply(replyId, response);
   }
 
-  Future<AIResponse> _requestReply(
-    int conversationId,
-    String prompt,
-    List<AIMessage> history,
-  ) async {
-    final conversationRow = await (_db.select(_db.aiConversations)
-          ..where((c) => c.id.equals(conversationId)))
-        .getSingle();
-    final providerId = conversationRow.providerId;
+  /// The vendor's event stream for [providerId], or a single failure when
+  /// the request can't be made (no key saved).
+  Future<Stream<AIEvent>> _events(
+    AIProviderId providerId, {
+    required String prompt,
+    List<AIMessage> history = const [],
+    String? system,
+    AIResponseFormat format = AIResponseFormat.text,
+    AICancelToken? cancel,
+  }) async {
     final configRow = await (_db.select(_db.aiProviderConfigs)
           ..where((p) => p.providerId.equalsValue(providerId)))
         .getSingle();
     final config = _mapProvider(configRow);
-
     final apiKey = await _secureStore.getKey(providerId) ?? '';
     if (config.requiresApiKey && apiKey.isEmpty) {
-      return AIResponse.error(
-          'No API key saved for ${config.displayName} yet \u2014 add one in Settings.');
+      return Stream.value(const AIFailure(AIFailureKind.missingKey));
     }
-
-    return _clients[providerId]!.sendMessage(
-      config: config,
-      apiKey: apiKey,
-      prompt: prompt,
-      history: history,
+    return _clients[providerId]!.send(
+      AIRequest(
+        config: config,
+        apiKey: apiKey,
+        prompt: prompt,
+        history: history,
+        system: system,
+        format: format,
+      ),
+      cancel: cancel,
     );
   }
 
-  Future<void> _completeReply(int replyId, AIResponse response) {
+  Future<void> _finishReply(int replyId, String text, AIStopReason stop) {
+    // Stopped before any text arrived: say so rather than leave a blank.
+    if (text.isEmpty) {
+      return _failReply(
+          replyId,
+          AIFailure(stop == AIStopReason.cancelled
+              ? AIFailureKind.cancelled
+              : AIFailureKind.emptyResponse));
+    }
     return (_db.update(_db.aiMessages)..where((m) => m.id.equals(replyId)))
         .write(AiMessagesCompanion(
-      content: Value(response.content),
-      isError: Value(response.isError),
+      content: Value(text),
+      isError: const Value(false),
       isPending: const Value(false),
     ));
   }
 
+  Future<void> _failReply(int replyId, AIFailure failure) {
+    return (_db.update(_db.aiMessages)..where((m) => m.id.equals(replyId)))
+        .write(AiMessagesCompanion(
+      content: const Value(''),
+      isError: const Value(true),
+      isPending: const Value(false),
+      errorKind: Value(failure.kind),
+      errorStatus: Value(failure.status),
+    ));
+  }
+
   @override
-  Future<AIResponse> completeOnce({required String prompt}) async {
+  Future<AICompletion> completeOnce({
+    required String prompt,
+    String? system,
+    AIResponseFormat format = AIResponseFormat.text,
+  }) async {
     await _seedFuture;
     final activeRow = await (_db.select(_db.aiProviderConfigs)
           ..where((p) => p.isActive.equals(true)))
         .getSingleOrNull();
     if (activeRow == null) {
-      return const AIResponse.error(
-          'No AI provider is active \u2014 connect one in Settings.');
+      return const AIError(AIFailure(AIFailureKind.noActiveProvider));
     }
-    final config = _mapProvider(activeRow);
-    final apiKey = await _secureStore.getKey(config.id) ?? '';
-    if (config.requiresApiKey && apiKey.isEmpty) {
-      return AIResponse.error(
-          'No API key saved for ${config.displayName} yet.');
-    }
-    final client = _clients[config.id]!;
-    return client.sendMessage(
-        config: config, apiKey: apiKey, prompt: prompt, history: const []);
+    return collect(await _events(activeRow.providerId,
+        prompt: prompt, system: system, format: format));
   }
 
   AIProviderConfig _mapProvider(AiProviderConfigRow row) {
@@ -319,6 +354,9 @@ class AIRepositoryImpl implements AIRepository {
       isError: row.isError,
       isPending: row.isPending,
       sentAt: row.sentAt,
+      failure: row.errorKind == null
+          ? null
+          : AIFailure(row.errorKind!, status: row.errorStatus),
     );
   }
 }

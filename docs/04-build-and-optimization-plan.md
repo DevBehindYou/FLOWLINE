@@ -472,12 +472,12 @@ Tick these in the PR that closes each item.
 - [x] Appearance, Notifications, Data & Privacy settings
 - [x] Onboarding + splash
 - [x] Fonts + full token mapping + dark-primary decision (D8, K20, B25)
-- [x] l10n scaffolding; narrow weekday labels (B19). Follow-ups: AI error bubbles are stored as English text (typed errors with AIClient v2, Phase 4); the PDF export stays English; Devanagari needs a Noto fallback font
+- [x] l10n scaffolding; narrow weekday labels (B19). Follow-ups: ~~AI error bubbles stored as English text~~ (typed since AIClient v2); the PDF export stays English; Devanagari needs a Noto fallback font
 - [x] Adaptive layout; scalable timer ring
 - [x] Backlog filtering and pagination (B20); single-query timeline (B21)
 
 **Phase 4 — AI v2**
-- [ ] `AIClient` v2 interface
+- [x] `AIClient` v2 interface (typed failures stored with replies, schema v7; non-streaming until 4.3)
 - [ ] Model registry + Test connection (K6)
 - [ ] Streaming + Stop
 - [ ] Context windowing (K10)

@@ -3014,8 +3014,28 @@ class $AiMessagesTable extends AiMessages
       requiredDuringInsert: false,
       defaultValue: currentDateAndTime);
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, conversationId, role, content, isError, isPending, sentAt];
+  late final GeneratedColumnWithTypeConverter<AIFailureKind?, int> errorKind =
+      GeneratedColumn<int>('error_kind', aliasedName, true,
+              type: DriftSqlType.int, requiredDuringInsert: false)
+          .withConverter<AIFailureKind?>($AiMessagesTable.$convertererrorKindn);
+  static const VerificationMeta _errorStatusMeta =
+      const VerificationMeta('errorStatus');
+  @override
+  late final GeneratedColumn<int> errorStatus = GeneratedColumn<int>(
+      'error_status', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        conversationId,
+        role,
+        content,
+        isError,
+        isPending,
+        sentAt,
+        errorKind,
+        errorStatus
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -3055,6 +3075,12 @@ class $AiMessagesTable extends AiMessages
       context.handle(_sentAtMeta,
           sentAt.isAcceptableOrUnknown(data['sent_at']!, _sentAtMeta));
     }
+    if (data.containsKey('error_status')) {
+      context.handle(
+          _errorStatusMeta,
+          errorStatus.isAcceptableOrUnknown(
+              data['error_status']!, _errorStatusMeta));
+    }
     return context;
   }
 
@@ -3078,6 +3104,11 @@ class $AiMessagesTable extends AiMessages
           .read(DriftSqlType.bool, data['${effectivePrefix}is_pending'])!,
       sentAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}sent_at'])!,
+      errorKind: $AiMessagesTable.$convertererrorKindn.fromSql(attachedDatabase
+          .typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}error_kind'])),
+      errorStatus: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}error_status']),
     );
   }
 
@@ -3088,6 +3119,10 @@ class $AiMessagesTable extends AiMessages
 
   static JsonTypeConverter2<AIMessageRole, int, int> $converterrole =
       const EnumIndexConverter<AIMessageRole>(AIMessageRole.values);
+  static JsonTypeConverter2<AIFailureKind, int, int> $convertererrorKind =
+      const EnumIndexConverter<AIFailureKind>(AIFailureKind.values);
+  static JsonTypeConverter2<AIFailureKind?, int?, int?> $convertererrorKindn =
+      JsonTypeConverter2.asNullable($convertererrorKind);
 }
 
 class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
@@ -3098,6 +3133,8 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
   final bool isError;
   final bool isPending;
   final DateTime sentAt;
+  final AIFailureKind? errorKind;
+  final int? errorStatus;
   const AiMessageRow(
       {required this.id,
       required this.conversationId,
@@ -3105,7 +3142,9 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
       required this.content,
       required this.isError,
       required this.isPending,
-      required this.sentAt});
+      required this.sentAt,
+      this.errorKind,
+      this.errorStatus});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -3118,6 +3157,13 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
     map['is_error'] = Variable<bool>(isError);
     map['is_pending'] = Variable<bool>(isPending);
     map['sent_at'] = Variable<DateTime>(sentAt);
+    if (!nullToAbsent || errorKind != null) {
+      map['error_kind'] =
+          Variable<int>($AiMessagesTable.$convertererrorKindn.toSql(errorKind));
+    }
+    if (!nullToAbsent || errorStatus != null) {
+      map['error_status'] = Variable<int>(errorStatus);
+    }
     return map;
   }
 
@@ -3130,6 +3176,12 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
       isError: Value(isError),
       isPending: Value(isPending),
       sentAt: Value(sentAt),
+      errorKind: errorKind == null && nullToAbsent
+          ? const Value.absent()
+          : Value(errorKind),
+      errorStatus: errorStatus == null && nullToAbsent
+          ? const Value.absent()
+          : Value(errorStatus),
     );
   }
 
@@ -3145,6 +3197,9 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
       isError: serializer.fromJson<bool>(json['isError']),
       isPending: serializer.fromJson<bool>(json['isPending']),
       sentAt: serializer.fromJson<DateTime>(json['sentAt']),
+      errorKind: $AiMessagesTable.$convertererrorKindn
+          .fromJson(serializer.fromJson<int?>(json['errorKind'])),
+      errorStatus: serializer.fromJson<int?>(json['errorStatus']),
     );
   }
   @override
@@ -3159,6 +3214,9 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
       'isError': serializer.toJson<bool>(isError),
       'isPending': serializer.toJson<bool>(isPending),
       'sentAt': serializer.toJson<DateTime>(sentAt),
+      'errorKind': serializer.toJson<int?>(
+          $AiMessagesTable.$convertererrorKindn.toJson(errorKind)),
+      'errorStatus': serializer.toJson<int?>(errorStatus),
     };
   }
 
@@ -3169,7 +3227,9 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
           String? content,
           bool? isError,
           bool? isPending,
-          DateTime? sentAt}) =>
+          DateTime? sentAt,
+          Value<AIFailureKind?> errorKind = const Value.absent(),
+          Value<int?> errorStatus = const Value.absent()}) =>
       AiMessageRow(
         id: id ?? this.id,
         conversationId: conversationId ?? this.conversationId,
@@ -3178,6 +3238,8 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
         isError: isError ?? this.isError,
         isPending: isPending ?? this.isPending,
         sentAt: sentAt ?? this.sentAt,
+        errorKind: errorKind.present ? errorKind.value : this.errorKind,
+        errorStatus: errorStatus.present ? errorStatus.value : this.errorStatus,
       );
   AiMessageRow copyWithCompanion(AiMessagesCompanion data) {
     return AiMessageRow(
@@ -3190,6 +3252,9 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
       isError: data.isError.present ? data.isError.value : this.isError,
       isPending: data.isPending.present ? data.isPending.value : this.isPending,
       sentAt: data.sentAt.present ? data.sentAt.value : this.sentAt,
+      errorKind: data.errorKind.present ? data.errorKind.value : this.errorKind,
+      errorStatus:
+          data.errorStatus.present ? data.errorStatus.value : this.errorStatus,
     );
   }
 
@@ -3202,14 +3267,16 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
           ..write('content: $content, ')
           ..write('isError: $isError, ')
           ..write('isPending: $isPending, ')
-          ..write('sentAt: $sentAt')
+          ..write('sentAt: $sentAt, ')
+          ..write('errorKind: $errorKind, ')
+          ..write('errorStatus: $errorStatus')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      id, conversationId, role, content, isError, isPending, sentAt);
+  int get hashCode => Object.hash(id, conversationId, role, content, isError,
+      isPending, sentAt, errorKind, errorStatus);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3220,7 +3287,9 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
           other.content == this.content &&
           other.isError == this.isError &&
           other.isPending == this.isPending &&
-          other.sentAt == this.sentAt);
+          other.sentAt == this.sentAt &&
+          other.errorKind == this.errorKind &&
+          other.errorStatus == this.errorStatus);
 }
 
 class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
@@ -3231,6 +3300,8 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
   final Value<bool> isError;
   final Value<bool> isPending;
   final Value<DateTime> sentAt;
+  final Value<AIFailureKind?> errorKind;
+  final Value<int?> errorStatus;
   const AiMessagesCompanion({
     this.id = const Value.absent(),
     this.conversationId = const Value.absent(),
@@ -3239,6 +3310,8 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
     this.isError = const Value.absent(),
     this.isPending = const Value.absent(),
     this.sentAt = const Value.absent(),
+    this.errorKind = const Value.absent(),
+    this.errorStatus = const Value.absent(),
   });
   AiMessagesCompanion.insert({
     this.id = const Value.absent(),
@@ -3248,6 +3321,8 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
     this.isError = const Value.absent(),
     this.isPending = const Value.absent(),
     this.sentAt = const Value.absent(),
+    this.errorKind = const Value.absent(),
+    this.errorStatus = const Value.absent(),
   })  : conversationId = Value(conversationId),
         role = Value(role),
         content = Value(content);
@@ -3259,6 +3334,8 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
     Expression<bool>? isError,
     Expression<bool>? isPending,
     Expression<DateTime>? sentAt,
+    Expression<int>? errorKind,
+    Expression<int>? errorStatus,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -3268,6 +3345,8 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
       if (isError != null) 'is_error': isError,
       if (isPending != null) 'is_pending': isPending,
       if (sentAt != null) 'sent_at': sentAt,
+      if (errorKind != null) 'error_kind': errorKind,
+      if (errorStatus != null) 'error_status': errorStatus,
     });
   }
 
@@ -3278,7 +3357,9 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
       Value<String>? content,
       Value<bool>? isError,
       Value<bool>? isPending,
-      Value<DateTime>? sentAt}) {
+      Value<DateTime>? sentAt,
+      Value<AIFailureKind?>? errorKind,
+      Value<int?>? errorStatus}) {
     return AiMessagesCompanion(
       id: id ?? this.id,
       conversationId: conversationId ?? this.conversationId,
@@ -3287,6 +3368,8 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
       isError: isError ?? this.isError,
       isPending: isPending ?? this.isPending,
       sentAt: sentAt ?? this.sentAt,
+      errorKind: errorKind ?? this.errorKind,
+      errorStatus: errorStatus ?? this.errorStatus,
     );
   }
 
@@ -3315,6 +3398,13 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
     if (sentAt.present) {
       map['sent_at'] = Variable<DateTime>(sentAt.value);
     }
+    if (errorKind.present) {
+      map['error_kind'] = Variable<int>(
+          $AiMessagesTable.$convertererrorKindn.toSql(errorKind.value));
+    }
+    if (errorStatus.present) {
+      map['error_status'] = Variable<int>(errorStatus.value);
+    }
     return map;
   }
 
@@ -3327,7 +3417,9 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
           ..write('content: $content, ')
           ..write('isError: $isError, ')
           ..write('isPending: $isPending, ')
-          ..write('sentAt: $sentAt')
+          ..write('sentAt: $sentAt, ')
+          ..write('errorKind: $errorKind, ')
+          ..write('errorStatus: $errorStatus')
           ..write(')'))
         .toString();
   }
@@ -6046,6 +6138,8 @@ typedef $$AiMessagesTableCreateCompanionBuilder = AiMessagesCompanion Function({
   Value<bool> isError,
   Value<bool> isPending,
   Value<DateTime> sentAt,
+  Value<AIFailureKind?> errorKind,
+  Value<int?> errorStatus,
 });
 typedef $$AiMessagesTableUpdateCompanionBuilder = AiMessagesCompanion Function({
   Value<int> id,
@@ -6055,6 +6149,8 @@ typedef $$AiMessagesTableUpdateCompanionBuilder = AiMessagesCompanion Function({
   Value<bool> isError,
   Value<bool> isPending,
   Value<DateTime> sentAt,
+  Value<AIFailureKind?> errorKind,
+  Value<int?> errorStatus,
 });
 
 final class $$AiMessagesTableReferences
@@ -6107,6 +6203,14 @@ class $$AiMessagesTableFilterComposer
   ColumnFilters<DateTime> get sentAt => $composableBuilder(
       column: $table.sentAt, builder: (column) => ColumnFilters(column));
 
+  ColumnWithTypeConverterFilters<AIFailureKind?, AIFailureKind, int>
+      get errorKind => $composableBuilder(
+          column: $table.errorKind,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<int> get errorStatus => $composableBuilder(
+      column: $table.errorStatus, builder: (column) => ColumnFilters(column));
+
   $$AiConversationsTableFilterComposer get conversationId {
     final $$AiConversationsTableFilterComposer composer = $composerBuilder(
         composer: this,
@@ -6155,6 +6259,12 @@ class $$AiMessagesTableOrderingComposer
   ColumnOrderings<DateTime> get sentAt => $composableBuilder(
       column: $table.sentAt, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get errorKind => $composableBuilder(
+      column: $table.errorKind, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get errorStatus => $composableBuilder(
+      column: $table.errorStatus, builder: (column) => ColumnOrderings(column));
+
   $$AiConversationsTableOrderingComposer get conversationId {
     final $$AiConversationsTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -6202,6 +6312,12 @@ class $$AiMessagesTableAnnotationComposer
 
   GeneratedColumn<DateTime> get sentAt =>
       $composableBuilder(column: $table.sentAt, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<AIFailureKind?, int> get errorKind =>
+      $composableBuilder(column: $table.errorKind, builder: (column) => column);
+
+  GeneratedColumn<int> get errorStatus => $composableBuilder(
+      column: $table.errorStatus, builder: (column) => column);
 
   $$AiConversationsTableAnnotationComposer get conversationId {
     final $$AiConversationsTableAnnotationComposer composer = $composerBuilder(
@@ -6254,6 +6370,8 @@ class $$AiMessagesTableTableManager extends RootTableManager<
             Value<bool> isError = const Value.absent(),
             Value<bool> isPending = const Value.absent(),
             Value<DateTime> sentAt = const Value.absent(),
+            Value<AIFailureKind?> errorKind = const Value.absent(),
+            Value<int?> errorStatus = const Value.absent(),
           }) =>
               AiMessagesCompanion(
             id: id,
@@ -6263,6 +6381,8 @@ class $$AiMessagesTableTableManager extends RootTableManager<
             isError: isError,
             isPending: isPending,
             sentAt: sentAt,
+            errorKind: errorKind,
+            errorStatus: errorStatus,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -6272,6 +6392,8 @@ class $$AiMessagesTableTableManager extends RootTableManager<
             Value<bool> isError = const Value.absent(),
             Value<bool> isPending = const Value.absent(),
             Value<DateTime> sentAt = const Value.absent(),
+            Value<AIFailureKind?> errorKind = const Value.absent(),
+            Value<int?> errorStatus = const Value.absent(),
           }) =>
               AiMessagesCompanion.insert(
             id: id,
@@ -6281,6 +6403,8 @@ class $$AiMessagesTableTableManager extends RootTableManager<
             isError: isError,
             isPending: isPending,
             sentAt: sentAt,
+            errorKind: errorKind,
+            errorStatus: errorStatus,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (

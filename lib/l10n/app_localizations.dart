@@ -1653,6 +1653,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Drag to reorder'**
   String get reorderSubtask;
+
+  /// No description provided for @aiProviderGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'the AI provider'**
+  String get aiProviderGeneric;
+
+  /// No description provided for @aiErrorInvalidKey.
+  ///
+  /// In en, this message translates to:
+  /// **'That API key was rejected by {vendor}.'**
+  String aiErrorInvalidKey(String vendor);
+
+  /// No description provided for @aiErrorRateLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'{vendor} rate-limited this request — try again shortly.'**
+  String aiErrorRateLimited(String vendor);
+
+  /// No description provided for @aiErrorServer.
+  ///
+  /// In en, this message translates to:
+  /// **'{vendor} returned an error (HTTP {status}).'**
+  String aiErrorServer(String vendor, int status);
+
+  /// No description provided for @aiErrorUnreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach {vendor} — check your connection.'**
+  String aiErrorUnreachable(String vendor);
+
+  /// No description provided for @aiErrorOllamaUnreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach Ollama at {url}. If it\'s running on a computer, use that computer\'s LAN IP here, not \"localhost\" — on a phone, localhost means the phone itself.'**
+  String aiErrorOllamaUnreachable(String url);
+
+  /// No description provided for @aiErrorEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'{vendor} returned an empty response.'**
+  String aiErrorEmpty(String vendor);
+
+  /// No description provided for @aiErrorModelNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Ollama responded, but that model isn\'t pulled yet. Run: ollama pull {model}'**
+  String aiErrorModelNotFound(String model);
+
+  /// No description provided for @aiErrorMissingKey.
+  ///
+  /// In en, this message translates to:
+  /// **'No API key saved for {vendor} yet — add one in Settings.'**
+  String aiErrorMissingKey(String vendor);
+
+  /// No description provided for @aiErrorNoProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'No AI provider is active — connect one in Settings.'**
+  String get aiErrorNoProvider;
+
+  /// No description provided for @aiStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped.'**
+  String get aiStopped;
+
+  /// No description provided for @aiErrorInterrupted.
+  ///
+  /// In en, this message translates to:
+  /// **'No reply — Flowline was closed before it arrived. Send your message again.'**
+  String get aiErrorInterrupted;
+
+  /// No description provided for @aiErrorUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong talking to {vendor}. Please try again.'**
+  String aiErrorUnknown(String vendor);
 }
 
 class _AppLocalizationsDelegate

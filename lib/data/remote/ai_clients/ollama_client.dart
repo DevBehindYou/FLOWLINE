@@ -1,87 +1,67 @@
-import 'package:dio/dio.dart';
-
-import '../../../domain/entities/ai_message.dart';
+import '../../../domain/ai/ai_contract.dart';
 import '../../../domain/entities/ai_provider_config.dart';
-import '../../../domain/entities/ai_response.dart';
-import '../../../domain/repositories/ai_client.dart';
-import 'json_read.dart';
+import 'http_ai_client.dart';
 
-class OllamaClient implements AIClient {
-  OllamaClient(this._dio);
+class OllamaClient extends HttpAIClient {
+  OllamaClient(super.dio);
 
-  final Dio _dio;
+  static const defaultBaseUrl = 'http://localhost:11434';
 
   @override
   AIProviderId get id => AIProviderId.ollama;
 
+  static String baseUrlOf(AIProviderConfig config) =>
+      (config.baseUrl == null || config.baseUrl!.isEmpty)
+          ? defaultBaseUrl
+          : config.baseUrl!;
+
   @override
-  Future<AIResponse> sendMessage({
-    required AIProviderConfig config,
-    required String apiKey,
-    required String prompt,
-    required List<AIMessage> history,
-  }) async {
-    final baseUrl = (config.baseUrl == null || config.baseUrl!.isEmpty)
-        ? 'http://localhost:11434'
-        : config.baseUrl!;
-
-    try {
-      final messages = [
-        ...history.map(
-          (m) => {
-            'role': m.role == AIMessageRole.user ? 'user' : 'assistant',
-            'content': m.content,
-          },
-        ),
-        {'role': 'user', 'content': prompt},
-      ];
-
-      // Untyped on purpose: a 200 with an unexpected body must read as
-      // "empty response", not fail the cast and look like a network error.
-      final response = await _dio.post<Object?>(
-        '$baseUrl/api/chat',
-        data: {
-          'model': config.defaultModel,
-          'messages': messages,
+  VendorCall buildChat(AIRequest request) => (
+        url: '${baseUrlOf(request.config)}/api/chat',
+        headers: const {},
+        body: {
+          'model': request.config.defaultModel,
+          'messages': [
+            if (request.system != null)
+              {'role': 'system', 'content': request.system},
+            ...chatTurns(request.history, request.prompt),
+          ],
           'stream': false,
+          'options': {'num_predict': request.maxOutputTokens},
+          if (request.format == AIResponseFormat.json) 'format': 'json',
         },
       );
 
-      final data = jsonMap(response.data);
-      final text = jsonString(jsonMap(data?['message'])?['content']);
-      if (text == null || text.isEmpty) {
-        return const AIResponse.error('Ollama returned an empty response.');
-      }
-      return AIResponse(text);
-    } on DioException catch (e) {
-      return AIResponse.error(_describeOllamaError(e, baseUrl));
-    } catch (_) {
-      // No exception text in the bubble (K9): it's unreadable for users and
-      // can include request details.
-      return const AIResponse.error(
-          'Something went wrong talking to Ollama. Please try again.');
-    }
+  @override
+  VendorReply? readChat(Map<String, Object?>? body) {
+    final text = jsonString(jsonMap(body?['message'])?['content']);
+    if (text == null) return null;
+    return (
+      text: text,
+      stopReason: switch (jsonString(body?['done_reason'])) {
+        'stop' || null => AIStopReason.complete,
+        'length' => AIStopReason.maxTokens,
+        _ => AIStopReason.other,
+      },
+      usage: AIUsage(
+        inputTokens: jsonInt(body?['prompt_eval_count']),
+        outputTokens: jsonInt(body?['eval_count']),
+      ),
+    );
   }
 
-  String _describeOllamaError(DioException e, String baseUrl) {
-    if (e.type == DioExceptionType.connectionError ||
-        e.type == DioExceptionType.connectionTimeout) {
-      // The single most common way this integration breaks in practice:
-      // on a phone, 'localhost' means the phone itself, not the computer
-      // running Ollama. Worth saying plainly rather than a generic
-      // connection-failed message.
-      return "Couldn't reach Ollama at $baseUrl. If it's running on a "
-          "computer, use that computer's LAN IP here, not \"localhost\" \u2014 "
-          "on a phone, localhost means the phone itself.";
-    }
-    final status = e.response?.statusCode;
-    if (status == 404) {
-      return "Ollama responded, but that model isn't pulled yet. "
-          "Run: ollama pull ${e.requestOptions.data is Map ? (e.requestOptions.data as Map)['model'] : ''}";
-    }
-    if (status != null) {
-      return 'Ollama returned an error (HTTP $status).';
-    }
-    return "Couldn't reach Ollama at $baseUrl.";
-  }
+  /// Ollama answers 404 for a model that isn't pulled.
+  @override
+  AIFailureKind? failureForStatus(int status) =>
+      status == 404 ? AIFailureKind.modelNotFound : null;
+
+  @override
+  VendorCall buildModels(AIProviderConfig config, String apiKey) =>
+      (url: '${baseUrlOf(config)}/api/tags', headers: const {}, body: null);
+
+  @override
+  List<AIModelInfo> readModels(Map<String, Object?>? body) => [
+        for (final m in jsonList(body?['models']).map(jsonMap))
+          if (jsonString(m?['name']) case final name?) AIModelInfo(name),
+      ];
 }

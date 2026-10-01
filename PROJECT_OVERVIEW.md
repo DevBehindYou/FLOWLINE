@@ -161,7 +161,7 @@ flowchart TB
     end
 
     subgraph Domain["Domain (lib/domain) — pure Dart, no Flutter / Drift imports"]
-        E["Entities<br/>Task, Subtask, ScheduleBlock, FocusSession,<br/>AIProviderConfig, AIConversation, AIMessage, AIResponse"]
+        E["Entities<br/>Task, Subtask, ScheduleBlock, FocusSession,<br/>AIProviderConfig, AIConversation, AIMessage,<br/>AI contract (AIRequest, AIEvent, AIFailure)"]
         RI["Repository interfaces<br/>TaskRepository, ScheduleRepository,<br/>FocusSessionRepository, AIRepository, AIClient"]
         S["Pure services<br/>ScheduleConflictChecker, FocusStatsCalculator,<br/>ExportFormatter, conflict_resolution_ai"]
     end
@@ -437,17 +437,21 @@ sequenceDiagram
     alt key required but missing
         R->>DB: INSERT assistant error bubble
     else
-        R->>C: sendMessage(config, key, prompt, history)
-        C-->>R: AIResponse(text) or AIResponse.error(message)
-        R->>DB: INSERT assistant message (isError flag)
+        R->>C: send(AIRequest, cancel?)
+        C-->>R: AITextDelta… then AIDone(stopReason, usage) or AIFailure(kind, status)
+        R->>DB: UPDATE the pending reply (text, or error kind + status)
     end
     DB-->>A: messages stream re-emits
     VM->>VM: state = false
 ```
 
-Errors never throw out of a client: every failure becomes an
-`AIResponse.error` with a plain-language message (see
-[§15.6](#156-ai-error-mapping)).
+Errors never throw out of a client: every failure is an `AIFailure`
+event with a kind (invalid key, rate limited, server error + status,
+unreachable, empty response, model not pulled, missing key, cancelled,
+interrupted, unknown). The reply row stores the kind and status (schema
+v7), and the chat words it in the user's language
+(`lib/l10n/ai_failure_text.dart`). Error rows from before v7 keep their
+English text.
 
 ### 6.6 Schedule block save with conflict resolution
 
@@ -617,7 +621,7 @@ erDiagram
 
 ### 7.3 Migrations
 
-`AppDatabase.schemaVersion = 6`. Snapshots of v3 (what every APK
+`AppDatabase.schemaVersion = 7`. Snapshots of v3 (what every APK
 before Phase 3 shipped) to v6 live in `drift_schemas/`; `test/drift/`
 verifies the upgrade schema and data. Upgrades run **step by step**
 through the generated `app_database.steps.dart`, so each step sees its
@@ -631,6 +635,7 @@ bump, then add the new `fromNToM` step.
 | 3 → 4 | Repair data, then: unique partial index (one active session), `CHECK(end_time > start_time)`, `tasks.schedule_block_id` FK `ON DELETE SET NULL`, five performance indexes, `ai_messages.is_pending` |
 | 4 → 5 | `createTable(app_settings)` (Phase 3) |
 | 5 → 6 | `schedule_blocks` rebuilt with `recurrence`, `recurrence_until`, `series_id` (FK, cascade), `occurrence_date` and two CHECKs; `createTable(schedule_block_exceptions)`; unique index on `(series_id, occurrence_date)` (Phase 3) |
+| 6 → 7 | `ai_messages.error_kind`, `ai_messages.error_status` (typed AI errors, Phase 4) |
 
 Schema verification uses Drift's `SchemaVerifier` (generated tests plus a
 data-integrity tests: a v3 database full of edge cases, and v5 → v6
@@ -654,7 +659,7 @@ Riverpod.
 | `AIProviderConfig` | `id, displayName, defaultModel, baseUrl?, isActive` | `requiresApiKey` (false for Ollama) |
 | `AIConversation` | `id, providerId, title, createdAt` | — |
 | `AIMessage` | `id, conversationId, role, content, isError, sentAt` | — |
-| `AIResponse` | `content, isError` | `AIResponse(text)` / `AIResponse.error(text)` — errors are values, not exceptions |
+| AI contract (`domain/ai/ai_contract.dart`) | `AIRequest` (config, key, system, history, prompt, maxOutputTokens, format), `AIEvent` = `AITextDelta` / `AIDone(stopReason, usage)` / `AIFailure(kind, status)`, `AICancelToken`, `AIModelInfo`, `AICompletion` = `AIText` / `AIError` | Errors are values, never exceptions; `collect()` turns a stream into one `AICompletion` |
 | `ExportFormat` | `pdf, csv, json` | — |
 
 ### 8.2 Repository contracts
@@ -665,7 +670,7 @@ Riverpod.
 | `ScheduleRepository` | `watchBlocksForDay`, `getBlocksForDay`, `watchDayPlan` (blocks joined with their tasks, one query) | `createBlock`, `updateBlock`, `deleteBlock` |
 | `FocusSessionRepository` | `watchActiveSession`, `getActiveSession`, `watchSessionsForTask`, `watchTodaysSessions`, `watchSessionsInRange` | `startSession`, `pauseSession`, `resumeSession`, `extendSession`, `completeSession → bool` |
 | `AIRepository` | `watchProviders`, `watchActiveProvider`, `watchConversations`, `watchMessages`, `hasKey` | `saveProviderKey`, `setActiveProvider`, `removeProviderKey`, `createConversation`, `deleteConversation`, `sendMessage`, `completeOnce` |
-| `AIClient` (strategy) | — | `sendMessage(config, apiKey, prompt, history) → AIResponse` |
+| `AIClient` (strategy, v2) | `listModels(config, apiKey)` | `send(AIRequest, {cancel}) → Stream<AIEvent>` |
 
 ### 8.3 Pure services
 
@@ -693,16 +698,23 @@ Details of each algorithm are in [§15](#15-key-algorithms-and-functions).
 
 ### 9.2 AI vendor clients
 
-All four implement `AIClient`, share the app's single `Dio` instance,
-send the full conversation history each time (**unbounded**), and are
-**non-streaming**.
+All four extend `HttpAIClient` (`data/remote/ai_clients/http_ai_client.dart`),
+which owns the HTTP call, cancellation, failure mapping and the contract's
+event order; a vendor only builds its call and reads its reply and model
+list. They share the app's single `Dio` instance, send the full
+conversation history each time (**unbounded**, until K10), and are still
+**non-streaming** (one `AITextDelta`, then `AIDone`) until Phase 4.3. They
+send the system prompt the vendor's way, ask for JSON when requested
+(OpenAI `response_format`, Gemini `responseMimeType`, Ollama `format`,
+an instruction for Anthropic), and read stop reason (cut-off = B18) and
+token usage.
 
 | Client | Endpoint | Auth | Request shape | Notes |
 |---|---|---|---|---|
-| `AnthropicClient` | `POST https://api.anthropic.com/v1/messages` | `x-api-key`, `anthropic-version: 2023-06-01` | `messages[]`, `max_tokens: 1024` | Joins all `text` content blocks |
-| `OpenAIClient` | `POST https://api.openai.com/v1/chat/completions` | `Authorization: Bearer` | `messages[]` | `choices[0].message.content` |
-| `GeminiClient` | `POST …/v1beta/models/{model}:generateContent` | `x-goog-api-key` header (never a URL query parameter) | `contents[]` with `user` / `model` roles | Joins `candidates[0].content.parts[].text` |
-| `OllamaClient` | `POST {baseUrl}/api/chat` (default `http://localhost:11434`) | none | `messages[]`, `stream: false` | Tailored errors: LAN-IP hint on connection failure; "ollama pull" hint on 404 |
+| `AnthropicClient` | `POST https://api.anthropic.com/v1/messages`; models `GET /v1/models` | `x-api-key`, `anthropic-version: 2023-06-01` | `system`, `messages[]`, `max_tokens` | Joins all `text` content blocks |
+| `OpenAIClient` | `POST https://api.openai.com/v1/chat/completions`; models `GET /v1/models` | `Authorization: Bearer` | `system` message, `messages[]`, `max_completion_tokens` | `choices[0].message.content` |
+| `GeminiClient` | `POST …/v1beta/models/{model}:generateContent`; models `GET …/v1beta/models` (chat-capable only) | `x-goog-api-key` header (never a URL query parameter) | `systemInstruction`, `contents[]` with `user` / `model` roles, `generationConfig` | Joins `candidates[0].content.parts[].text` |
+| `OllamaClient` | `POST {baseUrl}/api/chat` (default `http://localhost:11434`); models `GET /api/tags` | none | `system` message, `messages[]`, `stream: false`, `options.num_predict` | 404 = model not pulled; the chat adds the LAN-IP hint when unreachable |
 
 Seeded default models (editable per provider in Settings):
 `claude-3-5-sonnet-20241022`, `gpt-4o-mini`, `gemini-1.5-flash`, `llama3.2`.

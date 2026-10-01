@@ -1,69 +1,65 @@
-import 'package:dio/dio.dart';
-
-import '../../../domain/entities/ai_message.dart';
+import '../../../domain/ai/ai_contract.dart';
 import '../../../domain/entities/ai_provider_config.dart';
-import '../../../domain/entities/ai_response.dart';
-import '../../../domain/repositories/ai_client.dart';
-import 'json_read.dart';
-import 'ai_error_mapper.dart';
+import 'http_ai_client.dart';
 
-class OpenAIClient implements AIClient {
-  OpenAIClient(this._dio);
+class OpenAIClient extends HttpAIClient {
+  OpenAIClient(super.dio);
 
-  final Dio _dio;
+  static const _base = 'https://api.openai.com/v1';
 
   @override
   AIProviderId get id => AIProviderId.openai;
 
-  @override
-  Future<AIResponse> sendMessage({
-    required AIProviderConfig config,
-    required String apiKey,
-    required String prompt,
-    required List<AIMessage> history,
-  }) async {
-    try {
-      final messages = [
-        ...history.map(
-          (m) => {
-            'role': m.role == AIMessageRole.user ? 'user' : 'assistant',
-            'content': m.content,
-          },
-        ),
-        {'role': 'user', 'content': prompt},
-      ];
+  Map<String, String> _headers(String apiKey) => {
+        'Authorization': 'Bearer $apiKey',
+        'Content-Type': 'application/json',
+      };
 
-      // Untyped on purpose: a 200 with an unexpected body must read as
-      // "empty response", not fail the cast and look like a network error.
-      final response = await _dio.post<Object?>(
-        'https://api.openai.com/v1/chat/completions',
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $apiKey',
-            'Content-Type': 'application/json',
-          },
-        ),
-        data: {
-          'model': config.defaultModel,
-          'messages': messages,
+  @override
+  VendorCall buildChat(AIRequest request) => (
+        url: '$_base/chat/completions',
+        headers: _headers(request.apiKey),
+        body: {
+          'model': request.config.defaultModel,
+          // max_tokens is deprecated, and refused by reasoning models.
+          'max_completion_tokens': request.maxOutputTokens,
+          'messages': [
+            if (request.system != null)
+              {'role': 'system', 'content': request.system},
+            ...chatTurns(request.history, request.prompt),
+          ],
+          if (request.format == AIResponseFormat.json)
+            'response_format': {'type': 'json_object'},
         },
       );
 
-      final data = jsonMap(response.data);
-      final choice = jsonMap(jsonList(data?['choices']).firstOrNull);
-      final text = jsonString(jsonMap(choice?['message'])?['content']);
-
-      if (text == null || text.isEmpty) {
-        return const AIResponse.error('OpenAI returned an empty response.');
-      }
-      return AIResponse(text);
-    } on DioException catch (e) {
-      return AIResponse.error(describeDioError(e, 'OpenAI'));
-    } catch (_) {
-      // No exception text in the bubble (K9): it's unreadable for users and
-      // can include request details.
-      return const AIResponse.error(
-          'Something went wrong talking to OpenAI. Please try again.');
-    }
+  @override
+  VendorReply? readChat(Map<String, Object?>? body) {
+    final choice = jsonMap(jsonList(body?['choices']).firstOrNull);
+    final text = jsonString(jsonMap(choice?['message'])?['content']);
+    if (text == null) return null;
+    final usage = jsonMap(body?['usage']);
+    return (
+      text: text,
+      stopReason: switch (jsonString(choice?['finish_reason'])) {
+        'stop' => AIStopReason.complete,
+        'length' => AIStopReason.maxTokens,
+        _ => AIStopReason.other,
+      },
+      usage: AIUsage(
+        inputTokens: jsonInt(usage?['prompt_tokens']),
+        outputTokens: jsonInt(usage?['completion_tokens']),
+      ),
+    );
   }
+
+  @override
+  VendorCall buildModels(AIProviderConfig config, String apiKey) =>
+      (url: '$_base/models', headers: _headers(apiKey), body: null);
+
+  @override
+  List<AIModelInfo> readModels(Map<String, Object?>? body) => [
+        for (final m in jsonList(body?['data']).map(jsonMap))
+          if (jsonString(m?['id']) case final id?) AIModelInfo(id),
+      ];
 }

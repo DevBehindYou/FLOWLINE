@@ -653,5 +653,84 @@
   "deleteThisOccurrence": "Only this day",
   "deleteThisAndFollowing": "This day and all after it",
   "repeatingBlock": "Repeating block",
-  "reorderSubtask": "Drag to reorder"
+  "reorderSubtask": "Drag to reorder",
+  "aiProviderGeneric": "the AI provider",
+  "aiErrorInvalidKey": "That API key was rejected by {vendor}.",
+  "@aiErrorInvalidKey": {
+    "placeholders": {
+      "vendor": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrorRateLimited": "{vendor} rate-limited this request — try again shortly.",
+  "@aiErrorRateLimited": {
+    "placeholders": {
+      "vendor": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrorServer": "{vendor} returned an error (HTTP {status}).",
+  "@aiErrorServer": {
+    "placeholders": {
+      "vendor": {
+        "type": "String"
+      },
+      "status": {
+        "type": "int"
+      }
+    }
+  },
+  "aiErrorUnreachable": "Couldn't reach {vendor} — check your connection.",
+  "@aiErrorUnreachable": {
+    "placeholders": {
+      "vendor": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrorOllamaUnreachable": "Couldn't reach Ollama at {url}. If it's running on a computer, use that computer's LAN IP here, not \"localhost\" — on a phone, localhost means the phone itself.",
+  "@aiErrorOllamaUnreachable": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrorEmpty": "{vendor} returned an empty response.",
+  "@aiErrorEmpty": {
+    "placeholders": {
+      "vendor": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrorModelNotFound": "Ollama responded, but that model isn't pulled yet. Run: ollama pull {model}",
+  "@aiErrorModelNotFound": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrorMissingKey": "No API key saved for {vendor} yet — add one in Settings.",
+  "@aiErrorMissingKey": {
+    "placeholders": {
+      "vendor": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrorNoProvider": "No AI provider is active — connect one in Settings.",
+  "aiStopped": "Stopped.",
+  "aiErrorInterrupted": "No reply — Flowline was closed before it arrived. Send your message again.",
+  "aiErrorUnknown": "Something went wrong talking to {vendor}. Please try again.",
+  "@aiErrorUnknown": {
+    "placeholders": {
+      "vendor": {
+        "type": "String"
+      }
+    }
+  }
 }

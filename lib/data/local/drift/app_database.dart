@@ -10,6 +10,7 @@ import 'package:sqlite3/sqlite3.dart' show sqlite3;
 // The generated part file shares this library's imports, so every enum a
 // table stores via intEnum<T>() must be imported here, not only in the
 // table's own file.
+import '../../../domain/ai/ai_contract.dart';
 import '../../../domain/entities/ai_message.dart';
 import '../../../domain/entities/ai_provider_config.dart';
 import '../../../domain/entities/focus_session.dart';
@@ -50,7 +51,7 @@ class AppDatabase extends _$AppDatabase {
   // Every bump: add a step below, then `dart run drift_dev make-migrations`
   // and commit drift_schemas/ and test/drift/ (rule R2).
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -100,6 +101,13 @@ class AppDatabase extends _$AppDatabase {
               ));
               await m.createTable(schema.scheduleBlockExceptions);
               await m.create(schema.scheduleBlocksSeriesOccurrence);
+            },
+            // Typed AI errors (Phase 4): the failure kind and status of an
+            // error reply.
+            from6To7: (m, schema) async {
+              await m.addColumn(schema.aiMessages, schema.aiMessages.errorKind);
+              await m.addColumn(
+                  schema.aiMessages, schema.aiMessages.errorStatus);
             },
           )(m, from, to);
           await _assertForeignKeysIntact();

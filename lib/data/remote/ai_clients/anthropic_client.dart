@@ -1,75 +1,73 @@
-import 'package:dio/dio.dart';
-
-import '../../../domain/entities/ai_message.dart';
+import '../../../domain/ai/ai_contract.dart';
 import '../../../domain/entities/ai_provider_config.dart';
-import '../../../domain/entities/ai_response.dart';
-import '../../../domain/repositories/ai_client.dart';
-import 'json_read.dart';
-import 'ai_error_mapper.dart';
+import 'http_ai_client.dart';
 
-class AnthropicClient implements AIClient {
-  AnthropicClient(this._dio);
+class AnthropicClient extends HttpAIClient {
+  AnthropicClient(super.dio);
 
-  final Dio _dio;
+  static const _base = 'https://api.anthropic.com/v1';
 
   @override
   AIProviderId get id => AIProviderId.anthropic;
 
+  Map<String, String> _headers(String apiKey) => {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      };
+
   @override
-  Future<AIResponse> sendMessage({
-    required AIProviderConfig config,
-    required String apiKey,
-    required String prompt,
-    required List<AIMessage> history,
-  }) async {
-    try {
-      final messages = [
-        ...history.map(
-          (m) => {
-            'role': m.role == AIMessageRole.user ? 'user' : 'assistant',
-            'content': m.content,
-          },
-        ),
-        {'role': 'user', 'content': prompt},
-      ];
-
-      // Untyped on purpose: a 200 with an unexpected body must read as
-      // "empty response", not fail the cast and look like a network error.
-      final response = await _dio.post<Object?>(
-        'https://api.anthropic.com/v1/messages',
-        options: Options(
-          headers: {
-            'x-api-key': apiKey,
-            'anthropic-version': '2023-06-01',
-            'content-type': 'application/json',
-          },
-        ),
-        data: {
-          'model': config.defaultModel,
-          'max_tokens': 1024,
-          'messages': messages,
-        },
-      );
-
-      final data = jsonMap(response.data);
-      final text = jsonList(data?['content'])
-          .map(jsonMap)
-          .whereType<Map<String, Object?>>()
-          .where((block) => block['type'] == 'text')
-          .map((block) => jsonString(block['text']) ?? '')
-          .join();
-
-      if (text.isEmpty) {
-        return const AIResponse.error('Anthropic returned an empty response.');
-      }
-      return AIResponse(text);
-    } on DioException catch (e) {
-      return AIResponse.error(describeDioError(e, 'Anthropic'));
-    } catch (_) {
-      // No exception text in the bubble (K9): it's unreadable for users and
-      // can include request details.
-      return const AIResponse.error(
-          'Something went wrong talking to Anthropic. Please try again.');
+  VendorCall buildChat(AIRequest request) {
+    var system = request.system;
+    if (request.format == AIResponseFormat.json) {
+      // No JSON mode in the Messages API: ask for it in the instructions.
+      system = [system, 'Reply with one JSON value only, no prose.']
+          .whereType<String>()
+          .join('\n\n');
     }
+    return (
+      url: '$_base/messages',
+      headers: _headers(request.apiKey),
+      body: {
+        'model': request.config.defaultModel,
+        'max_tokens': request.maxOutputTokens,
+        if (system != null) 'system': system,
+        'messages': chatTurns(request.history, request.prompt),
+      },
+    );
   }
+
+  @override
+  VendorReply? readChat(Map<String, Object?>? body) {
+    final text = jsonList(body?['content'])
+        .map(jsonMap)
+        .whereType<Map<String, Object?>>()
+        .where((block) => block['type'] == 'text')
+        .map((block) => jsonString(block['text']) ?? '')
+        .join();
+    final usage = jsonMap(body?['usage']);
+    return (
+      text: text,
+      stopReason: switch (jsonString(body?['stop_reason'])) {
+        'end_turn' || 'stop_sequence' => AIStopReason.complete,
+        'max_tokens' => AIStopReason.maxTokens,
+        _ => AIStopReason.other,
+      },
+      usage: AIUsage(
+        inputTokens: jsonInt(usage?['input_tokens']),
+        outputTokens: jsonInt(usage?['output_tokens']),
+      ),
+    );
+  }
+
+  @override
+  VendorCall buildModels(AIProviderConfig config, String apiKey) =>
+      (url: '$_base/models', headers: _headers(apiKey), body: null);
+
+  @override
+  List<AIModelInfo> readModels(Map<String, Object?>? body) => [
+        for (final m in jsonList(body?['data']).map(jsonMap))
+          if (jsonString(m?['id']) case final id?)
+            AIModelInfo(id, displayName: jsonString(m?['display_name'])),
+      ];
 }

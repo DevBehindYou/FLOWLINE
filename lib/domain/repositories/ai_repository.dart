@@ -1,7 +1,7 @@
+import '../ai/ai_contract.dart';
 import '../entities/ai_conversation.dart';
 import '../entities/ai_message.dart';
 import '../entities/ai_provider_config.dart';
-import '../entities/ai_response.dart';
 
 abstract interface class AIRepository {
   Stream<List<AIProviderConfig>> watchProviders();
@@ -29,12 +29,20 @@ abstract interface class AIRepository {
   /// Persists the user's message, calls the active client, and persists
   /// the reply (or a visible error message) — see
   /// `AIRepositoryImpl.sendMessage` for the exact sequencing.
-  Future<void> sendMessage(
-      {required int conversationId, required String prompt});
+  /// [cancel] stops the request; the reply then reads "Stopped".
+  Future<void> sendMessage({
+    required int conversationId,
+    required String prompt,
+    AICancelToken? cancel,
+  });
 
   /// A single request/response with no conversation history and nothing
   /// persisted to Drift — for features (like schedule conflict
   /// resolution) that need a one-off AI answer without adding noise to
   /// the user's visible Assistant chat.
-  Future<AIResponse> completeOnce({required String prompt});
+  Future<AICompletion> completeOnce({
+    required String prompt,
+    String? system,
+    AIResponseFormat format = AIResponseFormat.text,
+  });
 }

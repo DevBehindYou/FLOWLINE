@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 
 import 'app_localizations.dart';
 
+export 'ai_failure_text.dart';
 export 'app_localizations.dart';
 export 'enum_labels.dart';
 export 'formats.dart';
