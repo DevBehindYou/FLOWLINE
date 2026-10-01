@@ -467,7 +467,7 @@ Tick these in the PR that closes each item.
 - [x] Block edit/delete + "Edit times" hand-off (D4, K15)
 - [x] Recurrence (schema v6; migrations moved to drift's step-by-step helper)
 - [x] Full task form, overdue state, undo (B11 required)
-- [ ] Task Detail session history (done) + subtask reorder
+- [x] Task Detail session history + subtask reorder
 - [x] Session Summary, Skip, custom durations, haptics, notification deep link (B24)
 - [x] Appearance, Notifications, Data & Privacy settings
 - [x] Onboarding + splash

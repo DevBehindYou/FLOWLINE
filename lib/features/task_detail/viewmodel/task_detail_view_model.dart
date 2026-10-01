@@ -44,6 +44,9 @@ class TaskDetailActions extends _$TaskDetailActions {
     return ref.read(taskRepositoryProvider).setSubtaskStatus(subtask.id, next);
   }
 
+  Future<void> reorderSubtasks(int taskId, List<int> subtaskIds) =>
+      ref.read(taskRepositoryProvider).reorderSubtasks(taskId, subtaskIds);
+
   Future<void> deleteSubtask(int id) {
     return ref.read(taskRepositoryProvider).deleteSubtask(id);
   }

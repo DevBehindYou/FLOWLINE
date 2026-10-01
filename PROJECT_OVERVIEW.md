@@ -869,11 +869,15 @@ For each screen: purpose, what it shows, actions, and its state model.
 ### 12.6 Task Detail — `TaskDetailScreen` (full screen)
 - App bar: edit (opens task sheet), delete (confirmation dialog, then pops).
 - Priority + status chips, title, notes, **Start Focus Session**.
+- Due date (overdue in the overdue colour).
 - Subtasks: checkbox list (strike-through when done), "N of M pomodoros
   logged", ▶ per subtask (links the focus session to the subtask), ✕ to
-  delete (no confirmation), "Add subtask" dialog.
+  delete (with confirmation), a drag handle to reorder (screen readers
+  get ReorderableListView's move actions), "Add subtask" dialog. New
+  subtasks go last; order is stored in `subtasks.order_index`.
+- Focus history: "N sessions · M min total", then each focus session
+  (date, time, minutes, "ended early").
 - States: loading, error, "This task no longer exists."
-- Not present vs. spec: the task's focus-session history.
 
 ### 12.7 Focus — `FocusScreen`
 - **Idle (`_IdleView`):** optional linked-task chip (dismissible),
@@ -1422,7 +1426,7 @@ checklist; Phase 1 is done (237 tests; 92% line coverage of domain + data);
 Phase 2 (Flutter 3.47 / Riverpod 3 / Drift 2.35) is done; Phase 3 is in
 progress (block editing, task form, settings, Session Summary, onboarding
 and splash, fonts and design tokens, l10n scaffolding, adaptive layout, backlog paging and the single-query
-timeline, recurring blocks are done). The list
+timeline, recurring blocks, subtask reorder are done). The list
 below is the original scope
 roadmap, kept for reference.
 

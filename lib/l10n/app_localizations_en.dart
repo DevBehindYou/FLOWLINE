@@ -955,4 +955,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get repeatingBlock => 'Repeating block';
+
+  @override
+  String get reorderSubtask => 'Drag to reorder';
 }

@@ -38,6 +38,9 @@ abstract interface class TaskRepository {
     int plannedSprints = 1,
   });
   Future<void> setSubtaskStatus(int id, SubtaskStatus status);
+
+  /// Puts [taskId]'s subtasks in the order of [subtaskIds].
+  Future<void> reorderSubtasks(int taskId, List<int> subtaskIds);
   Future<void> deleteSubtask(int id);
 
   /// Called by the Focus Timer when a full (not ended-early) focus

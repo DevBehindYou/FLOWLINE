@@ -652,5 +652,6 @@
   "deleteRepeatingTitle": "Delete repeating block",
   "deleteThisOccurrence": "Only this day",
   "deleteThisAndFollowing": "This day and all after it",
-  "repeatingBlock": "Repeating block"
+  "repeatingBlock": "Repeating block",
+  "reorderSubtask": "Drag to reorder"
 }

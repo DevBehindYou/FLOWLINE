@@ -56,7 +56,12 @@ class TaskRepositoryImpl implements TaskRepository {
   Stream<List<Subtask>> watchSubtasks(int taskId) {
     final query = _db.select(_db.subtasks)
       ..where((s) => s.taskId.equals(taskId))
-      ..orderBy([(s) => OrderingTerm.asc(s.orderIndex)]);
+      // id breaks ties: subtasks created before ordering existed all
+      // have orderIndex 0, and keep their creation order.
+      ..orderBy([
+        (s) => OrderingTerm.asc(s.orderIndex),
+        (s) => OrderingTerm.asc(s.id),
+      ]);
     return query.watch().map((rows) => rows.map(_mapSubtask).toList());
   }
 
@@ -111,14 +116,38 @@ class TaskRepositoryImpl implements TaskRepository {
     required String title,
     int plannedSprints = 1,
   }) {
-    return _db.into(_db.subtasks).insert(
-          SubtasksCompanion.insert(
-            taskId: taskId,
-            title: title,
-            status: SubtaskStatus.todo,
-            plannedSprints: Value(plannedSprints),
-          ),
-        );
+    // Appended after the task's last subtask, in the same transaction as
+    // the read, so two quick adds can't take the same position.
+    return _db.transaction(() async {
+      final last = _db.subtasks.orderIndex.max();
+      final row = await (_db.selectOnly(_db.subtasks)
+            ..addColumns([last])
+            ..where(_db.subtasks.taskId.equals(taskId)))
+          .getSingle();
+      final next = (row.read(last) ?? -1) + 1;
+      return _db.into(_db.subtasks).insert(
+            SubtasksCompanion.insert(
+              taskId: taskId,
+              title: title,
+              status: SubtaskStatus.todo,
+              plannedSprints: Value(plannedSprints),
+              orderIndex: Value(next),
+            ),
+          );
+    });
+  }
+
+  @override
+  Future<void> reorderSubtasks(int taskId, List<int> subtaskIds) {
+    return _db.transaction(() async {
+      for (final (index, id) in subtaskIds.indexed) {
+        // Scoped to the task, so a stray id can't move another task's
+        // subtask.
+        await (_db.update(_db.subtasks)
+              ..where((s) => s.id.equals(id) & s.taskId.equals(taskId)))
+            .write(SubtasksCompanion(orderIndex: Value(index)));
+      }
+    });
   }
 
   @override

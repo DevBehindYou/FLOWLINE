@@ -1647,6 +1647,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Repeating block'**
   String get repeatingBlock;
+
+  /// No description provided for @reorderSubtask.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to reorder'**
+  String get reorderSubtask;
 }
 
 class _AppLocalizationsDelegate

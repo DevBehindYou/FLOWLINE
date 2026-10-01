@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/async/run_action.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../domain/entities/focus_session.dart';
 import '../../../domain/entities/subtask.dart';
@@ -235,55 +238,79 @@ class _SubtaskList extends ConsumerWidget {
           return Text(context.l10n.subtasksEmpty,
               style: Theme.of(context).textTheme.bodySmall);
         }
-        return Column(
-          children: [
-            for (final subtask in subtasks)
-              CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                value: subtask.status == SubtaskStatus.done,
-                onChanged: (_) => actions.toggleSubtask(subtask),
-                title: Text(
-                  subtask.title,
-                  style: subtask.status == SubtaskStatus.done
-                      ? const TextStyle(decoration: TextDecoration.lineThrough)
-                      : null,
-                ),
-                subtitle: Text(
-                  context.l10n.subtaskSprints(
-                      subtask.completedSprints, subtask.plannedSprints),
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                secondary: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.play_circle_outline, size: 20),
-                      tooltip: context.l10n.startFocusSession,
-                      onPressed: () => _startFocus(
-                        context,
-                        ref,
-                        taskId: taskId,
-                        subtaskId: subtask.id,
-                        label: subtask.title,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close, size: 18),
-                      tooltip: context.l10n.deleteSubtask,
-                      onPressed: () async {
-                        final confirmed = await confirmDestructive(
-                          context,
-                          title: context.l10n.deleteSubtaskTitle,
-                          message:
-                              context.l10n.deleteSubtaskMessage(subtask.title),
-                        );
-                        if (confirmed) await actions.deleteSubtask(subtask.id);
-                      },
-                    ),
-                  ],
-                ),
+        // Drag by the handle, or use the screen reader's move actions,
+        // which ReorderableListView adds to every item.
+        return ReorderableListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          buildDefaultDragHandles: false,
+          itemCount: subtasks.length,
+          // onReorderItem gives the index after removal, ready to insert.
+          onReorderItem: (from, to) {
+            final ids = [for (final s in subtasks) s.id];
+            ids.insert(to, ids.removeAt(from));
+            unawaited(
+                runAction(context, () => actions.reorderSubtasks(taskId, ids)));
+          },
+          itemBuilder: (context, index) {
+            final subtask = subtasks[index];
+            return CheckboxListTile(
+              key: ValueKey(subtask.id),
+              contentPadding: EdgeInsets.zero,
+              value: subtask.status == SubtaskStatus.done,
+              onChanged: (_) => actions.toggleSubtask(subtask),
+              title: Text(
+                subtask.title,
+                style: subtask.status == SubtaskStatus.done
+                    ? const TextStyle(decoration: TextDecoration.lineThrough)
+                    : null,
               ),
-          ],
+              subtitle: Text(
+                context.l10n.subtaskSprints(
+                    subtask.completedSprints, subtask.plannedSprints),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              secondary: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.play_circle_outline, size: 20),
+                    tooltip: context.l10n.startFocusSession,
+                    onPressed: () => _startFocus(
+                      context,
+                      ref,
+                      taskId: taskId,
+                      subtaskId: subtask.id,
+                      label: subtask.title,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 18),
+                    tooltip: context.l10n.deleteSubtask,
+                    onPressed: () async {
+                      final confirmed = await confirmDestructive(
+                        context,
+                        title: context.l10n.deleteSubtaskTitle,
+                        message:
+                            context.l10n.deleteSubtaskMessage(subtask.title),
+                      );
+                      if (confirmed) await actions.deleteSubtask(subtask.id);
+                    },
+                  ),
+                  // No Tooltip here: its long-press would win the gesture
+                  // from a finger that rests before dragging.
+                  ReorderableDragStartListener(
+                    index: index,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Icon(Icons.drag_indicator,
+                          size: 20, semanticLabel: context.l10n.reorderSubtask),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
         );
       },
     );

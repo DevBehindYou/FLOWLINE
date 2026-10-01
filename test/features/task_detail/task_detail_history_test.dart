@@ -4,6 +4,8 @@ import 'package:flowline/data/repositories/task_repository_impl.dart';
 import 'package:flowline/domain/entities/focus_session.dart';
 import 'package:flowline/domain/entities/task.dart';
 import 'package:flowline/features/task_detail/view/task_detail_screen.dart';
+import 'package:flutter/gestures.dart' show kLongPressTimeout;
+import 'package:flutter/material.dart' show Icons, Scrollable;
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/pump_app.dart';
@@ -45,5 +47,41 @@ void main() {
     await pumpScreen(tester, db: db, child: TaskDetailScreen(taskId: id));
     await tester.scrollUntilVisible(find.text('No focus sessions yet.'), 200);
     expect(find.text('No focus sessions yet.'), findsOneWidget);
+  });
+
+  testWidgets('subtasks can be reordered by dragging the handle',
+      (tester) async {
+    final id = (await tester.runAsync(() async {
+      final repo = TaskRepositoryImpl(db);
+      final task =
+          await repo.createTask(title: 'Write', priority: TaskPriority.high);
+      for (final t in ['Outline', 'Draft', 'Polish']) {
+        await repo.createSubtask(taskId: task, title: t);
+      }
+      return task;
+    }))!;
+    await pumpScreen(tester, db: db, child: TaskDetailScreen(taskId: id));
+    // The subtask list is a (non-scrolling) list inside the page's list.
+    await tester.scrollUntilVisible(find.text('Polish'), 200,
+        scrollable: find.byType(Scrollable).first);
+
+    // Drag "Outline" below "Polish".
+    final handle = find.byIcon(Icons.drag_indicator).first;
+    final gesture = await tester.startGesture(tester.getCenter(handle));
+    await tester.pump(kLongPressTimeout);
+    // In steps, as a finger moves, so the drag starts before the page's
+    // own scrolling claims the gesture.
+    for (var i = 0; i < 15; i++) {
+      await gesture.moveBy(const Offset(0, 20));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    final order = (await tester
+            .runAsync(() => TaskRepositoryImpl(db).watchSubtasks(id).first))!
+        .map((s) => s.title)
+        .toList();
+    expect(order, ['Draft', 'Polish', 'Outline']);
   });
 }
