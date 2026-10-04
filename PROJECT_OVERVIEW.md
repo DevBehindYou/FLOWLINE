@@ -16,8 +16,10 @@
 > **How it relates to the other docs:** `docs/01-architecture.md`,
 > `docs/02-ux-ui-spec.md` and `docs/03-scope-architecture-dfd-v2.md` are
 > the original *plans*. `docs/history.md` is the phase-by-phase build log
-(it used to be `README.md`). `docs/04-build-and-optimization-plan.md` is
-the forward plan, with a second defect register (B1–B30). This
+(it used to be `README.md`). `docs/05-atomic-assist-plan.md` is the
+> forward plan (the personal assistant and the Atomic UI rebuild);
+> `docs/04-build-and-optimization-plan.md` keeps the rules R1–R21, the
+> defect register (B1–B31) and the finished phases. This
 > file describes what the code *actually does today* and records where it
 > differs from the plans (see [§17 Documentation drift](#17-documentation-drift)).
 
@@ -1434,8 +1436,13 @@ from the latest successful run on a phone and check:
 
 ## 22. Roadmap
 
-The ordered plan now lives in `docs/04-build-and-optimization-plan.md`
-(Phases 0–7 with exit gates, plus a release track). Phase 0 is done apart
+The forward plan is `docs/05-atomic-assist-plan.md` (Phases A–J: the
+Atomic design system and UI rebuild, AI contract v3 with tools, the
+assistant core with its ledger and Inbox, reminders, people, lists,
+voice, proactive suggestions, memory, money, travel). None of it is
+built yet. It folds in the open items of `docs/04-build-and-optimization-plan.md`
+(Phases 0–7 with exit gates, plus a release track), whose status follows.
+Phase 4 is done through 4.3 (AIClient v2, model registry, streaming). Phase 0 is done apart
 from the owner-only step (adding the signing secrets) and the device
 checklist; Phase 1 is done (237 tests; 92% line coverage of domain + data);
 Phase 2 (Flutter 3.47 / Riverpod 3 / Drift 2.35) is done; Phase 3 is in

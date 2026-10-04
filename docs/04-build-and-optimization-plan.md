@@ -1,5 +1,10 @@
 # Flowline — Build & Optimization Plan (v1)
 
+> **Superseded as the forward plan** by `05-atomic-assist-plan.md` (the app
+> is now Atomic Assist). This document still holds the rules R1–R21, the
+> defect register and the record of Phases 0–4.3; docs/05 §36 says where
+> each open item here went.
+
 *Written 2026-10-01 against commit `d8fcf62`. This plan says what to build next, in what order, and the rules that keep the work from breaking things that already work.*
 
 > **How this relates to the other docs.** `01-architecture.md`, `02-ux-ui-spec.md` and
