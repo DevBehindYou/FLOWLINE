@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/async/run_action.dart';
 import '../../core/providers.dart';
+import '../../design/atomic.dart';
 import '../settings/viewmodel/settings_view_model.dart';
 import '../../l10n/l10n.dart';
 
@@ -114,7 +115,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         child: AbsorbPointer(
           absorbing: _busy,
           child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
+            duration: context.atomicMotion.enter,
             child: step,
           ),
         ),

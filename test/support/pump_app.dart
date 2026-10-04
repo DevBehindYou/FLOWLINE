@@ -1,6 +1,6 @@
 import 'package:atomic_assist/core/providers.dart';
 import 'package:atomic_assist/core/riverpod_config.dart';
-import 'package:atomic_assist/core/theme/app_theme.dart';
+import 'package:atomic_assist/design/atomic.dart';
 import 'package:atomic_assist/data/local/drift/app_database.dart';
 import 'package:atomic_assist/l10n/l10n.dart';
 import 'package:flutter/material.dart';
@@ -24,8 +24,8 @@ Widget _app({
       debugShowCheckedModeBanner: false,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
+      theme: AtomicTheme.light(),
+      darkTheme: AtomicTheme.dark(),
       themeMode: themeMode,
       home: child,
     ),

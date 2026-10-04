@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/app_theme.dart';
+import '../../../design/atomic.dart';
 import '../../../domain/ai/ai_contract.dart';
 import '../../../domain/entities/ai_provider_config.dart';
 import '../../../domain/services/ai_settings_validation.dart';
@@ -267,7 +267,7 @@ class _AddEditAiProviderSheetState
                       : l10n.aiFailure(_testFailure!, widget.config),
                   style: TextStyle(
                     color: _testFailure == null
-                        ? AtomicSemanticColors.statusDone
+                        ? context.atomic.palette.accentText
                         : Theme.of(context).colorScheme.error,
                   ),
                 ),

@@ -104,9 +104,9 @@ Map<String, String> get backupResourceFiles => {
 // the first Flutter frame and the first screen are one continuous colour
 // (spec §5.1). They are whole files the app owns rather than patches,
 // so a template change can't silently drop them. Keep the colours equal
-// to AppTheme's surfaces (test/tool/android_patches_test.dart checks).
-const splashColorLight = '#FAF8FF';
-const splashColorDark = '#0F1117';
+// to AtomicTheme's backgrounds (test/tool/android_patches_test.dart checks).
+const splashColorLight = '#F4F5F1';
+const splashColorDark = '#15171B';
 
 String _colorsXml(String color) => '<?xml version="1.0" encoding="utf-8"?>\n'
     '<resources>\n'

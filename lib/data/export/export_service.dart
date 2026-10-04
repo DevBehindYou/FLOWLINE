@@ -40,8 +40,9 @@ class ExportService {
 
   static Future<PdfFonts> _pdfFonts() async => PdfFonts(
         regular: pw.Font.ttf(
-            await rootBundle.load('assets/fonts/Inter-Regular.ttf')),
-        bold: pw.Font.ttf(await rootBundle.load('assets/fonts/Inter-Bold.ttf')),
+            await rootBundle.load('assets/fonts/HankenGrotesk-Regular.ttf')),
+        bold: pw.Font.ttf(
+            await rootBundle.load('assets/fonts/HankenGrotesk-Bold.ttf')),
       );
 
   Future<void> shareCsv(

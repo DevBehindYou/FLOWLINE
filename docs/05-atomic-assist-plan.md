@@ -1649,7 +1649,9 @@ harness (light/dark × 1x/2x text); accessibility labels added in Phase 1.
 | DS-12 | No mascot in v1 (Atomi is Atomic Notes'); owner decision | §39 |
 | DS-13 | Material 3 stays the base (`useMaterial3: true`) with every component theme set from tokens; custom widgets only where M3 can't express it (hard shadows, ink pill nav, pressed translate) | Less code, platform behaviours kept |
 | DS-14 | App button labels in Display 18–20 sp (system §9.1, app column); small pill buttons in mono | System |
-| DS-15 | Display text is upper-cased at render time by `AtomicText`, which passes the original string as `semanticsLabel` | U18 (Flutter has no text-transform) |
+| DS-15 | Mono labels are upper-cased at render time by `AtomicText.mono`, which passes the original string as `semanticsLabel`. Display text is **not** transformed: Bebas Neue's lower-case letters are capital shapes, so it already reads as capitals and screen readers get the words as written | U18 (Flutter has no text-transform). Changed during Phase A |
+| DS-16 | Dark theme: Material's `primary` is signal-light with ink on it (6.1:1), because Material uses `primary` for both text and fills and Signal fails as text on ink. Atomic components that need a Signal *fill* with white text read `palette.accent` | U2, U20. Added in Phase A |
+| DS-17 | Icons use Flutter's built-in outlined Material Icons behind `AtomicIcons`; the move to Material Symbols (`material_symbols_icons`) is one file when the package is verified | U16. Added in Phase A |
 
 ## 26. Tokens as code
 
@@ -2404,6 +2406,19 @@ developer working with AI help.
 | **H. Proactive** | Scanners, commitment detector, briefings + check-in + shutdown + weekly review, phone calendar via Calendar Provider (replaces docs/04 Phase 6), plan/re-plan, focus DND, flexible blocks | Scanner tests with fixed clocks; kill switch test; device: calendar events appear as locked blocks | 2.5 wk |
 | **I. Memory, money, travel, documents** | Schema v11–v12; FTS5; share target; OCR; bills/expenses; trips; documents + expiry; hand-offs with package visibility; What AA knows | FTS5 probe test; extraction validators; `android_patches` tests for queries/share target; device: each hand-off opens the right app | 2.5 wk |
 | **J. Voice 2** | Wake-word spike (§22.5) then build; Vosk and Whisper engines; conversation mode; meeting notes with consent | Spike report with measured numbers; consent widget test; device: 1 h hands-free battery measured | 3 wk |
+
+**Status** (ticked in the commit that finishes each phase):
+
+- [x] **A. Design foundation** — tokens, Atomic theme (light/dark), fonts bundled (Bebas Neue, Hanken Grotesk, JetBrains Mono; Inter and Space Grotesk removed), `AtomicText`, `AtomicIcons`, `AtomicMotion`, `AtomicTag`, contrast tests, design-rule ratchet, goldens regenerated. The old `AppTheme` and its off-brand semantic colours are already gone (planned for C, done early because nothing needed them)
+- [ ] B. Component library
+- [ ] C. Screen migration
+- [ ] D. AI contract v3
+- [ ] E. Assistant core
+- [ ] F. Reminders, lists, people
+- [ ] G. Voice 1
+- [ ] H. Proactive
+- [ ] I. Memory, money, travel, documents
+- [ ] J. Voice 2
 
 Total ≈ 20 weeks. The **release track** from docs/04 (AAB, Play signing,
 `targetSdk`, 16 KB pages, data safety form) runs alongside from Phase C;

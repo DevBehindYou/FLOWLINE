@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/async/run_action.dart';
-import '../../../core/theme/app_theme.dart';
+import '../../../design/atomic.dart';
 import '../../../core/providers.dart';
 import '../../../domain/entities/app_settings.dart';
 import '../../../domain/entities/focus_session.dart';
@@ -175,9 +175,11 @@ class _RunningViewState extends ConsumerState<_RunningView>
   Widget build(BuildContext context) {
     final session = widget.session;
     final color = switch (session.sessionType) {
-      FocusSessionType.focus => AtomicSemanticColors.sessionFocus,
-      FocusSessionType.shortBreak => AtomicSemanticColors.sessionShortBreak,
-      FocusSessionType.longBreak => AtomicSemanticColors.sessionLongBreak,
+      // Focus is the accented state; breaks are ink (docs/05 DS-6).
+      FocusSessionType.focus => context.atomic.palette.accentText,
+      FocusSessionType.shortBreak ||
+      FocusSessionType.longBreak =>
+        context.atomic.palette.text,
     };
 
     return _ScrollSafeColumn(

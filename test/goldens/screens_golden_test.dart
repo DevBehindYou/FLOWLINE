@@ -59,13 +59,14 @@ Future<void> _loadFonts() async {
     await loader.load();
   }
 
-  await family('Inter', [
-    for (final w in ['Regular', 'Medium', 'SemiBold', 'Bold'])
-      'assets/fonts/Inter-$w.ttf',
+  await family('BebasNeue', ['assets/fonts/BebasNeue-Regular.ttf']);
+  await family('HankenGrotesk', [
+    for (final w in ['Regular', 'Medium', 'Bold'])
+      'assets/fonts/HankenGrotesk-$w.ttf',
   ]);
-  await family('SpaceGrotesk', [
-    'assets/fonts/SpaceGrotesk-SemiBold.ttf',
-    'assets/fonts/SpaceGrotesk-Bold.ttf',
+  await family('JetBrainsMono', [
+    for (final w in ['Regular', 'Medium', 'Bold'])
+      'assets/fonts/JetBrainsMono-$w.ttf',
   ]);
   await family('MaterialIcons', ['fonts/MaterialIcons-Regular.otf']);
 }

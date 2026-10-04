@@ -61,11 +61,17 @@ void main() {
 
     await tester.longPress(find.text('Ship it'));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Priority: High'));
     await tester.tap(find.text('Priority: High'));
     await tester.pumpAndSettle();
 
     expect((await only(tester)).priority, TaskPriority.high);
-    expect(find.text('High'), findsOneWidget);
+    // Tags are mono caps on screen; TalkBack reads the word as written.
+    expect(find.text('HIGH'), findsOneWidget);
+    expect(
+        find.byWidgetPredicate(
+            (w) => w is Text && w.data == 'HIGH' && w.semanticsLabel == 'High'),
+        findsOneWidget);
   });
 
   testWidgets('long-press delete asks first', (tester) async {
@@ -74,6 +80,7 @@ void main() {
 
     await tester.longPress(find.text('Ship it'));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Delete'));
     await tester.tap(find.text('Delete'));
     await tester.pumpAndSettle();
     expect(find.text('Delete task?'), findsOneWidget);

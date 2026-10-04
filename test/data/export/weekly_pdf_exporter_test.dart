@@ -30,8 +30,8 @@ void main() {
   pw.Font font(String file) => pw.Font.ttf(
       ByteData.sublistView(File('assets/fonts/$file').readAsBytesSync()));
   final fonts = PdfFonts(
-    regular: font('Inter-Regular.ttf'),
-    bold: font('Inter-Bold.ttf'),
+    regular: font('HankenGrotesk-Regular.ttf'),
+    bold: font('HankenGrotesk-Bold.ttf'),
   );
 
   Future<List<int>> build(List<FocusSession> sessions) =>

@@ -16,8 +16,9 @@ void main() {
 /// The bundled fonts' SIL OFL 1.1 texts, shown on the Licenses page.
 Stream<LicenseEntry> _fontLicenses() async* {
   for (final (family, file) in [
-    ('Inter', 'assets/fonts/Inter-OFL.txt'),
-    ('Space Grotesk', 'assets/fonts/SpaceGrotesk-OFL.txt'),
+    ('Bebas Neue', 'assets/fonts/BebasNeue-OFL.txt'),
+    ('Hanken Grotesk', 'assets/fonts/HankenGrotesk-OFL.txt'),
+    ('JetBrains Mono', 'assets/fonts/JetBrainsMono-OFL.txt'),
   ]) {
     yield LicenseEntryWithLineBreaks(
         [family], await rootBundle.loadString(file));

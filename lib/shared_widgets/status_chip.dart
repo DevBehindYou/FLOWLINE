@@ -1,36 +1,22 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
-import '../core/theme/app_theme.dart';
+import '../design/atomic.dart';
 import '../domain/entities/task.dart';
 import '../l10n/l10n.dart';
 
+/// Status as words (docs/05 DS-5): in progress is the one accented state.
 class StatusChip extends StatelessWidget {
   const StatusChip({super.key, required this.status});
 
   final TaskStatus status;
 
   @override
-  Widget build(BuildContext context) {
-    final label = context.l10n.statusName(status);
-    final color = switch (status) {
-      TaskStatus.todo => AtomicSemanticColors.statusTodo,
-      TaskStatus.inProgress => AtomicSemanticColors.statusInProgress,
-      TaskStatus.done => AtomicSemanticColors.statusDone,
-    };
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w600,
-            ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => AtomicTag(
+        context.l10n.statusName(status),
+        tone: switch (status) {
+          TaskStatus.todo => AtomicTagTone.quiet,
+          TaskStatus.inProgress => AtomicTagTone.accent,
+          TaskStatus.done => AtomicTagTone.outline,
+        },
+      );
 }

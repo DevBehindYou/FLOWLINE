@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/providers.dart';
 import 'core/router/app_router.dart';
 import 'domain/entities/app_settings.dart';
-import 'core/theme/app_theme.dart';
+import 'design/atomic.dart';
 import 'core/time/current_day.dart';
 import 'l10n/l10n.dart';
 import 'features/focus_timer/viewmodel/focus_timer_view_model.dart';
@@ -87,8 +87,8 @@ class _AtomicAssistAppState extends ConsumerState<AtomicAssistApp> {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
+      theme: AtomicTheme.light(),
+      darkTheme: AtomicTheme.dark(),
       themeMode: switch (themeMode) {
         AppThemeMode.system => ThemeMode.system,
         AppThemeMode.light => ThemeMode.light,
@@ -108,7 +108,8 @@ class _SplashSurface extends StatelessWidget {
     final dark = View.of(context).platformDispatcher.platformBrightness ==
         Brightness.dark;
     return ColoredBox(
-      color: (dark ? AppTheme.dark() : AppTheme.light()).colorScheme.surface,
+      color:
+          (dark ? AtomicTheme.dark() : AtomicTheme.light()).colorScheme.surface,
     );
   }
 }

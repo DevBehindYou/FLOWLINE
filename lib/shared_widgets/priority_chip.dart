@@ -1,37 +1,22 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
-import '../core/theme/app_theme.dart';
+import '../design/atomic.dart';
 import '../domain/entities/task.dart';
 import '../l10n/l10n.dart';
 
+/// Priority as words with weight, not colour (docs/05 DS-4).
 class PriorityChip extends StatelessWidget {
   const PriorityChip({super.key, required this.priority});
 
   final TaskPriority priority;
 
   @override
-  Widget build(BuildContext context) {
-    final label = context.l10n.priorityName(priority);
-    final color = switch (priority) {
-      TaskPriority.low => AtomicSemanticColors.priorityLow,
-      TaskPriority.medium => AtomicSemanticColors.priorityMedium,
-      TaskPriority.high => AtomicSemanticColors.priorityHigh,
-    };
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: 0.4)),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w600,
-            ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => AtomicTag(
+        context.l10n.priorityName(priority),
+        tone: switch (priority) {
+          TaskPriority.low => AtomicTagTone.quiet,
+          TaskPriority.medium => AtomicTagTone.outline,
+          TaskPriority.high => AtomicTagTone.solid,
+        },
+      );
 }

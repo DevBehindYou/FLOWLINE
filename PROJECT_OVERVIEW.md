@@ -132,7 +132,7 @@ just the caret constraints in `pubspec.yaml`.
 | HTTP | `dio` | 5.11.1 | One shared instance; connect 15 s / send 30 s / receive 120 s timeouts. |
 | Notifications | `flutter_local_notifications`, `timezone`, `flutter_timezone` | 22.3.1 / 0.11.1 / 5.1.0 | Inexact `zonedSchedule`; UTC fallback for unknown zones. |
 | Charts | `fl_chart` | 1.2.0 | Insights bar chart. |
-| Export | `pdf`, `printing`, `share_plus`, `path_provider` | 3.13.1 / 5.15.1 / 13.3.0 / 2.1.6 | PDF embeds the bundled Inter, so dashes and Latin/Greek/Cyrillic text render (B25). |
+| Export | `pdf`, `printing`, `share_plus`, `path_provider` | 3.13.1 / 5.15.1 / 13.3.0 / 2.1.6 | PDF embeds the bundled Hanken Grotesk, so dashes and Latin/Greek/Cyrillic text render (B25). |
 | Formatting | `intl` | 0.20.3 | Date/time labels, through locale-aware skeletons in `lib/l10n/formats.dart`. |
 | Localization | `flutter_localizations` + gen-l10n | SDK | All UI text in `lib/l10n/app_en.arb` (English only so far); `context.l10n`. Generated Dart is committed. |
 | Lints | `flutter_lints` + strict analyzer settings | 6.0.0 | See `analysis_options.yaml` (rule R15). |
@@ -179,7 +179,6 @@ flowchart TB
     subgraph Core["Core (lib/core)"]
         P["providers.dart — DI via Riverpod"]
         RT["app_router.dart — go_router"]
-        TH["app_theme.dart — tokens → ThemeData"]
         NS["NotificationService"]
     end
 
@@ -209,10 +208,14 @@ lib/
 ├── main.dart                     ProviderScope + runApp (no async init)
 ├── app.dart                      AtomicAssistApp: MaterialApp.router, theme,
 │                                 focus-session reconciliation on start/resume
+├── design/                     Atomic design system (docs/05 Part VI)
+│   ├── tokens/                   colours, palette roles, spacing/radius/stroke/shadow, type, motion
+│   ├── theme/atomic_theme.dart   AtomicTheme.light()/dark() + AtomicThemeData (context.atomic)
+│   ├── foundation/               AtomicText, AtomicIcons
+│   └── components/               AtomicTag (more in Phase B)
 ├── core/
 │   ├── providers.dart            App-wide singletons (DB, repos, Dio, AI, export, notifications)
 │   ├── router/app_router.dart    Routes + 4-branch shell
-│   ├── theme/app_theme.dart      AtomicSemanticColors + AppTheme.light()/dark()
 │   └── notifications/notification_service.dart
 ├── domain/
 │   ├── entities/                 9 plain Dart classes/enums
@@ -1033,52 +1036,48 @@ For each screen: purpose, what it shows, actions, and its state model.
 - **Local-first** — no pull-to-refresh anywhere; Drift streams update the UI
   reactively.
 
-### 14.2 Theme implementation (`core/theme/app_theme.dart`)
+### 14.2 Theme implementation (`lib/design/`, Phase A)
 
-Both themes are explicit `ColorScheme`s with every role taken from
-the token files (no seed derivation), fed into one shared `_buildTheme`.
-Where the files disagree, `docs/design-tokens/DECISIONS.md` records the
-choice:
+The app is themed by the **Atomic Design System**
+(`docs/design-system/atomic-design-system.md`); the Flowline token files
+in `docs/design-tokens/` no longer apply. Everything visual comes from
+`lib/design/tokens/`:
 
-| Token role | Light | Dark | Source token |
-|---|---|---|---|
-| `primary` / `onPrimary` | `#3525CD` / white | `#C0C1FF` / `#1000A9` | `primary`, `on-primary` (dark `#6366F1` failed AA) |
-| `surface` / scaffold | `#FAF8FF` | `#0F1117` | light `surface`; dark `surface-canvas` |
-| `onSurface` | `#131B2E` | `#F1F5F9` | light `on-surface`; dark `text-primary` |
-| `outlineVariant`, card border, divider | `#C7C4D8` | `#282E3E` | light `outline-variant`; dark `surface-border` |
-| `surfaceContainer*` | token values | token values | `surface-container-*` |
-| Card and sheet background | `#FFFFFF` | `#1F2430` | light `surface-card`; dark `surface-container-high` |
-
-Component theming:
-
-| Component | Setting |
+| Token file | Contents |
 |---|---|
-| Card | `surface-card` (light) / `surfaceContainerHigh` (dark), elevation 0, radius **16**, 1 px border |
-| Input | filled `surfaceContainerHigh`, radius **8**, focused border `primary` 1.5 px |
-| ElevatedButton | `primary` / `onPrimary`, min height **48**, full width, radius **12** |
-| Bottom sheet | same as Card, top radius **24** |
-| NavigationBar | `surface` background, indicator `primary` at 16% opacity |
-| AppBar | `surface`, elevation 0, no surface tint |
+| `atomic_colors.dart` | Raw palette: ink `#15171B`, paper `#F4F5F1`, white, surface `#EDEEE8`, Signal `#3A2FF0` and its family, slate, line, error, energy colours, dark-theme cards `#1E2026` |
+| `atomic_palette.dart` | Semantic roles per theme (background, card, panel, text, textMuted, rule, hairline, accent, accentText, danger, shadow, inverse, track). Widgets read roles via `context.atomic.palette` |
+| `atomic_metrics.dart` | Spacing (4/8/12/16/22/24/32/44/56/74), radius (3/4/6/8/28/pill), strokes (1/1.5/2/4), hard offset shadows (0 blur), fixed sizes (48 dp targets) |
+| `atomic_type.dart` | Bebas Neue (display), Hanken Grotesk (body), JetBrains Mono (labels, ≥ 12 sp) |
+| `atomic_motion.dart` | 120/150/200/350/500 ms, ease; `AtomicMotion.of(context)` drops transforms under reduced motion |
 
-Radii map onto the token scale: 8 = `DEFAULT`, 12 = `md`, 16 = `lg`,
-24 = `xl`, 999 = `full` (chips).
+`AtomicTheme.light()/dark()` map these onto Material 3 (every component
+theme set; elevation 0; radius 4; 1 dp ink rule under app bars; 2 dp ink
+input and control borders; 28 dp sheet tops with a drag handle). Dark
+follows system §13.9: ink background, `#1E2026` cards, paper text,
+signal-light accent. Because Material uses `primary` both as text and as
+a fill, the dark `primary` is signal-light with ink on it (docs/05 DS-16).
 
-### 14.3 Semantic colours (identical in both themes)
+Contrast of every text role on every surface, in both themes, is tested
+(`test/design/atomic_theme_test.dart`), as are the system's two traps
+(Signal text on ink, orange text on paper).
 
-| Meaning | Colour |
-|---|---|
-| Priority low / medium / high | `#64748B` / `#F59E0B` / `#EF4444` |
-| Status todo / in progress / done | `#94A3B8` / `#6366F1` / `#10B981` |
-| Session focus / short break / long break | `#6366F1` / `#06B6D4` / `#8B5CF6` |
-| Feedback error / valid / overdue | `#F87171` / `#34D399` / `#FB7185` (defined, unused) |
+### 14.3 Status, priority and session colour
+
+There are no extra hues (system rule "one signal"). Priority and status
+are mono caps tags whose weight carries the meaning (`AtomicTag`): HIGH is
+ink-filled, MEDIUM ink-outlined, LOW hairline; IN PROGRESS is the one
+Signal-filled status. Overdue is `danger` text plus the word. Focus
+sessions draw in the accent, breaks in ink.
 
 ### 14.4 Typography
 
-**Space Grotesk** (600/700, display and headline) and **Inter** (400–700,
-everything else) are bundled under `assets/fonts` (SIL OFL 1.1, licences
-on the Licenses page). The text theme is the token type scale at its
-mobile sizes (`AppTheme.textTheme`). The timer uses `displayLarge` with
-tabular figures; stat cards use `headlineSmall`.
+**Bebas Neue** (display: titles, big numbers, app buttons; caps-only
+glyphs), **Hanken Grotesk** (400/500/700, body) and **JetBrains Mono**
+(400/500/700, labels) are bundled under `assets/fonts` (SIL OFL 1.1,
+licences on the Licenses page). `AtomicText.mono` upper-cases labels for
+display and keeps the written words as the semantics label for screen
+readers.
 
 ### 14.5 Theme mode
 

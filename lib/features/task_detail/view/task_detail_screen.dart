@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/async/run_action.dart';
-import '../../../core/theme/app_theme.dart';
+import '../../../design/atomic.dart';
 import '../../../domain/entities/focus_session.dart';
 import '../../../domain/entities/subtask.dart';
 import '../../../domain/entities/task.dart';
@@ -100,7 +100,7 @@ class TaskDetailScreen extends ConsumerWidget {
                     Icon(Icons.event_outlined,
                         size: 18,
                         color: dueStateOf(task) == DueState.overdue
-                            ? AtomicSemanticColors.feedbackOverdue
+                            ? context.atomic.palette.danger
                             : Theme.of(context).colorScheme.onSurfaceVariant),
                     const SizedBox(width: 6),
                     Expanded(

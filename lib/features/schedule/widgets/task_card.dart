@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/async/run_action.dart';
-import '../../../core/theme/app_theme.dart';
+import '../../../design/atomic.dart';
 import '../../../domain/entities/task.dart';
 import '../../../domain/services/task_due.dart';
 import '../../../shared_widgets/confirm_dialog.dart';
@@ -29,7 +29,7 @@ class TaskCard extends ConsumerWidget {
         context,
         alignLeft: true,
         icon: Icons.check,
-        color: AtomicSemanticColors.statusDone,
+        color: context.atomic.palette.accent,
       ),
       secondaryBackground: _swipeBackground(
         context,
@@ -64,7 +64,7 @@ class TaskCard extends ConsumerWidget {
           leading: IconButton(
             tooltip: isDone ? context.l10n.markNotDone : context.l10n.markDone,
             icon: Icon(isDone ? Icons.check_circle : Icons.circle_outlined),
-            color: isDone ? AtomicSemanticColors.statusDone : null,
+            color: isDone ? context.atomic.palette.accentText : null,
             onPressed: () => _toggleDone(context, ref),
           ),
           title: Text(
@@ -125,42 +125,45 @@ class TaskCard extends ConsumerWidget {
   Future<void> _showActions(BuildContext context, WidgetRef ref) async {
     final action = await showModalBottomSheet<_TaskAction>(
       context: context,
+      // Scrolls when the actions don't fit (short screens, large text).
       builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: Text(task.title,
-                  style: Theme.of(context).textTheme.titleMedium,
-                  overflow: TextOverflow.ellipsis),
-            ),
-            ListTile(
-              leading: const Icon(Icons.edit_outlined),
-              title: Text(context.l10n.edit),
-              onTap: () => Navigator.pop(context, _TaskAction.edit),
-            ),
-            if (task.status != TaskStatus.done)
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
               ListTile(
-                leading: const Icon(Icons.play_circle_outline),
-                title: Text(context.l10n.startFocusSession),
-                onTap: () => Navigator.pop(context, _TaskAction.focus),
+                title: Text(task.title,
+                    style: Theme.of(context).textTheme.titleMedium,
+                    overflow: TextOverflow.ellipsis),
               ),
-            for (final priority in TaskPriority.values)
-              if (priority != task.priority)
+              ListTile(
+                leading: const Icon(Icons.edit_outlined),
+                title: Text(context.l10n.edit),
+                onTap: () => Navigator.pop(context, _TaskAction.edit),
+              ),
+              if (task.status != TaskStatus.done)
                 ListTile(
-                  leading: const Icon(Icons.flag_outlined),
-                  title: Text(context.l10n
-                      .priorityOption(context.l10n.priorityName(priority))),
-                  onTap: () =>
-                      Navigator.pop(context, _TaskAction.priority(priority)),
+                  leading: const Icon(Icons.play_circle_outline),
+                  title: Text(context.l10n.startFocusSession),
+                  onTap: () => Navigator.pop(context, _TaskAction.focus),
                 ),
-            ListTile(
-              leading: Icon(Icons.delete_outline,
-                  color: Theme.of(context).colorScheme.error),
-              title: Text(context.l10n.delete),
-              onTap: () => Navigator.pop(context, _TaskAction.delete),
-            ),
-          ],
+              for (final priority in TaskPriority.values)
+                if (priority != task.priority)
+                  ListTile(
+                    leading: const Icon(Icons.flag_outlined),
+                    title: Text(context.l10n
+                        .priorityOption(context.l10n.priorityName(priority))),
+                    onTap: () =>
+                        Navigator.pop(context, _TaskAction.priority(priority)),
+                  ),
+              ListTile(
+                leading: Icon(Icons.delete_outline,
+                    color: Theme.of(context).colorScheme.error),
+                title: Text(context.l10n.delete),
+                onTap: () => Navigator.pop(context, _TaskAction.delete),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -246,7 +249,7 @@ class _DueLabel extends StatelessWidget {
     final (text, color) = switch (state) {
       DueState.overdue => (
           l10n.dueOverdue(l10n.monthDay(due)),
-          AtomicSemanticColors.feedbackOverdue
+          context.atomic.palette.danger
         ),
       DueState.dueToday => (
           l10n.dueToday(l10n.time(due)),

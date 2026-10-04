@@ -1,4 +1,4 @@
-import 'package:atomic_assist/core/theme/app_theme.dart';
+import 'package:atomic_assist/design/atomic.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -263,8 +263,8 @@ void main() {
         '#${(c.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
 
     test('matches the app theme surfaces, so launch has no colour jump', () {
-      expect(splashColorLight, hex(AppTheme.light().colorScheme.surface));
-      expect(splashColorDark, hex(AppTheme.dark().colorScheme.surface));
+      expect(splashColorLight, hex(AtomicTheme.light().colorScheme.surface));
+      expect(splashColorDark, hex(AtomicTheme.dark().colorScheme.surface));
     });
 
     test('every file is well-formed and uses the shared colour', () {

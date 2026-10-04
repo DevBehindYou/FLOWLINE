@@ -56,23 +56,27 @@ flutter:
   # SIL OFL 1.1; licence texts sit next to the files and are registered
   # with the LicenseRegistry in main.dart.
   fonts:
-    - family: Inter
+    - family: BebasNeue
       fonts:
-        - asset: assets/fonts/Inter-Regular.ttf
+        - asset: assets/fonts/BebasNeue-Regular.ttf
+    - family: HankenGrotesk
+      fonts:
+        - asset: assets/fonts/HankenGrotesk-Regular.ttf
           weight: 400
-        - asset: assets/fonts/Inter-Medium.ttf
+        - asset: assets/fonts/HankenGrotesk-Medium.ttf
           weight: 500
-        - asset: assets/fonts/Inter-SemiBold.ttf
-          weight: 600
-        - asset: assets/fonts/Inter-Bold.ttf
+        - asset: assets/fonts/HankenGrotesk-Bold.ttf
           weight: 700
-    - family: SpaceGrotesk
+    - family: JetBrainsMono
       fonts:
-        - asset: assets/fonts/SpaceGrotesk-SemiBold.ttf
-          weight: 600
-        - asset: assets/fonts/SpaceGrotesk-Bold.ttf
+        - asset: assets/fonts/JetBrainsMono-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/JetBrainsMono-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/JetBrainsMono-Bold.ttf
           weight: 700
 
   assets:
-    - assets/fonts/Inter-OFL.txt
-    - assets/fonts/SpaceGrotesk-OFL.txt
+    - assets/fonts/BebasNeue-OFL.txt
+    - assets/fonts/HankenGrotesk-OFL.txt
+    - assets/fonts/JetBrainsMono-OFL.txt

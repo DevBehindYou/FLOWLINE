@@ -12,7 +12,7 @@ import '../../domain/services/focus_stats_calculator.dart';
 /// it belongs with the other data-layer, package-specific concerns
 /// rather than pretending to be framework-free.
 ///
-/// The document embeds the app's own font (Inter, passed in as [PdfFonts])
+/// The document embeds the app's own body font (Hanken Grotesk, passed in as [PdfFonts])
 /// instead of the PDF built-in Helvetica, which only covers Latin-1 and
 /// drew dashes and non-Latin text as empty boxes (B25).
 /// The TrueType fonts a PDF is set in. Loaded by the caller (from the
