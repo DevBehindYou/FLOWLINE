@@ -15,26 +15,47 @@ typedef VendorCall = ({
   Object? body,
 });
 
-/// What a vendor reads back from a successful reply.
-typedef VendorReply = ({
-  String text,
-  AIStopReason stopReason,
-  AIUsage? usage,
-});
+/// How a vendor's streaming body is framed.
+enum StreamFraming {
+  /// Server-sent events: `data: {json}` lines (Anthropic, OpenAI, Gemini).
+  sse,
 
-/// The shared request/response/error handling for every HTTP vendor. A
-/// vendor subclass only says how to build its call and how to read its
-/// reply; failures, cancellation and the event order of the contract are
-/// handled here once.
+  /// One JSON object per line (Ollama).
+  ndjson,
+}
+
+/// What a vendor learns while reading a stream, besides the text.
+class StreamState {
+  AIStopReason stopReason = AIStopReason.complete;
+  int? inputTokens;
+  int? outputTokens;
+
+  /// Set when the vendor reports an error inside the stream.
+  AIFailure? failure;
+
+  AIUsage? get usage => inputTokens == null && outputTokens == null
+      ? null
+      : AIUsage(inputTokens: inputTokens, outputTokens: outputTokens);
+}
+
+/// The shared request/stream/error handling for every HTTP vendor. A
+/// vendor subclass only says how to build its call and how to read one
+/// chunk of its stream; failures, cancellation and the event order of the
+/// contract are handled here once.
 abstract class HttpAIClient implements AIClient {
   HttpAIClient(this.dio);
 
   final Dio dio;
 
+  StreamFraming get framing => StreamFraming.sse;
+
+  /// A streaming chat call.
   VendorCall buildChat(AIRequest request);
 
-  /// Null when the body has no usable text (reported as empty).
-  VendorReply? readChat(Map<String, Object?>? body);
+  /// The text in one decoded chunk (null or empty for none), recording
+  /// stop reason, usage or an in-stream error on [state]. Must not throw;
+  /// a throw counts as an unreadable chunk and is skipped.
+  String? readChunk(Map<String, Object?> chunk, StreamState state);
 
   VendorCall buildModels(AIProviderConfig config, String apiKey);
   List<AIModelInfo> readModels(Map<String, Object?>? body);
@@ -51,43 +72,73 @@ abstract class HttpAIClient implements AIClient {
     final dioCancel = CancelToken();
     unawaited(cancel?.whenCancelled.then((_) => dioCancel.cancel()));
     final call = buildChat(request);
-    final Response<Object?> response;
+    final state = StreamState();
+    var gotText = false;
     try {
-      // Untyped on purpose: a 200 with an unexpected body must read as
-      // "empty response", not fail a cast and look like a network error.
-      response = await dio.post<Object?>(
+      final response = await dio.post<ResponseBody>(
         call.url,
         data: call.body,
-        // Plain text, decoded below: a 200 whose body isn't JSON must be
-        // an empty response, not a decoder error that looks like a crash.
         options:
-            Options(headers: call.headers, responseType: ResponseType.plain),
+            Options(headers: call.headers, responseType: ResponseType.stream),
         cancelToken: dioCancel,
       );
+      final lines = response.data!.stream
+          .cast<List<int>>()
+          .transform(utf8.decoder)
+          .transform(const LineSplitter());
+      await for (final line in lines) {
+        final chunk = _chunk(line);
+        if (chunk == null) continue;
+        String? text;
+        try {
+          text = readChunk(chunk, state);
+        } catch (_) {
+          continue; // a vendor body is untrusted input
+        }
+        if (state.failure != null) {
+          // Text already shown stays; the reply just ends there.
+          yield gotText
+              ? const AIDone(stopReason: AIStopReason.other)
+              : state.failure!;
+          return;
+        }
+        if (text != null && text.isNotEmpty) {
+          gotText = true;
+          yield AITextDelta(text);
+        }
+      }
     } on DioException catch (e) {
-      yield e.type == DioExceptionType.cancel
-          ? const AIDone(stopReason: AIStopReason.cancelled)
-          : _failureFor(e);
+      if (e.type == DioExceptionType.cancel) {
+        yield const AIDone(stopReason: AIStopReason.cancelled);
+      } else {
+        // Dropped mid-reply: keep what arrived.
+        yield gotText
+            ? const AIDone(stopReason: AIStopReason.other)
+            : _failureFor(e);
+      }
       return;
     } catch (_) {
-      yield const AIFailure(AIFailureKind.unknown);
+      yield gotText
+          ? const AIDone(stopReason: AIStopReason.other)
+          : const AIFailure(AIFailureKind.unknown);
       return;
     }
+    yield gotText
+        ? AIDone(stopReason: state.stopReason, usage: state.usage)
+        : const AIFailure(AIFailureKind.emptyResponse);
+  }
 
-    final VendorReply? reply;
-    try {
-      reply = readChat(jsonMap(_decode(response.data)));
-    } catch (_) {
-      // A reader must never throw, but a vendor body is untrusted input.
-      yield const AIFailure(AIFailureKind.emptyResponse);
-      return;
+  /// One decoded JSON chunk from a line of the stream, or null for
+  /// framing, keep-alives, `[DONE]` and anything that isn't JSON.
+  Map<String, Object?>? _chunk(String line) {
+    var payload = line.trim();
+    if (framing == StreamFraming.sse) {
+      if (!payload.startsWith('data:')) return null;
+      payload = payload.substring(5).trim();
+      if (payload == '[DONE]') return null;
     }
-    if (reply == null || reply.text.isEmpty) {
-      yield const AIFailure(AIFailureKind.emptyResponse);
-      return;
-    }
-    yield AITextDelta(reply.text);
-    yield AIDone(stopReason: reply.stopReason, usage: reply.usage);
+    if (payload.isEmpty) return null;
+    return jsonMap(_decode(payload));
   }
 
   @override

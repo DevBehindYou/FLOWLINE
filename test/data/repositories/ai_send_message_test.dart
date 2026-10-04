@@ -91,6 +91,28 @@ void main() {
     expect(after.last.failure, isNull);
   });
 
+  test('streamed text shows up in the pending reply as it arrives', () async {
+    final events = StreamController<AIEvent>();
+    client.replies.add((_) => events.stream);
+    final sending =
+        repo.sendMessage(conversationId: conversationId, prompt: 'hi');
+    await pumpEventQueue();
+
+    // Writes are throttled; wait out the interval between chunks.
+    events.add(const AITextDelta('Hel'));
+    await Future<void>.delayed(const Duration(milliseconds: 150));
+    events.add(const AITextDelta('lo'));
+    await pumpEventQueue();
+    final during = (await messages()).last;
+    expect(during.isPending, isTrue);
+    expect(during.content, 'Hello');
+
+    events.add(const AIDone());
+    await events.close();
+    await sending;
+    expect((await messages()).last.isPending, isFalse);
+  });
+
   test('a failure is stored by kind and status, for the UI to word', () async {
     client.fail(AIFailureKind.serverError, status: 503);
     await repo.sendMessage(conversationId: conversationId, prompt: 'hi');

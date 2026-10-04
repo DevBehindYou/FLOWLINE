@@ -42,30 +42,45 @@ class ChatBubble extends StatelessWidget {
           color: bubbleColor,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: message.isPending
-            ? Semantics(
-                label: context.l10n.assistantWaiting,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: textColor),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(context.l10n.assistantThinking,
-                        style: TextStyle(
-                            color: textColor, fontStyle: FontStyle.italic)),
-                  ],
-                ),
+        child: message.isPending && message.content.isNotEmpty
+            // Streaming: the reply so far, with a thin bar while it grows.
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(message.content, style: TextStyle(color: textColor)),
+                  const SizedBox(height: 6),
+                  SizedBox(
+                    width: 32,
+                    child:
+                        LinearProgressIndicator(minHeight: 2, color: textColor),
+                  ),
+                ],
               )
-            : Text(
-                message.failure == null
-                    ? message.content
-                    : context.l10n.aiFailure(message.failure!, provider),
-                style: TextStyle(color: textColor)),
+            : message.isPending
+                ? Semantics(
+                    label: context.l10n.assistantWaiting,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: textColor),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(context.l10n.assistantThinking,
+                            style: TextStyle(
+                                color: textColor, fontStyle: FontStyle.italic)),
+                      ],
+                    ),
+                  )
+                : Text(
+                    message.failure == null
+                        ? message.content
+                        : context.l10n.aiFailure(message.failure!, provider),
+                    style: TextStyle(color: textColor)),
       ),
     );
   }

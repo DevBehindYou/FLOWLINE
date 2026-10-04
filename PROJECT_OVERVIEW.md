@@ -702,8 +702,11 @@ All four extend `HttpAIClient` (`data/remote/ai_clients/http_ai_client.dart`),
 which owns the HTTP call, cancellation, failure mapping and the contract's
 event order; a vendor only builds its call and reads its reply and model
 list. They share the app's single `Dio` instance, send the full
-conversation history each time (**unbounded**, until K10), and are still
-**non-streaming** (one `AITextDelta`, then `AIDone`) until Phase 4.3. They
+conversation history each time (**unbounded**, until K10), and **stream**
+(Phase 4.3): server-sent events for the hosted vendors, NDJSON for
+Ollama. The reply row fills in as text arrives (written at most every
+120 ms); the chat's send button becomes **Stop**, and a stopped or
+dropped reply keeps the text that arrived. They
 send the system prompt the vendor's way, ask for JSON when requested
 (OpenAI `response_format`, Gemini `responseMimeType`, Ollama `format`,
 an instruction for Anthropic), and read stop reason (cut-off = B18) and

@@ -34,7 +34,10 @@ class _CannedAdapter implements HttpClientAdapter {
       body is String ? body as String : jsonEncode(body),
       status,
       headers: {
-        Headers.contentTypeHeader: ['application/json'],
+        // Streams are text; JSON objects are model lists and errors.
+        Headers.contentTypeHeader: [
+          body is String ? 'text/event-stream' : 'application/json'
+        ],
       },
     );
   }
@@ -72,12 +75,45 @@ class _HangingAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
+/// Server-sent events, one `data:` line per chunk (Anthropic adds event
+/// names, which the client ignores).
+String _sse(List<Object> chunks) => chunks
+    .map((c) => 'event: x\ndata: ${c is String ? c : jsonEncode(c)}\n\n')
+    .join();
+
+String _ndjson(List<Object> chunks) =>
+    chunks.map((c) => '${jsonEncode(c)}\n').join();
+
+/// Sends [head] of a stream, then drops the connection.
+class _DroppingAdapter implements HttpClientAdapter {
+  _DroppingAdapter(this.head);
+  final String head;
+
+  @override
+  Future<ResponseBody> fetch(RequestOptions options,
+      Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async {
+    final body = StreamController<Uint8List>();
+    body.add(Uint8List.fromList(utf8.encode(head)));
+    scheduleMicrotask(() {
+      body.addError(DioException(
+          requestOptions: options, type: DioExceptionType.connectionError));
+      unawaited(body.close());
+    });
+    return ResponseBody(body.stream, 200);
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
 typedef _Vendor = ({
   String name,
   AIClient Function(Dio) create,
   AIProviderId id,
   Object okBody,
   Object cutOffBody,
+  String Function(String text) partial,
+  Object? errorChunk,
   Object modelsBody,
   List<String> modelIds,
 });
@@ -87,20 +123,52 @@ final _vendors = <_Vendor>[
     name: 'Anthropic',
     create: AnthropicClient.new,
     id: AIProviderId.anthropic,
-    okBody: {
-      'content': [
-        {'type': 'text', 'text': 'Hel'},
-        {'type': 'tool_use', 'id': 'x'},
-        {'type': 'text', 'text': 'lo'},
-      ],
-      'stop_reason': 'end_turn',
-      'usage': {'input_tokens': 12, 'output_tokens': 3},
-    },
-    cutOffBody: {
-      'content': [
-        {'type': 'text', 'text': 'Hel'},
-      ],
-      'stop_reason': 'max_tokens',
+    okBody: _sse([
+      {
+        'type': 'message_start',
+        'message': {
+          'usage': {'input_tokens': 12},
+        },
+      },
+      {
+        'type': 'content_block_delta',
+        'delta': {'type': 'text_delta', 'text': 'Hel'},
+      },
+      {'type': 'ping'},
+      {
+        'type': 'content_block_delta',
+        'delta': {'type': 'input_json_delta', 'partial_json': '{'},
+      },
+      {
+        'type': 'content_block_delta',
+        'delta': {'type': 'text_delta', 'text': 'lo'},
+      },
+      {
+        'type': 'message_delta',
+        'delta': {'stop_reason': 'end_turn'},
+        'usage': {'output_tokens': 3},
+      },
+      {'type': 'message_stop'},
+    ]),
+    cutOffBody: _sse([
+      {
+        'type': 'content_block_delta',
+        'delta': {'type': 'text_delta', 'text': 'Hel'},
+      },
+      {
+        'type': 'message_delta',
+        'delta': {'stop_reason': 'max_tokens'},
+      },
+    ]),
+    partial: (t) => _sse([
+          {
+            'type': 'content_block_delta',
+            'delta': {'type': 'text_delta', 'text': t},
+          },
+        ]),
+    errorChunk: {
+      'type': 'error',
+      'error': {'type': 'overloaded_error'},
     },
     modelsBody: {
       'data': [
@@ -114,22 +182,50 @@ final _vendors = <_Vendor>[
     name: 'OpenAI',
     create: OpenAIClient.new,
     id: AIProviderId.openai,
-    okBody: {
-      'choices': [
-        {
-          'message': {'role': 'assistant', 'content': 'Hello'},
-          'finish_reason': 'stop',
-        },
-      ],
-      'usage': {'prompt_tokens': 12, 'completion_tokens': 3},
-    },
-    cutOffBody: {
-      'choices': [
-        {
-          'message': {'content': 'Hel'},
-          'finish_reason': 'length',
-        },
-      ],
+    okBody: _sse([
+      {
+        'choices': [
+          {
+            'delta': {'role': 'assistant', 'content': 'Hel'},
+          },
+        ],
+      },
+      {
+        'choices': [
+          {
+            'delta': {'content': 'lo'},
+            'finish_reason': 'stop',
+          },
+        ],
+      },
+      {
+        'choices': <Object>[],
+        'usage': {'prompt_tokens': 12, 'completion_tokens': 3},
+      },
+      '[DONE]',
+    ]),
+    cutOffBody: _sse([
+      {
+        'choices': [
+          {
+            'delta': {'content': 'Hel'},
+            'finish_reason': 'length',
+          },
+        ],
+      },
+      '[DONE]',
+    ]),
+    partial: (t) => _sse([
+          {
+            'choices': [
+              {
+                'delta': {'content': t},
+              },
+            ],
+          },
+        ]),
+    errorChunk: {
+      'error': {'message': 'x'},
     },
     modelsBody: {
       'data': [
@@ -143,32 +239,60 @@ final _vendors = <_Vendor>[
     name: 'Gemini',
     create: GeminiClient.new,
     id: AIProviderId.gemini,
-    okBody: {
-      'candidates': [
-        {
-          'content': {
-            'parts': [
-              {'text': 'Hel'},
-              {'text': 'lo'},
+    okBody: _sse([
+      {
+        'candidates': [
+          {
+            'content': {
+              'parts': [
+                {'text': 'Hel'},
+              ],
+            },
+          },
+        ],
+      },
+      {
+        'candidates': [
+          {
+            'content': {
+              'parts': [
+                {'text': 'lo'},
+              ],
+            },
+            'finishReason': 'STOP',
+          },
+        ],
+        'usageMetadata': {'promptTokenCount': 12, 'candidatesTokenCount': 3},
+      },
+    ]),
+    cutOffBody: _sse([
+      {
+        'candidates': [
+          {
+            'content': {
+              'parts': [
+                {'text': 'Hel'},
+              ],
+            },
+            'finishReason': 'MAX_TOKENS',
+          },
+        ],
+      },
+    ]),
+    partial: (t) => _sse([
+          {
+            'candidates': [
+              {
+                'content': {
+                  'parts': [
+                    {'text': t},
+                  ],
+                },
+              },
             ],
           },
-          'finishReason': 'STOP',
-        },
-      ],
-      'usageMetadata': {'promptTokenCount': 12, 'candidatesTokenCount': 3},
-    },
-    cutOffBody: {
-      'candidates': [
-        {
-          'content': {
-            'parts': [
-              {'text': 'Hel'},
-            ],
-          },
-          'finishReason': 'MAX_TOKENS',
-        },
-      ],
-    },
+        ]),
+    errorChunk: null,
     modelsBody: {
       'models': [
         {
@@ -192,16 +316,41 @@ final _vendors = <_Vendor>[
     name: 'Ollama',
     create: OllamaClient.new,
     id: AIProviderId.ollama,
-    okBody: {
-      'message': {'role': 'assistant', 'content': 'Hello'},
-      'done_reason': 'stop',
-      'prompt_eval_count': 12,
-      'eval_count': 3,
-    },
-    cutOffBody: {
-      'message': {'content': 'Hel'},
-      'done_reason': 'length',
-    },
+    okBody: _ndjson([
+      {
+        'message': {'role': 'assistant', 'content': 'Hel'},
+        'done': false,
+      },
+      {
+        'message': {'role': 'assistant', 'content': 'lo'},
+        'done': false,
+      },
+      {
+        'message': {'role': 'assistant', 'content': ''},
+        'done': true,
+        'done_reason': 'stop',
+        'prompt_eval_count': 12,
+        'eval_count': 3,
+      },
+    ]),
+    cutOffBody: _ndjson([
+      {
+        'message': {'content': 'Hel'},
+        'done': false,
+      },
+      {
+        'message': {'content': ''},
+        'done': true,
+        'done_reason': 'length',
+      },
+    ]),
+    partial: (t) => _ndjson([
+          {
+            'message': {'content': t},
+            'done': false,
+          },
+        ]),
+    errorChunk: {'error': 'model crashed'},
     modelsBody: {
       'models': [
         {'name': 'mistral'},
@@ -263,11 +412,12 @@ void main() {
 
       AIFailure failureOf(List<AIEvent> events) => events.single as AIFailure;
 
-      test('a reply is text, then Done with stop reason and usage', () async {
+      test('a reply streams as text deltas, then Done with usage', () async {
         final (events, _) = await send(200, vendor.okBody);
-        expect(events, hasLength(2));
-        expect((events[0] as AITextDelta).text, 'Hello');
-        final done = events[1] as AIDone;
+        final deltas = events.whereType<AITextDelta>().toList();
+        expect(deltas.length, greaterThan(1), reason: 'streamed, not one blob');
+        expect(deltas.map((d) => d.text).join(), 'Hello');
+        final done = events.last as AIDone;
         expect(done.stopReason, AIStopReason.complete);
         expect(done.usage?.inputTokens, 12);
         expect(done.usage?.outputTokens, 3);
@@ -363,6 +513,33 @@ void main() {
         expect((result.single as AIDone).stopReason, AIStopReason.cancelled);
       });
 
+      test('asks for a stream', () async {
+        final (_, adapter) = await send(200, vendor.okBody);
+        final body = jsonEncode(adapter.lastBody);
+        // Gemini picks streaming by endpoint, the others by a flag.
+        expect('${adapter.lastRequest!.uri} $body',
+            anyOf(contains('"stream":true'), contains('alt=sse')));
+      });
+
+      test('a connection drop after some text keeps it', () async {
+        final client = vendor.create(
+            Dio()..httpClientAdapter = _DroppingAdapter(vendor.partial('Hel')));
+        final events = await client.send(request()).toList();
+        expect((events.first as AITextDelta).text, 'Hel');
+        expect((events.last as AIDone).stopReason, AIStopReason.other);
+      });
+
+      if (vendor.errorChunk case final chunk?) {
+        test('an error inside the stream, before any text, is a failure',
+            () async {
+          final body = vendor.id == AIProviderId.ollama
+              ? _ndjson([chunk])
+              : _sse([chunk]);
+          final (events, _) = await send(200, body);
+          expect(events.single, isA<AIFailure>());
+        });
+      }
+
       test('lists models, sorted, without the key in the URL', () async {
         final adapter = _CannedAdapter(200, vendor.modelsBody);
         final client = vendor.create(Dio()..httpClientAdapter = adapter);
@@ -393,9 +570,14 @@ void main() {
     });
 
     test('an empty base URL falls back to the default server', () async {
-      final adapter = _CannedAdapter(200, {
-        'message': {'content': 'ok'},
-      });
+      final adapter = _CannedAdapter(
+          200,
+          _ndjson([
+            {
+              'message': {'content': 'ok'},
+              'done': true,
+            },
+          ]));
       await OllamaClient(Dio()..httpClientAdapter = adapter)
           .send(const AIRequest(
             config: AIProviderConfig(

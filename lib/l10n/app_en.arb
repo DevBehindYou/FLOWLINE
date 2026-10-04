@@ -750,5 +750,6 @@
         "type": "String"
       }
     }
-  }
+  },
+  "stop": "Stop"
 }

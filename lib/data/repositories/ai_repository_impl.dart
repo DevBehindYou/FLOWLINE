@@ -37,6 +37,8 @@ List<OrderClauseGenerator<$AiMessagesTable>> get _messageOrder => [
       (m) => OrderingTerm.asc(m.id),
     ];
 
+const _streamWriteInterval = Duration(milliseconds: 120);
+
 class AIRepositoryImpl implements AIRepository {
   AIRepositoryImpl(this._db, this._secureStore, this._clients) {
     _seedFuture = _initialize();
@@ -246,6 +248,10 @@ class AIRepositoryImpl implements AIRepository {
     });
 
     final reply = StringBuffer();
+    // Partial text is written into the pending row as it streams, at most
+    // every [_streamWriteInterval], so the chat shows the reply growing
+    // without a database write (and re-render) per token.
+    final sinceWrite = Stopwatch()..start();
     try {
       final conversation = await (_db.select(_db.aiConversations)
             ..where((c) => c.id.equals(conversationId)))
@@ -260,6 +266,12 @@ class AIRepositoryImpl implements AIRepository {
         switch (event) {
           case AITextDelta(:final text):
             reply.write(text);
+            if (sinceWrite.elapsed >= _streamWriteInterval) {
+              sinceWrite.reset();
+              await (_db.update(_db.aiMessages)
+                    ..where((m) => m.id.equals(replyId)))
+                  .write(AiMessagesCompanion(content: Value(reply.toString())));
+            }
           case AIDone(:final stopReason):
             await _finishReply(replyId, reply.toString(), stopReason);
             return;

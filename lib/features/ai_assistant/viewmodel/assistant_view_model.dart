@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/providers.dart';
+import '../../../domain/ai/ai_contract.dart';
 import '../../../domain/entities/ai_conversation.dart';
 import '../../../domain/entities/ai_message.dart';
 import '../../../domain/entities/ai_provider_config.dart';
@@ -54,21 +55,27 @@ class AssistantViewModel extends _$AssistantViewModel {
   @override
   bool build() => false; // true while a send is in flight
 
+  AICancelToken? _cancel;
+
+  /// Stops the reply in flight; what arrived so far is kept.
+  void stop() => _cancel?.cancel();
+
   Future<void> send({
     required AIProviderId providerId,
     required int? existingConversationId,
     required String prompt,
   }) async {
     state = true;
+    final cancel = _cancel = AICancelToken();
     try {
       final conversationId = existingConversationId ??
           await ref
               .read(aiRepositoryProvider)
               .createConversation(providerId: providerId);
-      await ref
-          .read(aiRepositoryProvider)
-          .sendMessage(conversationId: conversationId, prompt: prompt);
+      await ref.read(aiRepositoryProvider).sendMessage(
+          conversationId: conversationId, prompt: prompt, cancel: cancel);
     } finally {
+      if (identical(_cancel, cancel)) _cancel = null;
       state = false;
     }
   }

@@ -153,13 +153,19 @@ class _ChatBodyState extends ConsumerState<_ChatBody> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                IconButton.filled(
-                  tooltip: context.l10n.send,
-                  icon: const Icon(Icons.arrow_upward),
-                  onPressed: isSending
-                      ? null
-                      : () => _send(conversationAsync.value?.id),
-                ),
+                // Send, or Stop while a reply is on its way (spec §5.9).
+                isSending
+                    ? IconButton.filledTonal(
+                        tooltip: context.l10n.stop,
+                        icon: const Icon(Icons.stop),
+                        onPressed:
+                            ref.read(assistantViewModelProvider.notifier).stop,
+                      )
+                    : IconButton.filled(
+                        tooltip: context.l10n.send,
+                        icon: const Icon(Icons.arrow_upward),
+                        onPressed: () => _send(conversationAsync.value?.id),
+                      ),
               ],
             ),
           ),

@@ -27,7 +27,9 @@ class GeminiClient extends HttpAIClient {
 
   @override
   VendorCall buildChat(AIRequest request) => (
-        url: '$_base/models/${request.config.defaultModel}:generateContent',
+        // alt=sse: server-sent events, one GenerateContentResponse each.
+        url: '$_base/models/${request.config.defaultModel}'
+            ':streamGenerateContent?alt=sse',
         headers: _headers(request.apiKey),
         body: {
           if (request.system != null)
@@ -52,22 +54,25 @@ class GeminiClient extends HttpAIClient {
       );
 
   @override
-  VendorReply? readChat(Map<String, Object?>? body) {
-    final candidate = jsonMap(jsonList(body?['candidates']).firstOrNull);
+  String? readChunk(Map<String, Object?> chunk, StreamState state) {
+    final usage = jsonMap(chunk['usageMetadata']);
+    if (usage != null) {
+      state.inputTokens = jsonInt(usage['promptTokenCount']);
+      state.outputTokens = jsonInt(usage['candidatesTokenCount']);
+    }
+    final candidate = jsonMap(jsonList(chunk['candidates']).firstOrNull);
+    switch (jsonString(candidate?['finishReason'])) {
+      case 'STOP':
+        state.stopReason = AIStopReason.complete;
+      case 'MAX_TOKENS':
+        state.stopReason = AIStopReason.maxTokens;
+      case null:
+        break;
+      default:
+        state.stopReason = AIStopReason.other;
+    }
     final parts = jsonList(jsonMap(candidate?['content'])?['parts']);
-    final usage = jsonMap(body?['usageMetadata']);
-    return (
-      text: parts.map((p) => jsonString(jsonMap(p)?['text']) ?? '').join(),
-      stopReason: switch (jsonString(candidate?['finishReason'])) {
-        'STOP' => AIStopReason.complete,
-        'MAX_TOKENS' => AIStopReason.maxTokens,
-        _ => AIStopReason.other,
-      },
-      usage: AIUsage(
-        inputTokens: jsonInt(usage?['promptTokenCount']),
-        outputTokens: jsonInt(usage?['candidatesTokenCount']),
-      ),
-    );
+    return parts.map((p) => jsonString(jsonMap(p)?['text']) ?? '').join();
   }
 
   @override

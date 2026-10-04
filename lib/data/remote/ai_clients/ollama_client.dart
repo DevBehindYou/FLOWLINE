@@ -10,6 +10,9 @@ class OllamaClient extends HttpAIClient {
   @override
   AIProviderId get id => AIProviderId.ollama;
 
+  @override
+  StreamFraming get framing => StreamFraming.ndjson;
+
   static String baseUrlOf(AIProviderConfig config) =>
       (config.baseUrl == null || config.baseUrl!.isEmpty)
           ? defaultBaseUrl
@@ -26,28 +29,30 @@ class OllamaClient extends HttpAIClient {
               {'role': 'system', 'content': request.system},
             ...chatTurns(request.history, request.prompt),
           ],
-          'stream': false,
+          'stream': true,
           'options': {'num_predict': request.maxOutputTokens},
           if (request.format == AIResponseFormat.json) 'format': 'json',
         },
       );
 
+  // One JSON object per line: message.content until done: true, which
+  // carries done_reason and the token counts.
   @override
-  VendorReply? readChat(Map<String, Object?>? body) {
-    final text = jsonString(jsonMap(body?['message'])?['content']);
-    if (text == null) return null;
-    return (
-      text: text,
-      stopReason: switch (jsonString(body?['done_reason'])) {
+  String? readChunk(Map<String, Object?> chunk, StreamState state) {
+    if (chunk['error'] != null) {
+      state.failure = const AIFailure(AIFailureKind.unknown);
+      return null;
+    }
+    if (chunk['done'] == true) {
+      state.stopReason = switch (jsonString(chunk['done_reason'])) {
         'stop' || null => AIStopReason.complete,
         'length' => AIStopReason.maxTokens,
         _ => AIStopReason.other,
-      },
-      usage: AIUsage(
-        inputTokens: jsonInt(body?['prompt_eval_count']),
-        outputTokens: jsonInt(body?['eval_count']),
-      ),
-    );
+      };
+      state.inputTokens = jsonInt(chunk['prompt_eval_count']);
+      state.outputTokens = jsonInt(chunk['eval_count']);
+    }
+    return jsonString(jsonMap(chunk['message'])?['content']);
   }
 
   /// Ollama answers 404 for a model that isn't pulled.

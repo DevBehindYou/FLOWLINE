@@ -1039,4 +1039,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String modelNotListed(String vendor) {
     return 'Not in $vendor\'s list for this key. It may be retired; pick one from the list.';
   }
+
+  @override
+  String get stop => 'Stop';
 }

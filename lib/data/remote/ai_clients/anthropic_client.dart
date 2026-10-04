@@ -31,33 +31,43 @@ class AnthropicClient extends HttpAIClient {
       body: {
         'model': request.config.defaultModel,
         'max_tokens': request.maxOutputTokens,
+        'stream': true,
         if (system != null) 'system': system,
         'messages': chatTurns(request.history, request.prompt),
       },
     );
   }
 
+  // Events (each data line carries its own "type"): message_start (input
+  // tokens), content_block_delta (text), message_delta (stop reason,
+  // output tokens), message_stop, ping, and error.
   @override
-  VendorReply? readChat(Map<String, Object?>? body) {
-    final text = jsonList(body?['content'])
-        .map(jsonMap)
-        .whereType<Map<String, Object?>>()
-        .where((block) => block['type'] == 'text')
-        .map((block) => jsonString(block['text']) ?? '')
-        .join();
-    final usage = jsonMap(body?['usage']);
-    return (
-      text: text,
-      stopReason: switch (jsonString(body?['stop_reason'])) {
-        'end_turn' || 'stop_sequence' => AIStopReason.complete,
-        'max_tokens' => AIStopReason.maxTokens,
-        _ => AIStopReason.other,
-      },
-      usage: AIUsage(
-        inputTokens: jsonInt(usage?['input_tokens']),
-        outputTokens: jsonInt(usage?['output_tokens']),
-      ),
-    );
+  String? readChunk(Map<String, Object?> chunk, StreamState state) {
+    switch (jsonString(chunk['type'])) {
+      case 'message_start':
+        state.inputTokens = jsonInt(
+            jsonMap(jsonMap(chunk['message'])?['usage'])?['input_tokens']);
+      case 'content_block_delta':
+        final delta = jsonMap(chunk['delta']);
+        if (delta?['type'] == 'text_delta') return jsonString(delta?['text']);
+      case 'message_delta':
+        state.stopReason =
+            switch (jsonString(jsonMap(chunk['delta'])?['stop_reason'])) {
+          'end_turn' || 'stop_sequence' => AIStopReason.complete,
+          'max_tokens' => AIStopReason.maxTokens,
+          _ => AIStopReason.other,
+        };
+        state.outputTokens = jsonInt(jsonMap(chunk['usage'])?['output_tokens']);
+      case 'error':
+        state.failure = switch (jsonString(jsonMap(chunk['error'])?['type'])) {
+          'overloaded_error' =>
+            const AIFailure(AIFailureKind.serverError, status: 529),
+          'rate_limit_error' => const AIFailure(AIFailureKind.rateLimited),
+          'authentication_error' => const AIFailure(AIFailureKind.invalidKey),
+          _ => const AIFailure(AIFailureKind.unknown),
+        };
+    }
+    return null;
   }
 
   @override

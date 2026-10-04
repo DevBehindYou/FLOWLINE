@@ -479,7 +479,7 @@ Tick these in the PR that closes each item.
 **Phase 4 — AI v2**
 - [x] `AIClient` v2 interface (typed failures stored with replies, schema v7; non-streaming until 4.3)
 - [x] Model registry + Test connection (K6): live model lists, picker, a warning when the saved model isn't offered
-- [ ] Streaming + Stop
+- [x] Streaming + Stop (SSE for Anthropic/OpenAI/Gemini, NDJSON for Ollama; partial text kept on drop or Stop). Device check per vendor still owed
 - [ ] Context windowing (K10)
 - [ ] Markdown, retry, "Fix in Settings"
 - [ ] Conversation history + in-chat switcher

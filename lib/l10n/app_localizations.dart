@@ -1755,6 +1755,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not in {vendor}\'s list for this key. It may be retired; pick one from the list.'**
   String modelNotListed(String vendor);
+
+  /// No description provided for @stop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get stop;
 }
 
 class _AppLocalizationsDelegate
