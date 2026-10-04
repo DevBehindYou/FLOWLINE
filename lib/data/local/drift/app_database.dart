@@ -177,7 +177,7 @@ class AppDatabase extends _$AppDatabase {
   static LazyDatabase _openConnection() {
     return LazyDatabase(() async {
       final dbFolder = await getApplicationDocumentsDirectory();
-      final file = File(p.join(dbFolder.path, 'flowline.sqlite'));
+      final file = File(p.join(dbFolder.path, 'atomic_assist.sqlite'));
       // Android's sandbox has no writable /tmp, so SQLite can fail on
       // large sorts or temp tables unless it's pointed at the app's own
       // cache directory (Drift's documented setup; K18).

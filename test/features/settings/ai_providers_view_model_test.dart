@@ -1,10 +1,10 @@
-import 'package:flowline/core/providers.dart';
-import 'package:flowline/core/riverpod_config.dart';
-import 'package:flowline/data/local/drift/app_database.dart';
-import 'package:flowline/data/local/secure/secure_key_store.dart';
-import 'package:flowline/domain/entities/ai_provider_config.dart';
-import 'package:flowline/features/ai_assistant/viewmodel/assistant_view_model.dart';
-import 'package:flowline/features/settings/viewmodel/ai_providers_view_model.dart';
+import 'package:atomic_assist/core/providers.dart';
+import 'package:atomic_assist/core/riverpod_config.dart';
+import 'package:atomic_assist/data/local/drift/app_database.dart';
+import 'package:atomic_assist/data/local/secure/secure_key_store.dart';
+import 'package:atomic_assist/domain/entities/ai_provider_config.dart';
+import 'package:atomic_assist/features/ai_assistant/viewmodel/assistant_view_model.dart';
+import 'package:atomic_assist/features/settings/viewmodel/ai_providers_view_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 

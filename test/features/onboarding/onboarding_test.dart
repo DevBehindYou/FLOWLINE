@@ -1,11 +1,11 @@
-import 'package:flowline/core/notifications/notification_service.dart';
-import 'package:flowline/core/providers.dart';
-import 'package:flowline/core/riverpod_config.dart';
-import 'package:flowline/core/router/app_router.dart';
-import 'package:flowline/data/local/drift/app_database.dart';
-import 'package:flowline/data/repositories/app_settings_repository_impl.dart';
-import 'package:flowline/domain/entities/app_settings.dart';
-import 'package:flowline/features/onboarding/onboarding_screen.dart';
+import 'package:atomic_assist/core/notifications/notification_service.dart';
+import 'package:atomic_assist/core/providers.dart';
+import 'package:atomic_assist/core/riverpod_config.dart';
+import 'package:atomic_assist/core/router/app_router.dart';
+import 'package:atomic_assist/data/local/drift/app_database.dart';
+import 'package:atomic_assist/data/repositories/app_settings_repository_impl.dart';
+import 'package:atomic_assist/domain/entities/app_settings.dart';
+import 'package:atomic_assist/features/onboarding/onboarding_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 

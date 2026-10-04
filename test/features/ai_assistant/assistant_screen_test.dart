@@ -1,5 +1,5 @@
-import 'package:flowline/data/local/drift/app_database.dart';
-import 'package:flowline/features/ai_assistant/view/assistant_screen.dart';
+import 'package:atomic_assist/data/local/drift/app_database.dart';
+import 'package:atomic_assist/features/ai_assistant/view/assistant_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

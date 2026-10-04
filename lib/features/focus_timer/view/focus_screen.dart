@@ -175,9 +175,9 @@ class _RunningViewState extends ConsumerState<_RunningView>
   Widget build(BuildContext context) {
     final session = widget.session;
     final color = switch (session.sessionType) {
-      FocusSessionType.focus => FlowlineSemanticColors.sessionFocus,
-      FocusSessionType.shortBreak => FlowlineSemanticColors.sessionShortBreak,
-      FocusSessionType.longBreak => FlowlineSemanticColors.sessionLongBreak,
+      FocusSessionType.focus => AtomicSemanticColors.sessionFocus,
+      FocusSessionType.shortBreak => AtomicSemanticColors.sessionShortBreak,
+      FocusSessionType.longBreak => AtomicSemanticColors.sessionLongBreak,
     };
 
     return _ScrollSafeColumn(

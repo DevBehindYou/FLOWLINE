@@ -1,7 +1,9 @@
-# Working on Flowline
+# Working on Atomic Assist (AA)
 
-Flutter (Android-first), local-first productivity app: tasks and time
-blocks, a wall-clock focus timer, a bring-your-own-key AI assistant.
+Flutter (Android-first), local-first personal assistant (formerly
+Flowline): tasks and time blocks, a wall-clock focus timer, a
+bring-your-own-key AI assistant. Dart package `atomic_assist`, Android
+application id `com.devbehindyou.atomicassist` (permanent once published).
 Riverpod 3 (codegen), Drift 2.35 / SQLite, go_router.
 
 ## Environment
@@ -26,9 +28,11 @@ Riverpod 3 (codegen), Drift 2.35 / SQLite, go_router.
 ## Where things are written down
 
 Source of truth, highest first: code + CI > `PROJECT_OVERVIEW.md` (as
-built) > `docs/04-build-and-optimization-plan.md` (forward plan, rules
-R1–R21, defect register B1–B31) > `docs/03-…` > `docs/01-…`/`02-…`
-(original plans).
+built) > `docs/05-atomic-assist-plan.md` (the forward plan: assistant
+capabilities and the Atomic UI rebuild) > `docs/design-system/atomic-design-system.md`
+(the Atomic visual language; wins over any older design file) >
+`docs/04-build-and-optimization-plan.md` (rules R1–R21, defect register
+B1–B31, done phases) > `docs/03-…` > `docs/01-…`/`02-…` (original plans).
 
 ## Rules that bite (full list: docs/04 §2)
 

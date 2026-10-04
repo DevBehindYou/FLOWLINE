@@ -8,7 +8,7 @@ part of 'app_router.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Built once, after FlowlineApp has the stored settings: the first
+/// Built once, after AtomicAssistApp has the stored settings: the first
 /// location is decided then, so a first launch opens onboarding without
 /// flashing Today first, and finishing it can't race a redirect against
 /// the settings stream. If the settings can't be read, the app opens
@@ -17,7 +17,7 @@ part of 'app_router.dart';
 @ProviderFor(appRouter)
 final appRouterProvider = AppRouterProvider._();
 
-/// Built once, after FlowlineApp has the stored settings: the first
+/// Built once, after AtomicAssistApp has the stored settings: the first
 /// location is decided then, so a first launch opens onboarding without
 /// flashing Today first, and finishing it can't race a redirect against
 /// the settings stream. If the settings can't be read, the app opens
@@ -26,7 +26,7 @@ final appRouterProvider = AppRouterProvider._();
 final class AppRouterProvider
     extends $FunctionalProvider<GoRouter, GoRouter, GoRouter>
     with $Provider<GoRouter> {
-  /// Built once, after FlowlineApp has the stored settings: the first
+  /// Built once, after AtomicAssistApp has the stored settings: the first
   /// location is decided then, so a first launch opens onboarding without
   /// flashing Today first, and finishing it can't race a redirect against
   /// the settings stream. If the settings can't be read, the app opens

@@ -1,8 +1,8 @@
-import 'package:flowline/domain/ai/ai_contract.dart';
-import 'package:flowline/domain/entities/ai_message.dart';
-import 'package:flowline/domain/entities/ai_provider_config.dart';
-import 'package:flowline/features/ai_assistant/widgets/chat_bubble.dart';
-import 'package:flowline/l10n/l10n.dart';
+import 'package:atomic_assist/domain/ai/ai_contract.dart';
+import 'package:atomic_assist/domain/entities/ai_message.dart';
+import 'package:atomic_assist/domain/entities/ai_provider_config.dart';
+import 'package:atomic_assist/features/ai_assistant/widgets/chat_bubble.dart';
+import 'package:atomic_assist/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

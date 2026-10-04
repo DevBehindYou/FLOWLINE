@@ -3,14 +3,14 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
-import 'package:flowline/data/remote/ai_clients/anthropic_client.dart';
-import 'package:flowline/data/remote/ai_clients/gemini_client.dart';
-import 'package:flowline/data/remote/ai_clients/ollama_client.dart';
-import 'package:flowline/data/remote/ai_clients/openai_client.dart';
-import 'package:flowline/domain/ai/ai_contract.dart';
-import 'package:flowline/domain/entities/ai_message.dart';
-import 'package:flowline/domain/entities/ai_provider_config.dart';
-import 'package:flowline/domain/repositories/ai_client.dart';
+import 'package:atomic_assist/data/remote/ai_clients/anthropic_client.dart';
+import 'package:atomic_assist/data/remote/ai_clients/gemini_client.dart';
+import 'package:atomic_assist/data/remote/ai_clients/ollama_client.dart';
+import 'package:atomic_assist/data/remote/ai_clients/openai_client.dart';
+import 'package:atomic_assist/domain/ai/ai_contract.dart';
+import 'package:atomic_assist/domain/entities/ai_message.dart';
+import 'package:atomic_assist/domain/entities/ai_provider_config.dart';
+import 'package:atomic_assist/domain/repositories/ai_client.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Answers every request with one canned status + body and records it.

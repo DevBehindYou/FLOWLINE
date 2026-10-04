@@ -1,7 +1,7 @@
 import 'package:clock/clock.dart';
-import 'package:flowline/domain/entities/focus_session.dart';
-import 'package:flowline/domain/services/focus_stats_calculator.dart';
-import 'package:flowline/domain/time/calendar_day.dart';
+import 'package:atomic_assist/domain/entities/focus_session.dart';
+import 'package:atomic_assist/domain/services/focus_stats_calculator.dart';
+import 'package:atomic_assist/domain/time/calendar_day.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 // These dates straddle the 2026 US daylight-saving changes (spring

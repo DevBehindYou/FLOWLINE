@@ -1,14 +1,14 @@
 import 'package:drift/drift.dart' show Value;
-import 'package:flowline/core/notifications/notification_service.dart';
-import 'package:flowline/core/providers.dart';
-import 'package:flowline/core/riverpod_config.dart';
-import 'package:flowline/data/local/drift/app_database.dart';
-import 'package:flowline/data/repositories/app_settings_repository_impl.dart';
-import 'package:flowline/domain/entities/app_settings.dart';
-import 'package:flowline/data/repositories/task_repository_impl.dart';
-import 'package:flowline/domain/entities/focus_session.dart';
-import 'package:flowline/domain/entities/task.dart';
-import 'package:flowline/features/focus_timer/viewmodel/focus_timer_view_model.dart';
+import 'package:atomic_assist/core/notifications/notification_service.dart';
+import 'package:atomic_assist/core/providers.dart';
+import 'package:atomic_assist/core/riverpod_config.dart';
+import 'package:atomic_assist/data/local/drift/app_database.dart';
+import 'package:atomic_assist/data/repositories/app_settings_repository_impl.dart';
+import 'package:atomic_assist/domain/entities/app_settings.dart';
+import 'package:atomic_assist/data/repositories/task_repository_impl.dart';
+import 'package:atomic_assist/domain/entities/focus_session.dart';
+import 'package:atomic_assist/domain/entities/task.dart';
+import 'package:atomic_assist/features/focus_timer/viewmodel/focus_timer_view_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 

@@ -1,5 +1,5 @@
-import 'package:flowline/domain/entities/task.dart';
-import 'package:flowline/domain/services/task_due.dart';
+import 'package:atomic_assist/domain/entities/task.dart';
+import 'package:atomic_assist/domain/services/task_due.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Task _task({DateTime? dueAt, TaskStatus status = TaskStatus.todo}) => Task(

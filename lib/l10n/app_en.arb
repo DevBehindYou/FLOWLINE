@@ -1,6 +1,6 @@
 {
   "@@locale": "en",
-  "appTitle": "Flowline",
+  "appTitle": "Atomic Assist",
   "errorNetwork": "Couldn't reach the server — check your connection.",
   "errorStorage": "Couldn't read your data on this phone.",
   "errorGeneric": "Something went wrong.",
@@ -14,10 +14,10 @@
   "navInsights": "Insights",
   "onboardingSaveFailed": "Couldn't save your progress — please try again.",
   "onboardingWelcomeTitle": "Plan the day. Focus. See where time went.",
-  "onboardingWelcomeBody": "Flowline keeps your tasks, time blocks and focus sessions on this phone. No account, no sync, nothing leaves the device unless you export it.",
+  "onboardingWelcomeBody": "Atomic Assist keeps your tasks, time blocks and focus sessions on this phone. No account, no sync, nothing leaves the device unless you export it.",
   "onboardingNext": "Next",
   "onboardingNotificationsTitle": "Know when a session ends",
-  "onboardingNotificationsBody": "Flowline uses notifications only for focus session and break alerts, so you can put the phone down. You can change this any time in Settings.",
+  "onboardingNotificationsBody": "Atomic Assist uses notifications only for focus session and break alerts, so you can put the phone down. You can change this any time in Settings.",
   "onboardingAllowNotifications": "Allow notifications",
   "onboardingNotNow": "Not now",
   "onboardingAiTitle": "Connect an AI assistant (optional)",
@@ -90,7 +90,7 @@
   "clearAllDataFailed": "Couldn't clear your data — please try again.",
   "settingsDataPrivacy": "Data & privacy",
   "dataWhereTitle": "Where your data lives",
-  "dataWhereBody": "Everything you create is stored only on this phone. There is no Flowline account, server or analytics.\n\nAPI keys are kept in Android’s secure Keystore and are only ever sent to the AI provider they belong to. When you use the Assistant, your message and the conversation so far go directly from this phone to the provider you chose.\n\nYour Android backup includes your Flowline data but never your API keys.",
+  "dataWhereBody": "Everything you create is stored only on this phone. There is no Atomic Assist account, server or analytics.\n\nAPI keys are kept in Android’s secure Keystore and are only ever sent to the AI provider they belong to. When you use the Assistant, your message and the conversation so far go directly from this phone to the provider you chose.\n\nYour Android backup includes your Atomic Assist data but never your API keys.",
   "clearAllData": "Clear all data",
   "openSourceLicences": "Open-source licences",
   "allDataCleared": "All data cleared",
@@ -724,7 +724,7 @@
   },
   "aiErrorNoProvider": "No AI provider is active — connect one in Settings.",
   "aiStopped": "Stopped.",
-  "aiErrorInterrupted": "No reply — Flowline was closed before it arrived. Send your message again.",
+  "aiErrorInterrupted": "No reply — Atomic Assist was closed before it arrived. Send your message again.",
   "aiErrorUnknown": "Something went wrong talking to {vendor}. Please try again.",
   "@aiErrorUnknown": {
     "placeholders": {

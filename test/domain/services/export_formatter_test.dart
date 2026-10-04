@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:flowline/domain/entities/focus_session.dart';
-import 'package:flowline/domain/services/export_formatter.dart';
+import 'package:atomic_assist/domain/entities/focus_session.dart';
+import 'package:atomic_assist/domain/services/export_formatter.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 FocusSession _session({

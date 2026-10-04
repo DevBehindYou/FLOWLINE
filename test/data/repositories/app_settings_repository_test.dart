@@ -1,6 +1,6 @@
-import 'package:flowline/data/local/drift/app_database.dart';
-import 'package:flowline/data/repositories/app_settings_repository_impl.dart';
-import 'package:flowline/domain/entities/app_settings.dart';
+import 'package:atomic_assist/data/local/drift/app_database.dart';
+import 'package:atomic_assist/data/repositories/app_settings_repository_impl.dart';
+import 'package:atomic_assist/domain/entities/app_settings.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/test_database.dart';

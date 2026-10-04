@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Flowline';
+  String get appTitle => 'Atomic Assist';
 
   @override
   String get errorNetwork =>
@@ -55,7 +55,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingWelcomeBody =>
-      'Flowline keeps your tasks, time blocks and focus sessions on this phone. No account, no sync, nothing leaves the device unless you export it.';
+      'Atomic Assist keeps your tasks, time blocks and focus sessions on this phone. No account, no sync, nothing leaves the device unless you export it.';
 
   @override
   String get onboardingNext => 'Next';
@@ -65,7 +65,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingNotificationsBody =>
-      'Flowline uses notifications only for focus session and break alerts, so you can put the phone down. You can change this any time in Settings.';
+      'Atomic Assist uses notifications only for focus session and break alerts, so you can put the phone down. You can change this any time in Settings.';
 
   @override
   String get onboardingAllowNotifications => 'Allow notifications';
@@ -194,7 +194,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dataWhereBody =>
-      'Everything you create is stored only on this phone. There is no Flowline account, server or analytics.\n\nAPI keys are kept in Android’s secure Keystore and are only ever sent to the AI provider they belong to. When you use the Assistant, your message and the conversation so far go directly from this phone to the provider you chose.\n\nYour Android backup includes your Flowline data but never your API keys.';
+      'Everything you create is stored only on this phone. There is no Atomic Assist account, server or analytics.\n\nAPI keys are kept in Android’s secure Keystore and are only ever sent to the AI provider they belong to. When you use the Assistant, your message and the conversation so far go directly from this phone to the provider you chose.\n\nYour Android backup includes your Atomic Assist data but never your API keys.';
 
   @override
   String get clearAllData => 'Clear all data';
@@ -1011,7 +1011,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiErrorInterrupted =>
-      'No reply — Flowline was closed before it arrived. Send your message again.';
+      'No reply — Atomic Assist was closed before it arrived. Send your message again.';
 
   @override
   String aiErrorUnknown(String vendor) {

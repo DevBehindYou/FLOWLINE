@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flowline/data/export/weekly_pdf_exporter.dart';
-import 'package:flowline/domain/entities/focus_session.dart';
+import 'package:atomic_assist/data/export/weekly_pdf_exporter.dart';
+import 'package:atomic_assist/domain/entities/focus_session.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pdf/widgets.dart' as pw;
 

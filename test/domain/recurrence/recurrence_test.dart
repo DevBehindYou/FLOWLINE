@@ -1,6 +1,6 @@
-import 'package:flowline/domain/entities/schedule_block.dart';
-import 'package:flowline/domain/recurrence/occurrences.dart';
-import 'package:flowline/domain/recurrence/recurrence_rule.dart';
+import 'package:atomic_assist/domain/entities/schedule_block.dart';
+import 'package:atomic_assist/domain/recurrence/occurrences.dart';
+import 'package:atomic_assist/domain/recurrence/recurrence_rule.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 ScheduleBlock _series(

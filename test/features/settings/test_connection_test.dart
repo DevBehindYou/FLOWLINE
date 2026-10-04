@@ -1,11 +1,11 @@
-import 'package:flowline/core/providers.dart';
-import 'package:flowline/data/local/drift/app_database.dart';
-import 'package:flowline/data/local/secure/secure_key_store.dart';
-import 'package:flowline/data/repositories/ai_repository_impl.dart';
-import 'package:flowline/domain/ai/ai_contract.dart';
-import 'package:flowline/domain/entities/ai_provider_config.dart';
-import 'package:flowline/domain/repositories/ai_client.dart';
-import 'package:flowline/features/settings/view/add_edit_ai_provider_sheet.dart';
+import 'package:atomic_assist/core/providers.dart';
+import 'package:atomic_assist/data/local/drift/app_database.dart';
+import 'package:atomic_assist/data/local/secure/secure_key_store.dart';
+import 'package:atomic_assist/data/repositories/ai_repository_impl.dart';
+import 'package:atomic_assist/domain/ai/ai_contract.dart';
+import 'package:atomic_assist/domain/entities/ai_provider_config.dart';
+import 'package:atomic_assist/domain/repositories/ai_client.dart';
+import 'package:atomic_assist/features/settings/view/add_edit_ai_provider_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

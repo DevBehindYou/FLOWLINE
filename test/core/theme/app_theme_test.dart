@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flowline/core/theme/app_theme.dart';
+import 'package:atomic_assist/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -45,10 +45,10 @@ void main() {
       test('uses the bundled typefaces', () {
         final text = theme.textTheme;
         for (final style in [text.displayLarge, text.headlineSmall]) {
-          expect(style?.fontFamily, FlowlineFonts.display);
+          expect(style?.fontFamily, AtomicFonts.display);
         }
         for (final style in [text.titleMedium, text.bodyMedium]) {
-          expect(style?.fontFamily, FlowlineFonts.text);
+          expect(style?.fontFamily, AtomicFonts.text);
         }
       });
     });

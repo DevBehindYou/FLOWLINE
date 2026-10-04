@@ -1,6 +1,6 @@
 import 'package:drift_dev/api/migrations_native.dart';
 import 'package:drift/drift.dart';
-import 'package:flowline/data/local/drift/app_database.dart';
+import 'package:atomic_assist/data/local/drift/app_database.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'generated/schema.dart';

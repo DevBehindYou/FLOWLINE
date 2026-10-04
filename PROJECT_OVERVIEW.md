@@ -1,6 +1,6 @@
-# Flowline — Project Overview
+# Atomic Assist (AA) — Project Overview
 
-> **What this is:** a single, current, as-built description of the Flowline
+> **What this is:** a single, current, as-built description of the Atomic Assist
 > codebase — architecture, data flow, data model, every screen, widget,
 > provider and key function, the UI/UX system, the build/CI pipeline, and
 > an honest list of known gaps.
@@ -52,7 +52,7 @@ the forward plan, with a second defect register (B1–B30). This
 
 ## 1. Product summary
 
-Flowline is an **Android-first, phone-first, local-first** productivity app
+Atomic Assist (AA; called Flowline until 2026-10-04) is an **Android-first, phone-first, local-first** productivity app
 built with Flutter. It combines three things in one calm, focus-first UI:
 
 - **Time-blocked planning** — tasks, subtasks and named schedule blocks on a
@@ -64,7 +64,7 @@ built with Flutter. It combines three things in one calm, focus-first UI:
   Gemini or a local Ollama server, plus AI-assisted resolution of schedule
   conflicts.
 
-There is **no Flowline backend, no account, no telemetry**. All data lives
+There is **no Atomic Assist backend, no account, no telemetry**. All data lives
 in an on-device SQLite database; API keys live in the Android Keystore; AI
 requests go directly from the device to the vendor the user chose.
 
@@ -147,7 +147,7 @@ AGP 9.1.0, Gradle 9.3.1, Kotlin 2.4.0 (`kotlin { compilerOptions }`),
 
 ### 5.1 Layering
 
-Flowline follows the MVVM-flavoured *Presentation → Domain → Data* layering
+Atomic Assist follows the MVVM-flavoured *Presentation → Domain → Data* layering
 from `docs/01-architecture.md`, **minus the Use Case layer** (intentionally
 dropped — see [§17](#17-documentation-drift)). View models call repository
 interfaces directly; the one place that genuinely spans two repositories
@@ -205,12 +205,12 @@ Flutter. Verified by grep — no `package:flutter` import exists under
 ```text
 lib/
 ├── main.dart                     ProviderScope + runApp (no async init)
-├── app.dart                      FlowlineApp: MaterialApp.router, theme,
+├── app.dart                      AtomicAssistApp: MaterialApp.router, theme,
 │                                 focus-session reconciliation on start/resume
 ├── core/
 │   ├── providers.dart            App-wide singletons (DB, repos, Dio, AI, export, notifications)
 │   ├── router/app_router.dart    Routes + 4-branch shell
-│   ├── theme/app_theme.dart      FlowlineSemanticColors + AppTheme.light()/dark()
+│   ├── theme/app_theme.dart      AtomicSemanticColors + AppTheme.light()/dark()
 │   └── notifications/notification_service.dart
 ├── domain/
 │   ├── entities/                 9 plain Dart classes/enums
@@ -278,7 +278,7 @@ first time a focus session starts, not at app launch.
 ```mermaid
 flowchart TB
     User((User))
-    App["Flowline<br/>Flutter Android app"]
+    App["Atomic Assist<br/>Flutter Android app"]
     AI[("AI vendors<br/>api.anthropic.com • api.openai.com •<br/>generativelanguage.googleapis.com • Ollama on LAN")]
     OS[("Android OS<br/>AlarmManager notifications •<br/>Keystore • share sheet")]
     Share[("Share targets<br/>any app accepting PDF/CSV/JSON")]
@@ -374,7 +374,7 @@ sequenceDiagram
     participant R as FocusSessionRepositoryImpl
     participant DB as Drift
     participant N as NotificationService
-    participant App as FlowlineApp (lifecycle)
+    participant App as AtomicAssistApp (lifecycle)
 
     U->>F: Start (type, optional linked task/subtask)
     F->>VM: startSession(type, taskId?, subtaskId?)
@@ -746,7 +746,7 @@ true)`. "Auto" = auto-dispose.
 | `taskRepositoryProvider` / `scheduleRepositoryProvider` / `focusSessionRepositoryProvider` / `aiRepositoryProvider` | repository | keepAlive | DB (+ Dio, key store) | view models |
 | `notificationServiceProvider` | `Future<NotificationService>` | keepAlive, lazy | `init()` | `FocusTimerViewModel` |
 | `dioProvider`, `secureKeyStoreProvider`, `exportServiceProvider` | singleton | keepAlive | — | AI repo, export |
-| `appRouterProvider` | `GoRouter` | keepAlive | route table | `FlowlineApp` |
+| `appRouterProvider` | `GoRouter` | keepAlive | route table | `AtomicAssistApp` |
 | `selectedDateProvider` | `Notifier<DateTime>` | auto | today, `nextDay / previousDay / goToToday` | Today |
 | `scheduleBlocksForSelectedDateProvider` | `Stream<List<ScheduleBlock>>` | auto | watches `selectedDateProvider` | Today |
 | `tasksForBlockProvider(blockId)` | `Stream<List<Task>>` family | auto | repo | block cards |
@@ -761,7 +761,7 @@ true)`. "Auto" = auto-dispose.
 | `todaysFocusSummaryProvider` | `Stream<(totalSeconds, sessionCount)>` | auto | sessions started today | Focus footer, Insights "Today" |
 | `selectedSessionTypeProvider` | `Notifier<FocusSessionType>` | auto | — | Focus idle view |
 | `pendingFocusLinkProvider` | `Notifier<(taskId, subtaskId?, label)?>` | auto | set from Today / Task Detail | Focus idle view |
-| `focusTimerViewModelProvider` | action notifier | auto | start/pause/resume/extend/complete/`completeIfElapsed` | Focus, `FlowlineApp` |
+| `focusTimerViewModelProvider` | action notifier | auto | start/pause/resume/extend/complete/`completeIfElapsed` | Focus, `AtomicAssistApp` |
 | `recentFocusSessionsProvider` | `Stream<List<FocusSession>>` | auto | last 30 days by `startedAt` | Insights stats |
 | `weeklyFocusTotalsProvider` | `AsyncValue<List<DailyFocusTotal>>` | auto | derived synchronously | Insights |
 | `currentStreakProvider` | `AsyncValue<int>` | auto | derived synchronously | Insights |
@@ -841,7 +841,7 @@ For each screen: purpose, what it shows, actions, and its state model.
   `NavigationRail`; expanded (≥ 840dp) uses an extended rail.
 
 ### 12.2 Today — `TodayScreen`
-- **App bar:** title "Flowline", settings icon (tooltip "Settings").
+- **App bar:** title "Atomic Assist", settings icon (tooltip "Settings").
 - **Date header (`_DateHeader`):** previous/next day chevrons, date as
   the locale's long day format ("Tuesday, March 10"), and a "Jump to today" button only when another day is shown.
 - **Body:** `DayTimeline` — one card per schedule block (time range,
@@ -904,7 +904,7 @@ For each screen: purpose, what it shows, actions, and its state model.
   or PAUSED, three round controls — **End** (early), **Pause/Resume**,
   **+5 min** — and the footer.
 - Completion at zero is triggered from the screen and, independently, from
-  `FlowlineApp` after the first frame and on every resume.
+  `AtomicAssistApp` after the first frame and on every resume.
 - Ending or finishing a session opens the Session Summary sheet
   (`session_summary_sheet.dart`): minutes logged, today's focus count,
   and a button for the suggested next session. Breaks show **Skip**
@@ -962,7 +962,7 @@ For each screen: purpose, what it shows, actions, and its state model.
 
 | Widget | File | Type | Role |
 |---|---|---|---|
-| `FlowlineApp` | `app.dart` | ConsumerStatefulWidget | Root `MaterialApp.router`, themes, lifecycle reconciliation |
+| `AtomicAssistApp` | `app.dart` | ConsumerStatefulWidget | Root `MaterialApp.router`, themes, lifecycle reconciliation |
 | `AppShell` | `features/shell/app_shell.dart` | StatelessWidget | Bottom navigation shell |
 | `TodayScreen`, `_DateHeader` | `features/schedule/view/today_screen.dart` | Consumer | Today tab, date switcher |
 | `DayTimeline`, `_ScheduleBlockSection` | `features/schedule/widgets/day_timeline.dart` | Stateless / Consumer | Timeline of blocks + unscheduled |
@@ -1134,7 +1134,7 @@ complete  : only if completedAt IS NULL
   view model credits the subtask's sprint (focus type, not ended early,
   subtask linked) and cancels the notification only then. Racing calls
   therefore credit once — this is covered by a test.
-- `FlowlineApp` calls `completeIfElapsed()` after the first frame and on
+- `AtomicAssistApp` calls `completeIfElapsed()` after the first frame and on
   every resume.
 
 ### 15.2 Overlap detection

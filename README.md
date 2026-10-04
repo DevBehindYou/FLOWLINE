@@ -1,13 +1,20 @@
-# Flowline
+# Atomic Assist (AA)
 
-A local-first Android app for focused work: time-blocked planning, a
-Pomodoro focus timer that stays correct across backgrounding and process
-death, and a bring-your-own-key AI assistant (Anthropic, OpenAI, Google
-Gemini, or a local Ollama server). No account, no backend, no telemetry —
-your data stays in an on-device SQLite database and your API keys in the
-Android Keystore.
+A local-first personal assistant for Android, part of the DevBehindYou
+Atomic family. Today it plans your day in time blocks, keeps a focus
+timer that stays correct across backgrounding and process death, and
+talks to a bring-your-own-key AI (Anthropic, OpenAI, Google Gemini, or a
+local Ollama server). No account, no backend, no telemetry: your data
+stays in an on-device SQLite database and your API keys in the Android
+Keystore.
 
-Built with Flutter, Riverpod, Drift and go_router.
+Where it's going: an assistant that listens when you ask it to, notices
+the commitments you make, and does the secretary work around them. See
+[`docs/05-atomic-assist-plan.md`](docs/05-atomic-assist-plan.md).
+
+Formerly **Flowline** (renamed 2026-10-04). Dart package `atomic_assist`,
+Android application id `com.devbehindyou.atomicassist`. Built with
+Flutter, Riverpod, Drift and go_router.
 
 ## Status
 
@@ -15,12 +22,16 @@ Phases 1–5 and Export are built; see
 [`PROJECT_OVERVIEW.md`](PROJECT_OVERVIEW.md) for exactly what the app does
 today, what's verified by CI and what's still unverified on a device.
 What's next, in order, is in
+[`docs/05-atomic-assist-plan.md`](docs/05-atomic-assist-plan.md); the
+engineering rules (R1–R21) and finished phases are in
 [`docs/04-build-and-optimization-plan.md`](docs/04-build-and-optimization-plan.md).
 
 | Doc | What it's for |
 |---|---|
 | [`PROJECT_OVERVIEW.md`](PROJECT_OVERVIEW.md) | As-built architecture, data model, screens, known issues |
-| [`docs/04-build-and-optimization-plan.md`](docs/04-build-and-optimization-plan.md) | Forward plan: phases, engineering rules, defect register |
+| [`docs/05-atomic-assist-plan.md`](docs/05-atomic-assist-plan.md) | Forward plan: the personal-assistant capabilities and the Atomic UI rebuild |
+| [`docs/design-system/atomic-design-system.md`](docs/design-system/atomic-design-system.md) | The Atomic visual language (source of truth for UI) |
+| [`docs/04-build-and-optimization-plan.md`](docs/04-build-and-optimization-plan.md) | Engineering rules R1–R21, defect register, Phases 0–4 |
 | [`docs/README.md`](docs/README.md) | Index of the planning docs, UX spec and design tokens |
 | [`docs/history.md`](docs/history.md) | The original phase-by-phase build log |
 
@@ -28,12 +39,17 @@ What's next, in order, is in
 
 CI (`.github/workflows/ci.yml`) is the build environment: every push to
 `main` and every pull request runs format, analyze, tests, and a release
-APK build. Download `flowline-arm64-v8a-release-<sha>.apk` from the run's
-**Artifacts** (`flowline-release-apks-<sha>`) and install it on the phone.
+APK build. Download `atomic-assist-arm64-v8a-release-<sha>.apk` from the run's
+**Artifacts** (`atomic-assist-release-apks-<sha>`) and install it on the phone.
 
 Each build has a higher `versionCode` (the CI run number), so a newer APK
 installs over an older one **as long as both are signed with the same
 key** — see the next section.
+
+**Coming from Flowline builds:** the application id changed with the
+rename, so Android treats Atomic Assist as a different app. It installs
+alongside an old Flowline build rather than over it, and starts with empty
+data; uninstall Flowline once you no longer need it.
 
 ## Release signing
 

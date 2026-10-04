@@ -1,5 +1,5 @@
-import 'package:flowline/features/shell/app_shell.dart';
-import 'package:flowline/l10n/l10n.dart';
+import 'package:atomic_assist/features/shell/app_shell.dart';
+import 'package:atomic_assist/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';

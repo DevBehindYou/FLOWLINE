@@ -1,14 +1,14 @@
 import 'package:drift/drift.dart' show Value;
-import 'package:flowline/data/local/drift/app_database.dart';
-import 'package:flowline/data/repositories/ai_repository_impl.dart';
-import 'package:flowline/data/local/secure/secure_key_store.dart';
-import 'package:flowline/data/repositories/focus_session_repository_impl.dart';
-import 'package:flowline/data/repositories/schedule_repository_impl.dart';
-import 'package:flowline/data/repositories/task_repository_impl.dart';
-import 'package:flowline/domain/entities/ai_message.dart';
-import 'package:flowline/domain/entities/ai_provider_config.dart';
-import 'package:flowline/domain/entities/focus_session.dart';
-import 'package:flowline/domain/entities/task.dart';
+import 'package:atomic_assist/data/local/drift/app_database.dart';
+import 'package:atomic_assist/data/repositories/ai_repository_impl.dart';
+import 'package:atomic_assist/data/local/secure/secure_key_store.dart';
+import 'package:atomic_assist/data/repositories/focus_session_repository_impl.dart';
+import 'package:atomic_assist/data/repositories/schedule_repository_impl.dart';
+import 'package:atomic_assist/data/repositories/task_repository_impl.dart';
+import 'package:atomic_assist/domain/entities/ai_message.dart';
+import 'package:atomic_assist/domain/entities/ai_provider_config.dart';
+import 'package:atomic_assist/domain/entities/focus_session.dart';
+import 'package:atomic_assist/domain/entities/task.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/test_database.dart';

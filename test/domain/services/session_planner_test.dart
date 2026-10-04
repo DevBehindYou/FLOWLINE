@@ -1,5 +1,5 @@
-import 'package:flowline/domain/entities/focus_session.dart';
-import 'package:flowline/domain/services/session_planner.dart';
+import 'package:atomic_assist/domain/entities/focus_session.dart';
+import 'package:atomic_assist/domain/services/session_planner.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

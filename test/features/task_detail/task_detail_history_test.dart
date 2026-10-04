@@ -1,9 +1,9 @@
 import 'package:drift/drift.dart' show Value;
-import 'package:flowline/data/local/drift/app_database.dart';
-import 'package:flowline/data/repositories/task_repository_impl.dart';
-import 'package:flowline/domain/entities/focus_session.dart';
-import 'package:flowline/domain/entities/task.dart';
-import 'package:flowline/features/task_detail/view/task_detail_screen.dart';
+import 'package:atomic_assist/data/local/drift/app_database.dart';
+import 'package:atomic_assist/data/repositories/task_repository_impl.dart';
+import 'package:atomic_assist/domain/entities/focus_session.dart';
+import 'package:atomic_assist/domain/entities/task.dart';
+import 'package:atomic_assist/features/task_detail/view/task_detail_screen.dart';
 import 'package:flutter/gestures.dart' show kLongPressTimeout;
 import 'package:flutter/material.dart' show Icons, Scrollable;
 import 'package:flutter_test/flutter_test.dart';

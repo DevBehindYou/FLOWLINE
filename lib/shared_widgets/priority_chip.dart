@@ -13,9 +13,9 @@ class PriorityChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final label = context.l10n.priorityName(priority);
     final color = switch (priority) {
-      TaskPriority.low => FlowlineSemanticColors.priorityLow,
-      TaskPriority.medium => FlowlineSemanticColors.priorityMedium,
-      TaskPriority.high => FlowlineSemanticColors.priorityHigh,
+      TaskPriority.low => AtomicSemanticColors.priorityLow,
+      TaskPriority.medium => AtomicSemanticColors.priorityMedium,
+      TaskPriority.high => AtomicSemanticColors.priorityHigh,
     };
 
     return Container(

@@ -9,7 +9,8 @@ import 'core/riverpod_config.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   LicenseRegistry.addLicense(_fontLicenses);
-  runApp(const ProviderScope(retry: noAutomaticRetry, child: FlowlineApp()));
+  runApp(
+      const ProviderScope(retry: noAutomaticRetry, child: AtomicAssistApp()));
 }
 
 /// The bundled fonts' SIL OFL 1.1 texts, shown on the Licenses page.

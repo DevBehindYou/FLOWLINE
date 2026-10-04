@@ -1,5 +1,5 @@
-import 'package:flowline/features/focus_timer/widgets/timer_ring.dart';
-import 'package:flowline/l10n/l10n.dart';
+import 'package:atomic_assist/features/focus_timer/widgets/timer_ring.dart';
+import 'package:atomic_assist/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

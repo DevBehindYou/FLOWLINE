@@ -1,5 +1,5 @@
-import 'package:flowline/domain/entities/ai_message.dart';
-import 'package:flowline/domain/services/chat_history.dart';
+import 'package:atomic_assist/domain/entities/ai_message.dart';
+import 'package:atomic_assist/domain/services/chat_history.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 var _id = 0;

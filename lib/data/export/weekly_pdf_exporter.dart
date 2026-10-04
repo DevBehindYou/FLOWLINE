@@ -54,7 +54,7 @@ class WeeklyPdfExporter {
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Text(
-              'Flowline — Weekly Focus Summary',
+              'Atomic Assist — Weekly Focus Summary',
               style: const pw.TextStyle(
                   fontSize: 20, fontWeight: pw.FontWeight.bold),
             ),
@@ -113,7 +113,7 @@ class WeeklyPdfExporter {
               ),
             pw.SizedBox(height: 20),
             pw.Text(
-              'Generated on-device by Flowline. Nothing is sent anywhere to produce this file.',
+              'Generated on-device by Atomic Assist. Nothing is sent anywhere to produce this file.',
               style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
             ),
           ],

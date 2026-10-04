@@ -1,4 +1,4 @@
-import 'package:flowline/core/theme/app_theme.dart';
+import 'package:atomic_assist/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -11,7 +11,7 @@ import '../../tool/ci/android_patches.dart';
 const _manifestTemplate = '''
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="flowline"
+        android:label="atomic_assist"
         android:name="\${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -47,7 +47,7 @@ plugins {
 }
 
 android {
-    namespace = "com.devbehindyou.flowline"
+    namespace = "com.devbehindyou.atomic_assist"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -57,7 +57,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.devbehindyou.flowline"
+        applicationId = "com.devbehindyou.atomic_assist"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -122,20 +122,25 @@ void main() {
       final applicationTag = patched.substring(
           patched.indexOf('<application'), patched.indexOf('<activity'));
       expect(applicationTag,
-          contains('android:fullBackupContent="@xml/flowline_backup_rules"'));
+          contains('android:fullBackupContent="@xml/atomic_backup_rules"'));
       expect(
           applicationTag,
           contains('android:dataExtractionRules='
-              '"@xml/flowline_data_extraction_rules"'));
+              '"@xml/atomic_data_extraction_rules"'));
       for (final name in [
-        'flowline_backup_rules',
-        'flowline_data_extraction_rules'
+        'atomic_backup_rules',
+        'atomic_data_extraction_rules'
       ]) {
         expect(
           backupResourceFiles.keys,
           contains('app/src/main/res/xml/$name.xml'),
         );
       }
+    });
+
+    test('names the app "Atomic Assist" on the launcher', () {
+      expect(patched, contains('android:label="Atomic Assist"'));
+      expect(patched, isNot(contains('android:label="atomic_assist"')));
     });
 
     test('is idempotent', () {
@@ -163,6 +168,20 @@ void main() {
       expect(compileOptions, contains('isCoreLibraryDesugaringEnabled = true'));
     });
 
+    test('sets the store application id, keeping the Kotlin namespace', () {
+      expect(
+          patched, contains('applicationId = "com.devbehindyou.atomicassist"'));
+      expect(patched, contains('namespace = "com.devbehindyou.atomic_assist"'));
+    });
+
+    test('fails loudly when applicationId is missing', () {
+      expect(
+        () => patchAppGradleKts(_gradleTemplate.replaceFirst(
+            RegExp(r'applicationId = "[^"]*"'), '')),
+        throwsA(isA<AndroidPatchException>()),
+      );
+    });
+
     test('adds the desugar_jdk_libs dependency at top level', () {
       expect(patched, contains('coreLibraryDesugaring("$desugarJdkLibs")'));
       expect(patched.indexOf('dependencies {'),
@@ -177,7 +196,7 @@ void main() {
         'signs release builds with the release config when key.properties '
         'exists, falling back to the debug key otherwise', () {
       expect(patched, isNot(contains(templateReleaseSigning)));
-      expect(patched, contains(flowlineReleaseSigning));
+      expect(patched, contains(atomicReleaseSigning));
       expect(
         patched.indexOf('val keystorePropertiesFile'),
         lessThan(patched.indexOf('android {')),
@@ -252,8 +271,8 @@ void main() {
       for (final entry in splashResourceFiles.entries) {
         final xml = entry.value;
         expect(xml, startsWith('<?xml'), reason: entry.key);
-        if (!entry.key.contains('flowline_colors')) {
-          expect(xml, contains('@color/flowline_splash_background'),
+        if (!entry.key.contains('atomic_colors')) {
+          expect(xml, contains('@color/atomic_splash_background'),
               reason: entry.key);
         }
       }

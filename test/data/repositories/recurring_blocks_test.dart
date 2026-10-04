@@ -1,10 +1,10 @@
 import 'package:drift/drift.dart' show Value;
-import 'package:flowline/data/local/drift/app_database.dart';
-import 'package:flowline/data/repositories/schedule_repository_impl.dart';
-import 'package:flowline/data/repositories/task_repository_impl.dart';
-import 'package:flowline/domain/entities/schedule_block.dart';
-import 'package:flowline/domain/entities/task.dart';
-import 'package:flowline/domain/recurrence/recurrence_rule.dart';
+import 'package:atomic_assist/data/local/drift/app_database.dart';
+import 'package:atomic_assist/data/repositories/schedule_repository_impl.dart';
+import 'package:atomic_assist/data/repositories/task_repository_impl.dart';
+import 'package:atomic_assist/domain/entities/schedule_block.dart';
+import 'package:atomic_assist/domain/entities/task.dart';
+import 'package:atomic_assist/domain/recurrence/recurrence_rule.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/test_database.dart';

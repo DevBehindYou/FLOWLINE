@@ -22,7 +22,7 @@ part 'app_router.g.dart';
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
-/// Built once, after FlowlineApp has the stored settings: the first
+/// Built once, after AtomicAssistApp has the stored settings: the first
 /// location is decided then, so a first launch opens onboarding without
 /// flashing Today first, and finishing it can't race a redirect against
 /// the settings stream. If the settings can't be read, the app opens

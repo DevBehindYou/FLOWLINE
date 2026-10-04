@@ -1,6 +1,6 @@
 // Usage: dart run tool/ci/patch_android.dart <android dir>
 //
-// Applies Flowline's requirements to a freshly generated `flutter create`
+// Applies Atomic Assist's requirements to a freshly generated `flutter create`
 // Android project. See android_patches.dart for what and why.
 import 'dart:io';
 

@@ -1,4 +1,4 @@
-import 'package:flowline/domain/services/ai_settings_validation.dart';
+import 'package:atomic_assist/domain/services/ai_settings_validation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

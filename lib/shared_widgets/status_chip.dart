@@ -13,9 +13,9 @@ class StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final label = context.l10n.statusName(status);
     final color = switch (status) {
-      TaskStatus.todo => FlowlineSemanticColors.statusTodo,
-      TaskStatus.inProgress => FlowlineSemanticColors.statusInProgress,
-      TaskStatus.done => FlowlineSemanticColors.statusDone,
+      TaskStatus.todo => AtomicSemanticColors.statusTodo,
+      TaskStatus.inProgress => AtomicSemanticColors.statusInProgress,
+      TaskStatus.done => AtomicSemanticColors.statusDone,
     };
 
     return Container(

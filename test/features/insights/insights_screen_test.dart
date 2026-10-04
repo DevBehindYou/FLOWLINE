@@ -1,7 +1,7 @@
-import 'package:flowline/data/local/drift/app_database.dart';
-import 'package:flowline/data/repositories/focus_session_repository_impl.dart';
-import 'package:flowline/domain/entities/focus_session.dart';
-import 'package:flowline/features/insights/view/insights_screen.dart';
+import 'package:atomic_assist/data/local/drift/app_database.dart';
+import 'package:atomic_assist/data/repositories/focus_session_repository_impl.dart';
+import 'package:atomic_assist/domain/entities/focus_session.dart';
+import 'package:atomic_assist/features/insights/view/insights_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

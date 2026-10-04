@@ -202,7 +202,7 @@ jobs:
           key: gradle-${{ runner.os }}-flutter-${{ env.FLUTTER_VERSION }}-${{ hashFiles('android/**/*.gradle*', 'android/gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: gradle-${{ runner.os }}-flutter-${{ env.FLUTTER_VERSION }}-
 
-      - name: Apply Flowline's manifest + Gradle requirements
+      - name: Apply Atomic Assist's manifest + Gradle requirements
         run: dart run tool/ci/patch_android.dart android
 
       - name: flutter pub get
@@ -235,16 +235,16 @@ jobs:
             KEYSTORE_PASSWORD="$(openssl rand -hex 16)"
             KEY_PASSWORD="${KEYSTORE_PASSWORD}"
             KEY_ALIAS="ephemeral"
-            keytool -genkeypair -keystore android/app/flowline-release.jks \
+            keytool -genkeypair -keystore android/app/atomic-assist-release.jks \
               -storetype PKCS12 -alias "${KEY_ALIAS}" -keyalg RSA -keysize 2048 \
               -validity 30 -storepass "${KEYSTORE_PASSWORD}" -keypass "${KEY_PASSWORD}" \
-              -dname "CN=Flowline CI throwaway" > /dev/null
+              -dname "CN=Atomic Assist CI throwaway" > /dev/null
           else
-            printf '%s' "${KEYSTORE_BASE64}" | base64 --decode > android/app/flowline-release.jks
+            printf '%s' "${KEYSTORE_BASE64}" | base64 --decode > android/app/atomic-assist-release.jks
             echo "configured=true" >> "$GITHUB_OUTPUT"
           fi
           {
-            echo "storeFile=flowline-release.jks"
+            echo "storeFile=atomic-assist-release.jks"
             echo "storePassword=${KEYSTORE_PASSWORD}"
             echo "keyAlias=${KEY_ALIAS}"
             echo "keyPassword=${KEY_PASSWORD}"
@@ -264,7 +264,14 @@ jobs:
           for apk in build/app/outputs/flutter-apk/app-*-release.apk; do
             actual="$("${tools}apksigner" verify --print-certs "$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
             version="$("${tools}aapt2" dump badging "$apk" | sed -n "s/.*versionCode='\([0-9]*\)'.*/\1/p")"
-            echo "$(basename "$apk"): versionCode=${version} cert=${actual}"
+            # The store identity is permanent once published (see
+            # applicationId in tool/ci/android_patches.dart).
+            package="$("${tools}aapt2" dump badging "$apk" | sed -n "s/^package: name='\([^']*\)'.*/\1/p")"
+            if [ "$package" != "com.devbehindyou.atomicassist" ]; then
+              echo "::error title=Wrong application id::$(basename "$apk") is ${package}, expected com.devbehindyou.atomicassist."
+              exit 1
+            fi
+            echo "$(basename "$apk"): package=${package} versionCode=${version} cert=${actual}"
             if [ "${{ steps.signing.outputs.configured }}" = "true" ] && [ "$actual" != "$expected" ]; then
               echo "::error title=Wrong signing key::$(basename "$apk") is signed with ${actual}, expected ${expected} (tool/ci/release_cert_sha256.txt)."
               exit 1
@@ -279,22 +286,22 @@ jobs:
           outdir="build/app/outputs/flutter-apk"
           for apk in "$outdir"/app-*-release.apk; do
             base="$(basename "$apk" .apk)"
-            cp "$apk" "$outdir/flowline-${base#app-}-${sha}.apk"
+            cp "$apk" "$outdir/atomic-assist-${base#app-}-${sha}.apk"
           done
           ls -la "$outdir"
 
       - name: Upload APK artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: flowline-release-apks-${{ github.sha }}
-          path: build/app/outputs/flutter-apk/flowline-*-release-*.apk
+          name: atomic-assist-release-apks-${{ github.sha }}
+          path: build/app/outputs/flutter-apk/atomic-assist-*-release-*.apk
           retention-days: 30
 
       - name: Job summary
         if: ${{ !cancelled() }}
         run: |
           {
-            echo "## Flowline Android build"
+            echo "## Atomic Assist Android build"
             echo "- Commit: \`${GITHUB_SHA}\`"
             echo "- Flutter: ${FLUTTER_VERSION}"
             if [ "${{ steps.signing.outputs.configured }}" = "true" ]; then
@@ -304,7 +311,7 @@ jobs:
             fi
             echo "- Build number (versionCode base): ${{ github.run_number }}"
             echo "- APKs:"
-            ls build/app/outputs/flutter-apk/flowline-*.apk 2>/dev/null | sed 's#.*/#  - #' || echo "  - none (build failed)"
+            ls build/app/outputs/flutter-apk/atomic-assist-*.apk 2>/dev/null | sed 's#.*/#  - #' || echo "  - none (build failed)"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload Android build logs

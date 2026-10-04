@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-/// Semantic colors sourced from the Flowline design system
+/// Semantic colors sourced from the original design files
 /// (Flowline Focus System / Flowline Focus Light DESIGN.md, delivered by
 /// the design team). Priority/status/session-type/feedback colors are
 /// shared across both themes by design-system convention — only the
 /// surface/text/primary tokens differ between light and dark.
-class FlowlineSemanticColors {
-  const FlowlineSemanticColors._();
+class AtomicSemanticColors {
+  const AtomicSemanticColors._();
 
   static const priorityLow = Color(0xFF64748B);
   static const priorityMedium = Color(0xFFF59E0B);
@@ -27,8 +27,8 @@ class FlowlineSemanticColors {
 
 /// Bundled typefaces (assets/fonts, SIL OFL 1.1). Space Grotesk for
 /// display and headline styles, Inter for everything else.
-class FlowlineFonts {
-  const FlowlineFonts._();
+class AtomicFonts {
+  const AtomicFonts._();
 
   static const display = 'SpaceGrotesk';
   static const text = 'Inter';
@@ -141,8 +141,8 @@ class AppTheme {
           letterSpacing: size * letterSpacingEm,
           color: color,
         );
-    const d = FlowlineFonts.display;
-    const t = FlowlineFonts.text;
+    const d = AtomicFonts.display;
+    const t = AtomicFonts.text;
     const bold = FontWeight.w700;
     const semi = FontWeight.w600;
     const medium = FontWeight.w500;
@@ -171,7 +171,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      fontFamily: FlowlineFonts.text,
+      fontFamily: AtomicFonts.text,
       textTheme: textTheme(colorScheme.onSurface),
       scaffoldBackgroundColor: colorScheme.surface,
       cardTheme: CardThemeData(

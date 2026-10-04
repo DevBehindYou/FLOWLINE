@@ -6,7 +6,7 @@ import '../../core/providers.dart';
 import '../settings/viewmodel/settings_view_model.dart';
 import '../../l10n/l10n.dart';
 
-/// First-run flow (spec §5.2): what Flowline does, why it asks for
+/// First-run flow (spec §5.2): what Atomic Assist does, why it asks for
 /// notifications, and an optional AI provider. Every step can be skipped,
 /// and a denied permission never blocks the app.
 class OnboardingScreen extends ConsumerStatefulWidget {

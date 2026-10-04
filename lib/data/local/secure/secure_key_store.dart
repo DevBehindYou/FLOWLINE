@@ -27,7 +27,7 @@ class SecureKeyStore {
     ),
   );
 
-  String _storageKey(AIProviderId id) => 'flowline_ai_api_key_${id.name}';
+  String _storageKey(AIProviderId id) => 'atomic_assist_ai_api_key_${id.name}';
 
   /// Null when no key is saved, and also when the stored one can't be
   /// read: an unreadable key is treated as "not connected" so the UI can

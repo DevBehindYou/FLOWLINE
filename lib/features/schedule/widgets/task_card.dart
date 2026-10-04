@@ -29,7 +29,7 @@ class TaskCard extends ConsumerWidget {
         context,
         alignLeft: true,
         icon: Icons.check,
-        color: FlowlineSemanticColors.statusDone,
+        color: AtomicSemanticColors.statusDone,
       ),
       secondaryBackground: _swipeBackground(
         context,
@@ -64,7 +64,7 @@ class TaskCard extends ConsumerWidget {
           leading: IconButton(
             tooltip: isDone ? context.l10n.markNotDone : context.l10n.markDone,
             icon: Icon(isDone ? Icons.check_circle : Icons.circle_outlined),
-            color: isDone ? FlowlineSemanticColors.statusDone : null,
+            color: isDone ? AtomicSemanticColors.statusDone : null,
             onPressed: () => _toggleDone(context, ref),
           ),
           title: Text(
@@ -246,7 +246,7 @@ class _DueLabel extends StatelessWidget {
     final (text, color) = switch (state) {
       DueState.overdue => (
           l10n.dueOverdue(l10n.monthDay(due)),
-          FlowlineSemanticColors.feedbackOverdue
+          AtomicSemanticColors.feedbackOverdue
         ),
       DueState.dueToday => (
           l10n.dueToday(l10n.time(due)),

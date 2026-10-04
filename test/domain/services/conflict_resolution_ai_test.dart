@@ -1,5 +1,5 @@
-import 'package:flowline/domain/entities/schedule_block.dart';
-import 'package:flowline/domain/services/conflict_resolution_ai.dart';
+import 'package:atomic_assist/domain/entities/schedule_block.dart';
+import 'package:atomic_assist/domain/services/conflict_resolution_ai.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 ScheduleBlock _block(

@@ -34,7 +34,7 @@ class ExportService {
     );
     await Printing.sharePdf(
       bytes: bytes,
-      filename: 'flowline-focus-${_fileStamp(rangeStart, rangeEnd)}.pdf',
+      filename: 'atomic-assist-focus-${_fileStamp(rangeStart, rangeEnd)}.pdf',
     );
   }
 
@@ -52,7 +52,7 @@ class ExportService {
     final csv = const ExportFormatter().toCsv(sessions);
     return _shareText(
       content: csv,
-      filename: 'flowline-focus-${_fileStamp(rangeStart, rangeEnd)}.csv',
+      filename: 'atomic-assist-focus-${_fileStamp(rangeStart, rangeEnd)}.csv',
     );
   }
 
@@ -65,7 +65,7 @@ class ExportService {
         .toJson(sessions, rangeStart: rangeStart, rangeEnd: rangeEnd);
     return _shareText(
       content: json,
-      filename: 'flowline-focus-${_fileStamp(rangeStart, rangeEnd)}.json',
+      filename: 'atomic-assist-focus-${_fileStamp(rangeStart, rangeEnd)}.json',
     );
   }
 
@@ -75,7 +75,7 @@ class ExportService {
     final file = File('${dir.path}/$filename');
     await file.writeAsString(content);
     await SharePlus.instance.share(
-      ShareParams(files: [XFile(file.path)], subject: 'Flowline export'),
+      ShareParams(files: [XFile(file.path)], subject: 'Atomic Assist export'),
     );
   }
 

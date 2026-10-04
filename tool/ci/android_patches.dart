@@ -44,6 +44,15 @@ const scheduledNotificationReceivers = '''
         </receiver>
 ''';
 
+// App identity. `flutter create` derives both from the pubspec name
+// (atomic_assist): label "atomic_assist", id com.devbehindyou.atomic_assist.
+// The store id is the conventional no-underscore form; it is permanent
+// once published, and a different id is a different app with its own
+// (empty) storage. The Kotlin namespace stays as generated: Android allows
+// the namespace and the application id to differ.
+const appLabel = 'Atomic Assist';
+const applicationId = 'com.devbehindyou.atomicassist';
+
 const desugarJdkLibs = 'com.android.tools:desugar_jdk_libs:2.1.4';
 
 // Android Auto Backup copies app data to the user's Google account and
@@ -84,8 +93,8 @@ String get dataExtractionRulesXml => '<?xml version="1.0" encoding="utf-8"?>\n'
 /// Resource files the manifest's backup attributes point at, keyed by
 /// path relative to the android/ directory.
 Map<String, String> get backupResourceFiles => {
-      'app/src/main/res/xml/flowline_backup_rules.xml': backupRulesXml,
-      'app/src/main/res/xml/flowline_data_extraction_rules.xml':
+      'app/src/main/res/xml/atomic_backup_rules.xml': backupRulesXml,
+      'app/src/main/res/xml/atomic_data_extraction_rules.xml':
           dataExtractionRulesXml,
     };
 
@@ -93,7 +102,7 @@ Map<String, String> get backupResourceFiles => {
 // night) and Android 12+ draws the launcher icon on that. These files
 // replace it with the app's own surface colours, so the native splash,
 // the first Flutter frame and the first screen are one continuous colour
-// (spec §5.1). They are whole files Flowline owns rather than patches,
+// (spec §5.1). They are whole files the app owns rather than patches,
 // so a template change can't silently drop them. Keep the colours equal
 // to AppTheme's surfaces (test/tool/android_patches_test.dart checks).
 const splashColorLight = '#FAF8FF';
@@ -101,12 +110,12 @@ const splashColorDark = '#0F1117';
 
 String _colorsXml(String color) => '<?xml version="1.0" encoding="utf-8"?>\n'
     '<resources>\n'
-    '    <color name="flowline_splash_background">$color</color>\n'
+    '    <color name="atomic_splash_background">$color</color>\n'
     '</resources>\n';
 
 const _launchBackgroundXml = '<?xml version="1.0" encoding="utf-8"?>\n'
     '<layer-list xmlns:android="http://schemas.android.com/apk/res/android">\n'
-    '    <item android:drawable="@color/flowline_splash_background" />\n'
+    '    <item android:drawable="@color/atomic_splash_background" />\n'
     '</layer-list>\n';
 
 /// Android 12+ ignores windowBackground for the launch screen and uses
@@ -117,15 +126,14 @@ String _launchThemeV31(String parent) =>
     '<resources>\n'
     '    <style name="LaunchTheme" parent="$parent">\n'
     '        <item name="android:windowBackground">@drawable/launch_background</item>\n'
-    '        <item name="android:windowSplashScreenBackground">@color/flowline_splash_background</item>\n'
+    '        <item name="android:windowSplashScreenBackground">@color/atomic_splash_background</item>\n'
     '    </style>\n'
     '</resources>\n';
 
 /// Keyed by path relative to the android/ directory.
 Map<String, String> get splashResourceFiles => {
-      'app/src/main/res/values/flowline_colors.xml':
-          _colorsXml(splashColorLight),
-      'app/src/main/res/values-night/flowline_colors.xml':
+      'app/src/main/res/values/atomic_colors.xml': _colorsXml(splashColorLight),
+      'app/src/main/res/values-night/atomic_colors.xml':
           _colorsXml(splashColorDark),
       'app/src/main/res/drawable/launch_background.xml': _launchBackgroundXml,
       'app/src/main/res/drawable-v21/launch_background.xml':
@@ -177,7 +185,7 @@ const _releaseSigningConfig = '''
 
 const templateReleaseSigning =
     'signingConfig = signingConfigs.getByName("debug")';
-const flowlineReleaseSigning = 'signingConfig = '
+const atomicReleaseSigning = 'signingConfig = '
     'if (keystorePropertiesFile.exists()) signingConfigs.getByName("release") '
     'else signingConfigs.getByName("debug")';
 
@@ -193,6 +201,13 @@ String patchManifest(String manifest) {
     );
   }
 
+  // The launcher shows the brand name, not the Dart package name.
+  final label = RegExp(r'android:label="[^"]*"');
+  if (!label.hasMatch(out)) {
+    throw AndroidPatchException('No android:label in AndroidManifest.xml');
+  }
+  out = out.replaceFirst(label, 'android:label="$appLabel"');
+
   // Ollama's local/LAN server is plain HTTP, which Android 9+ blocks by
   // default. Blanket allow: manifest XML can't scope it to private IPs.
   out = _addApplicationAttribute(out, 'android:usesCleartextTraffic', 'true');
@@ -200,9 +215,9 @@ String patchManifest(String manifest) {
   // Back up the database, never flutter_secure_storage's preferences (see
   // backupResourceFiles).
   out = _addApplicationAttribute(
-      out, 'android:fullBackupContent', '@xml/flowline_backup_rules');
-  out = _addApplicationAttribute(out, 'android:dataExtractionRules',
-      '@xml/flowline_data_extraction_rules');
+      out, 'android:fullBackupContent', '@xml/atomic_backup_rules');
+  out = _addApplicationAttribute(
+      out, 'android:dataExtractionRules', '@xml/atomic_data_extraction_rules');
 
   if (!out.contains('ScheduledNotificationReceiver')) {
     // Before the closing tag's own indentation, so both stay aligned.
@@ -215,9 +230,15 @@ String patchManifest(String manifest) {
 
 /// flutter_local_notifications is built with core library desugaring, and
 /// AGP refuses to build an app that depends on it without the same. Also
-/// wires the release signing config (see [flowlineReleaseSigning]).
+/// wires the release signing config (see [atomicReleaseSigning]).
 String patchAppGradleKts(String gradle) {
   var out = gradle;
+
+  final appId = RegExp(r'applicationId = "[^"]*"');
+  if (!appId.hasMatch(out)) {
+    throw AndroidPatchException('No applicationId in app/build.gradle.kts');
+  }
+  out = out.replaceFirst(appId, 'applicationId = "$applicationId"');
 
   if (!out.contains('isCoreLibraryDesugaringEnabled')) {
     out = _insertAfter(
@@ -239,8 +260,8 @@ String patchAppGradleKts(String gradle) {
         first: true);
   }
   if (out.contains(templateReleaseSigning)) {
-    out = out.replaceFirst(templateReleaseSigning, flowlineReleaseSigning);
-  } else if (!out.contains(flowlineReleaseSigning)) {
+    out = out.replaceFirst(templateReleaseSigning, atomicReleaseSigning);
+  } else if (!out.contains(atomicReleaseSigning)) {
     throw AndroidPatchException(
         'Release signingConfig line not found in app/build.gradle.kts');
   }

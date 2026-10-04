@@ -97,7 +97,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'Flowline'**
+  /// **'Atomic Assist'**
   String get appTitle;
 
   /// No description provided for @errorNetwork.
@@ -181,7 +181,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingWelcomeBody.
   ///
   /// In en, this message translates to:
-  /// **'Flowline keeps your tasks, time blocks and focus sessions on this phone. No account, no sync, nothing leaves the device unless you export it.'**
+  /// **'Atomic Assist keeps your tasks, time blocks and focus sessions on this phone. No account, no sync, nothing leaves the device unless you export it.'**
   String get onboardingWelcomeBody;
 
   /// No description provided for @onboardingNext.
@@ -199,7 +199,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingNotificationsBody.
   ///
   /// In en, this message translates to:
-  /// **'Flowline uses notifications only for focus session and break alerts, so you can put the phone down. You can change this any time in Settings.'**
+  /// **'Atomic Assist uses notifications only for focus session and break alerts, so you can put the phone down. You can change this any time in Settings.'**
   String get onboardingNotificationsBody;
 
   /// No description provided for @onboardingAllowNotifications.
@@ -409,7 +409,7 @@ abstract class AppLocalizations {
   /// No description provided for @dataWhereBody.
   ///
   /// In en, this message translates to:
-  /// **'Everything you create is stored only on this phone. There is no Flowline account, server or analytics.\n\nAPI keys are kept in Android’s secure Keystore and are only ever sent to the AI provider they belong to. When you use the Assistant, your message and the conversation so far go directly from this phone to the provider you chose.\n\nYour Android backup includes your Flowline data but never your API keys.'**
+  /// **'Everything you create is stored only on this phone. There is no Atomic Assist account, server or analytics.\n\nAPI keys are kept in Android’s secure Keystore and are only ever sent to the AI provider they belong to. When you use the Assistant, your message and the conversation so far go directly from this phone to the provider you chose.\n\nYour Android backup includes your Atomic Assist data but never your API keys.'**
   String get dataWhereBody;
 
   /// No description provided for @clearAllData.
@@ -1723,7 +1723,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiErrorInterrupted.
   ///
   /// In en, this message translates to:
-  /// **'No reply — Flowline was closed before it arrived. Send your message again.'**
+  /// **'No reply — Atomic Assist was closed before it arrived. Send your message again.'**
   String get aiErrorInterrupted;
 
   /// No description provided for @aiErrorUnknown.

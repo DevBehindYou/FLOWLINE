@@ -11,14 +11,14 @@ import 'core/time/current_day.dart';
 import 'l10n/l10n.dart';
 import 'features/focus_timer/viewmodel/focus_timer_view_model.dart';
 
-class FlowlineApp extends ConsumerStatefulWidget {
-  const FlowlineApp({super.key});
+class AtomicAssistApp extends ConsumerStatefulWidget {
+  const AtomicAssistApp({super.key});
 
   @override
-  ConsumerState<FlowlineApp> createState() => _FlowlineAppState();
+  ConsumerState<AtomicAssistApp> createState() => _AtomicAssistAppState();
 }
 
-class _FlowlineAppState extends ConsumerState<FlowlineApp> {
+class _AtomicAssistAppState extends ConsumerState<AtomicAssistApp> {
   late final AppLifecycleListener _lifecycle;
 
   @override

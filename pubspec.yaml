@@ -1,5 +1,5 @@
-name: flowline
-description: A local-first focus and schedule workspace.
+name: atomic_assist
+description: "Atomic Assist (AA). A local-first personal assistant for tasks, time blocks and focus, with an assistant that listens and acts. Part of the DevBehindYou Atomic family."
 publish_to: 'none'
 version: 0.1.0
 

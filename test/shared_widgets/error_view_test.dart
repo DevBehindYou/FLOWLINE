@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:flowline/core/error/user_message.dart';
-import 'package:flowline/l10n/l10n.dart';
-import 'package:flowline/shared_widgets/error_view.dart';
+import 'package:atomic_assist/core/error/user_message.dart';
+import 'package:atomic_assist/l10n/l10n.dart';
+import 'package:atomic_assist/shared_widgets/error_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

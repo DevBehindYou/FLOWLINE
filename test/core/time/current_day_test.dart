@@ -1,6 +1,6 @@
-import 'package:flowline/core/riverpod_config.dart';
-import 'package:flowline/core/time/current_day.dart';
-import 'package:flowline/domain/time/calendar_day.dart';
+import 'package:atomic_assist/core/riverpod_config.dart';
+import 'package:atomic_assist/core/time/current_day.dart';
+import 'package:atomic_assist/domain/time/calendar_day.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 

@@ -1,5 +1,5 @@
-import 'package:flowline/l10n/app_localizations_en.dart';
-import 'package:flowline/l10n/l10n.dart';
+import 'package:atomic_assist/l10n/app_localizations_en.dart';
+import 'package:atomic_assist/l10n/l10n.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';

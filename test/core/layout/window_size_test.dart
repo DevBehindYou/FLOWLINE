@@ -1,4 +1,4 @@
-import 'package:flowline/core/layout/window_size.dart';
+import 'package:atomic_assist/core/layout/window_size.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

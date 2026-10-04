@@ -267,7 +267,7 @@ class _AddEditAiProviderSheetState
                       : l10n.aiFailure(_testFailure!, widget.config),
                   style: TextStyle(
                     color: _testFailure == null
-                        ? FlowlineSemanticColors.statusDone
+                        ? AtomicSemanticColors.statusDone
                         : Theme.of(context).colorScheme.error,
                   ),
                 ),

@@ -1,9 +1,9 @@
-import 'package:flowline/data/local/drift/app_database.dart';
-import 'package:flowline/data/repositories/schedule_repository_impl.dart';
-import 'package:flowline/data/repositories/task_repository_impl.dart';
-import 'package:flowline/domain/entities/task.dart';
-import 'package:flowline/domain/time/calendar_day.dart';
-import 'package:flowline/features/schedule/view/today_screen.dart';
+import 'package:atomic_assist/data/local/drift/app_database.dart';
+import 'package:atomic_assist/data/repositories/schedule_repository_impl.dart';
+import 'package:atomic_assist/data/repositories/task_repository_impl.dart';
+import 'package:atomic_assist/domain/entities/task.dart';
+import 'package:atomic_assist/domain/time/calendar_day.dart';
+import 'package:atomic_assist/features/schedule/view/today_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

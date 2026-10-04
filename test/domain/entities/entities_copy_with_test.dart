@@ -1,5 +1,5 @@
-import 'package:flowline/domain/entities/schedule_block.dart';
-import 'package:flowline/domain/entities/task.dart';
+import 'package:atomic_assist/domain/entities/schedule_block.dart';
+import 'package:atomic_assist/domain/entities/task.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

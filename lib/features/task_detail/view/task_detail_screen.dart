@@ -100,7 +100,7 @@ class TaskDetailScreen extends ConsumerWidget {
                     Icon(Icons.event_outlined,
                         size: 18,
                         color: dueStateOf(task) == DueState.overdue
-                            ? FlowlineSemanticColors.feedbackOverdue
+                            ? AtomicSemanticColors.feedbackOverdue
                             : Theme.of(context).colorScheme.onSurfaceVariant),
                     const SizedBox(width: 6),
                     Expanded(

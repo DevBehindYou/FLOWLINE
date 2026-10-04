@@ -1,4 +1,4 @@
-import 'package:flowline/domain/entities/app_settings.dart';
+import 'package:atomic_assist/domain/entities/app_settings.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
