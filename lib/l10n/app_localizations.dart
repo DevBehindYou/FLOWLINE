@@ -706,6 +706,30 @@ abstract class AppLocalizations {
   /// **'Jump to today'**
   String get jumpToToday;
 
+  /// Mono caps loading line on Insights.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading your week…'**
+  String get loadingInsights;
+
+  /// Mono caps loading line on Assist.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading the assistant…'**
+  String get loadingAssistant;
+
+  /// Mono caps loading line for a chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading the conversation…'**
+  String get loadingConversation;
+
+  /// Which provider and model answer in the chat.
+  ///
+  /// In en, this message translates to:
+  /// **'{provider} · {model}'**
+  String providerAndModel(String provider, String model);
+
   /// Mono caps loading line on Focus.
   ///
   /// In en, this message translates to:

@@ -5,6 +5,8 @@ import 'package:atomic_assist/features/insights/view/insights_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../support/finders.dart';
+
 import '../../support/pump_app.dart';
 import '../../support/test_database.dart';
 
@@ -24,7 +26,7 @@ void main() {
       expect(find.text('Complete a session to see stats'), findsOneWidget);
       expect(find.byIcon(Icons.bar_chart_outlined), findsOneWidget);
       // Stat cards and the 7-day chart must not render over an empty dataset.
-      expect(find.text('Day streak'), findsNothing);
+      expect(findLabel('Day streak'), findsNothing);
     });
   }
 
@@ -39,11 +41,11 @@ void main() {
     await pumpScreen(tester, db: db, child: const InsightsScreen());
 
     expect(find.text('Complete a session to see stats'), findsNothing);
-    expect(find.text('Today'), findsOneWidget);
-    expect(find.text('Day streak'), findsOneWidget);
-    expect(find.text('This week'), findsOneWidget);
+    expect(findLabel('Today'), findsOneWidget);
+    expect(findLabel('Day streak'), findsOneWidget);
+    expect(findLabel('This week'), findsOneWidget);
     expect(find.text('1'), findsOneWidget); // one-day streak
-    expect(find.text('1 focus session this week'), findsOneWidget);
+    expect(findLabel('1 focus session this week'), findsOneWidget);
   });
 
   testWidgets('an ended-early session still counts toward the weekly total',
@@ -56,6 +58,6 @@ void main() {
     await pumpScreen(tester, db: db, child: const InsightsScreen());
 
     expect(find.text('Complete a session to see stats'), findsNothing);
-    expect(find.text('1 focus session this week'), findsOneWidget);
+    expect(findLabel('1 focus session this week'), findsOneWidget);
   });
 }

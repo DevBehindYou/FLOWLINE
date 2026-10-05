@@ -358,6 +358,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get jumpToToday => 'Jump to today';
 
   @override
+  String get loadingInsights => 'Loading your week…';
+
+  @override
+  String get loadingAssistant => 'Loading the assistant…';
+
+  @override
+  String get loadingConversation => 'Loading the conversation…';
+
+  @override
+  String providerAndModel(String provider, String model) {
+    return '$provider · $model';
+  }
+
+  @override
   String get loadingFocus => 'Loading the timer…';
 
   @override

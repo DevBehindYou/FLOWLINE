@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../design/atomic.dart';
 import '../../../domain/services/focus_stats_calculator.dart';
 import '../../../shared_widgets/empty_state.dart';
 import '../../../shared_widgets/settings_action.dart';
@@ -24,9 +25,9 @@ class InsightsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(context.l10n.navInsights),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.ios_share_outlined),
-            tooltip: context.l10n.exportThisWeek,
+          AtomicIconButton(
+            icon: AtomicIcons.export,
+            semanticLabel: context.l10n.exportThisWeek,
             onPressed: () => showModalBottomSheet<void>(
               context: context,
               isScrollControlled: true,
@@ -37,7 +38,7 @@ class InsightsScreen extends ConsumerWidget {
         ],
       ),
       body: weeklyAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => AtomicLoading(label: context.l10n.loadingInsights),
         error: (error, _) => ErrorView(
           error: error,
           onRetry: () => ref.invalidate(recentFocusSessionsProvider),
@@ -46,7 +47,7 @@ class InsightsScreen extends ConsumerWidget {
           final hasAnyData = dailyTotals.any((d) => d.sessionCount > 0);
           if (!hasAnyData) {
             return EmptyState(
-              icon: Icons.bar_chart_outlined,
+              icon: AtomicIcons.review,
               title: context.l10n.insightsEmptyTitle,
               message: context.l10n.insightsEmptyMessage,
             );
@@ -60,7 +61,7 @@ class InsightsScreen extends ConsumerWidget {
           final streak = streakAsync.value ?? 0;
 
           return ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AtomicSpace.screenMargin),
             children: [
               _StatCards(cards: [
                 _StatCard(
@@ -69,22 +70,22 @@ class InsightsScreen extends ConsumerWidget {
                 _StatCard(
                   label: context.l10n.dayStreak,
                   value: '$streak',
-                  icon: Icons.local_fire_department,
+                  icon: AtomicIcons.streak,
                 ),
                 _StatCard(
                     label: context.l10n.thisWeek,
                     value: _formatDuration(context.l10n, weekTotalSeconds)),
               ]),
-              const SizedBox(height: 24),
-              Text(context.l10n.last7Days,
-                  style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 12),
+              const SizedBox(height: AtomicSpace.xxl),
+              AtomicSectionLabel(context.l10n.last7Days),
+              const SizedBox(height: AtomicSpace.m),
               SizedBox(
-                  height: 180, child: _WeeklyBarChart(totals: dailyTotals)),
-              const SizedBox(height: 12),
-              Text(
+                  height: _chartHeight,
+                  child: _WeeklyBarChart(totals: dailyTotals)),
+              const SizedBox(height: AtomicSpace.s),
+              AtomicText.mono(
                 context.l10n.weekSessionCount(weekSessionCount),
-                style: Theme.of(context).textTheme.bodySmall,
+                style: AtomicType.caption,
                 textAlign: TextAlign.center,
               ),
             ],
@@ -93,6 +94,8 @@ class InsightsScreen extends ConsumerWidget {
       ),
     );
   }
+
+  static const _chartHeight = 180.0;
 
   String _formatDuration(AppLocalizations l10n, int totalSeconds) {
     final hours = totalSeconds ~/ 3600;
@@ -118,7 +121,7 @@ class _StatCards extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           for (final (i, card) in cards.indexed) ...[
-            if (i > 0) const SizedBox(height: 12),
+            if (i > 0) const SizedBox(height: AtomicSpace.s),
             card,
           ],
         ],
@@ -129,7 +132,7 @@ class _StatCards extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           for (final (i, card) in cards.indexed) ...[
-            if (i > 0) const SizedBox(width: 12),
+            if (i > 0) const SizedBox(width: AtomicSpace.s),
             Expanded(child: card),
           ],
         ],
@@ -147,32 +150,24 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(16),
-      ),
+    final p = context.atomic.palette;
+    return AtomicCard(
+      kind: AtomicCardKind.panel,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // The icon slot is always there, so values line up across cards.
           SizedBox(
-            height: 18,
+            height: AtomicSize.iconTiny,
             child: icon == null
                 ? null
-                : Icon(icon, size: 18, color: scheme.primary),
+                : Icon(icon, size: AtomicSize.iconTiny, color: p.accentText),
           ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: Theme.of(context)
-                .textTheme
-                .headlineSmall
-                ?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          Text(label, style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: AtomicSpace.xs),
+          // A hero number: Display, the real value (system §9.8).
+          AtomicText.display(value, style: AtomicType.pushedTitle),
+          const SizedBox(height: AtomicSpace.xxs),
+          AtomicText.mono(label, style: AtomicType.caption),
         ],
       ),
     );
@@ -182,6 +177,9 @@ class _StatCard extends StatelessWidget {
 class _WeeklyBarChart extends StatelessWidget {
   const _WeeklyBarChart({required this.totals});
 
+  static const _barWidth = 18.0;
+  static final _labelSize = AtomicType.caption.fontSize!;
+
   final List<DailyFocusTotal> totals;
 
   @override
@@ -189,8 +187,7 @@ class _WeeklyBarChart extends StatelessWidget {
     final minutesPerDay = totals.map((d) => d.totalSeconds / 60).toList();
     final maxMinutes = minutesPerDay.fold<double>(0, (a, b) => a > b ? a : b);
     final chartMax = maxMinutes <= 0 ? 30.0 : maxMinutes * 1.25;
-    final primary = Theme.of(context).colorScheme.primary;
-    final onSurfaceVariant = Theme.of(context).colorScheme.onSurfaceVariant;
+    final p = context.atomic.palette;
 
     return BarChart(
       BarChartData(
@@ -198,7 +195,12 @@ class _WeeklyBarChart extends StatelessWidget {
         maxY: chartMax,
         barTouchData: const BarTouchData(enabled: false),
         gridData: const FlGridData(show: false),
-        borderData: FlBorderData(show: false),
+        // Only a baseline: an ink rule, no grid, no box (docs/05 DS-10).
+        borderData: FlBorderData(
+          show: true,
+          border: Border(
+              bottom: BorderSide(color: p.rule, width: AtomicStroke.rule)),
+        ),
         titlesData: FlTitlesData(
           topTitles:
               const AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -211,7 +213,8 @@ class _WeeklyBarChart extends StatelessWidget {
               showTitles: true,
               // Room for the day letter at any text size (fl_chart's
               // default height clips it at 200%).
-              reservedSize: MediaQuery.textScalerOf(context).scale(12) + 14,
+              reservedSize: MediaQuery.textScalerOf(context).scale(_labelSize) +
+                  AtomicSpace.m,
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
                 if (index < 0 || index >= totals.length) {
@@ -219,9 +222,8 @@ class _WeeklyBarChart extends StatelessWidget {
                 }
                 final label = context.l10n.weekdayNarrow(totals[index].date);
                 return Padding(
-                  padding: const EdgeInsets.only(top: 6),
-                  child: Text(label,
-                      style: TextStyle(color: onSurfaceVariant, fontSize: 12)),
+                  padding: const EdgeInsets.only(top: AtomicSpace.xs),
+                  child: AtomicText.mono(label, style: AtomicType.caption),
                 );
               },
             ),
@@ -232,11 +234,12 @@ class _WeeklyBarChart extends StatelessWidget {
             BarChartGroupData(
               x: i,
               barRods: [
+                // Square Signal bars: no rounding, no gradient.
                 BarChartRodData(
                   toY: minutesPerDay[i],
-                  color: primary,
-                  width: 18,
-                  borderRadius: BorderRadius.circular(4),
+                  color: p.accentText,
+                  width: _barWidth,
+                  borderRadius: BorderRadius.zero,
                 ),
               ],
             ),

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../domain/entities/ai_provider_config.dart';
 import '../../../core/async/run_action.dart';
+import '../../../design/atomic.dart';
 import '../../../shared_widgets/empty_state.dart';
 import '../../../shared_widgets/error_view.dart';
 import '../../../shared_widgets/settings_action.dart';
@@ -22,16 +23,16 @@ class AssistantScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(context.l10n.navAssistant),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.smart_toy_outlined),
-            tooltip: context.l10n.settingsAiProviders,
+          AtomicIconButton(
+            icon: AtomicIcons.ai,
+            semanticLabel: context.l10n.settingsAiProviders,
             onPressed: () => context.push('/settings/ai-providers'),
           ),
           const SettingsAction(),
         ],
       ),
       body: activeProviderAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => AtomicLoading(label: context.l10n.loadingAssistant),
         error: (error, _) => ErrorView(
           error: error,
           onRetry: () => ref.invalidate(activeAiProviderProvider),
@@ -39,7 +40,7 @@ class AssistantScreen extends ConsumerWidget {
         data: (provider) {
           if (provider == null) {
             return EmptyState(
-              icon: Icons.auto_awesome_outlined,
+              icon: AtomicIcons.ai,
               title: context.l10n.assistantNoProviderTitle,
               message: context.l10n.assistantNoProviderMessage,
               actionLabel: context.l10n.assistantGoToProviders,
@@ -102,20 +103,23 @@ class _ChatBodyState extends ConsumerState<_ChatBody> {
 
     return Column(
       children: [
+        // Which provider and model answer: the real state, in mono.
         Padding(
-          padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+          padding: const EdgeInsets.fromLTRB(
+              AtomicSpace.s, AtomicSpace.s, AtomicSpace.s, 0),
           child: Align(
             alignment: Alignment.centerLeft,
-            child: Chip(
-              avatar: const Icon(Icons.smart_toy_outlined, size: 16),
-              label: Text(
-                  '${widget.provider.displayName} \u2022 ${widget.provider.defaultModel}'),
+            child: AtomicTag(
+              context.l10n.providerAndModel(
+                  widget.provider.displayName, widget.provider.defaultModel),
+              tone: AtomicTagTone.outline,
             ),
           ),
         ),
         Expanded(
           child: conversationAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () =>
+                AtomicLoading(label: context.l10n.loadingConversation),
             error: (error, _) => ErrorView(
               error: error,
               onRetry: () => ref.invalidate(
@@ -124,7 +128,7 @@ class _ChatBodyState extends ConsumerState<_ChatBody> {
             data: (conversation) {
               if (conversation == null) {
                 return EmptyState(
-                  icon: Icons.chat_bubble_outline,
+                  icon: AtomicIcons.assist,
                   title: context.l10n.assistantEmptyTitle,
                   message: context.l10n.assistantEmptyMessage,
                 );
@@ -134,11 +138,12 @@ class _ChatBodyState extends ConsumerState<_ChatBody> {
             },
           ),
         ),
-        if (isSending) const LinearProgressIndicator(minHeight: 2),
+        if (isSending) const AtomicLoadingBar(),
         SafeArea(
           top: false,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AtomicSpace.s, vertical: AtomicSpace.xs),
             child: Row(
               children: [
                 Expanded(
@@ -152,18 +157,20 @@ class _ChatBodyState extends ConsumerState<_ChatBody> {
                     onSubmitted: (_) => _send(conversationAsync.value?.id),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AtomicSpace.xxs),
                 // Send, or Stop while a reply is on its way (spec §5.9).
                 isSending
-                    ? IconButton.filledTonal(
-                        tooltip: context.l10n.stop,
-                        icon: const Icon(Icons.stop),
+                    ? AtomicIconButton(
+                        icon: AtomicIcons.stop,
+                        semanticLabel: context.l10n.stop,
+                        style: AtomicIconButtonStyle.ink,
                         onPressed:
                             ref.read(assistantViewModelProvider.notifier).stop,
                       )
-                    : IconButton.filled(
-                        tooltip: context.l10n.send,
-                        icon: const Icon(Icons.arrow_upward),
+                    : AtomicIconButton(
+                        icon: AtomicIcons.send,
+                        semanticLabel: context.l10n.send,
+                        style: AtomicIconButtonStyle.signal,
                         onPressed: () => _send(conversationAsync.value?.id),
                       ),
               ],
@@ -187,7 +194,7 @@ class _MessageList extends ConsumerWidget {
         ref.watch(conversationMessagesProvider(conversationId));
 
     return messagesAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => AtomicLoading(label: context.l10n.loadingConversation),
       error: (error, _) => ErrorView(
         error: error,
         onRetry: () =>
@@ -196,13 +203,13 @@ class _MessageList extends ConsumerWidget {
       data: (messages) {
         if (messages.isEmpty) {
           return EmptyState(
-            icon: Icons.chat_bubble_outline,
+            icon: AtomicIcons.assist,
             title: context.l10n.assistantEmptyTitle,
             message: context.l10n.assistantEmptyMessage,
           );
         }
         return ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.symmetric(horizontal: AtomicSpace.s),
           reverse: true,
           itemCount: messages.length,
           itemBuilder: (context, index) {
