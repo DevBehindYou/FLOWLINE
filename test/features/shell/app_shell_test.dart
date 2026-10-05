@@ -1,3 +1,4 @@
+import 'package:atomic_assist/design/atomic.dart';
 import 'package:atomic_assist/features/shell/app_shell.dart';
 import 'package:atomic_assist/l10n/l10n.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +28,7 @@ Widget _app() {
     ],
   );
   return MaterialApp.router(
+    theme: AtomicTheme.light(),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     routerConfig: router,
   );
@@ -43,28 +45,32 @@ void main() {
     size(tester, 360, 740);
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
-    expect(find.byType(NavigationBar), findsOneWidget);
-    expect(find.byType(NavigationRail), findsNothing);
+    expect(find.byType(AtomicBottomBar), findsOneWidget);
+    expect(find.byType(AtomicNavRail), findsNothing);
   });
 
-  testWidgets('a medium window gets a labelled rail', (tester) async {
+  testWidgets('a medium window gets the rail', (tester) async {
     size(tester, 700, 900);
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
-    final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-    expect(rail.extended, isFalse);
-    expect(find.byType(NavigationBar), findsNothing);
+    expect(find.byType(AtomicNavRail), findsOneWidget);
+    expect(find.byType(AtomicBottomBar), findsNothing);
 
-    await tester.tap(find.text('Insights'));
+    // Inactive destinations are icon-only; their label is for TalkBack.
+    await tester.tap(find.byIcon(AtomicIcons.review));
     await tester.pumpAndSettle();
     expect(find.text('screen /insights'), findsOneWidget);
   });
 
-  testWidgets('an expanded window gets an extended rail', (tester) async {
-    size(tester, 1200, 800);
+  testWidgets('every destination is labelled for screen readers',
+      (tester) async {
+    final handle = tester.ensureSemantics();
+    size(tester, 360, 740);
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
-    expect(tester.widget<NavigationRail>(find.byType(NavigationRail)).extended,
-        isTrue);
+    for (final label in ['Today', 'Focus', 'Assistant', 'Insights']) {
+      expect(find.bySemanticsLabel(label), findsOneWidget, reason: label);
+    }
+    handle.dispose();
   });
 }

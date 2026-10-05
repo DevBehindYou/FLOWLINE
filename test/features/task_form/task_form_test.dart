@@ -1,3 +1,4 @@
+import 'package:atomic_assist/design/atomic.dart';
 import 'package:atomic_assist/data/local/drift/app_database.dart';
 import 'package:atomic_assist/data/repositories/schedule_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/task_repository_impl.dart';
@@ -92,7 +93,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Delete task'));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(TextButton, 'Delete'));
+    await tester.tap(find.widgetWithText(AtomicButton, 'Delete'));
     await tester.pumpAndSettle();
 
     expect(await tasks(tester), isEmpty);

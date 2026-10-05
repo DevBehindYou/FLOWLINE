@@ -136,6 +136,12 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get delete;
 
+  /// Mono label at the top of a destructive confirmation sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirmSheetLabel;
+
   /// No description provided for @settings.
   ///
   /// In en, this message translates to:

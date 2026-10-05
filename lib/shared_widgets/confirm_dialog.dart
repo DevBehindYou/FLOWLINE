@@ -1,35 +1,25 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
+import '../design/atomic.dart';
 import '../l10n/l10n.dart';
 
-/// The one confirmation dialog for destructive actions (spec §3: dialogs
-/// are for destructive confirmations only). Returns true only when the
-/// user explicitly confirmed; dismissing the dialog counts as cancel.
+/// The one confirmation for destructive actions: an Atomic sheet that
+/// states the effect, a destructive confirm and a ghost cancel (system
+/// §9.9). Returns true only when the user explicitly confirmed;
+/// dismissing counts as cancel.
 Future<bool> confirmDestructive(
   BuildContext context, {
   required String title,
   required String message,
   String? confirmLabel,
-}) async {
-  final confirmed = await showDialog<bool>(
+}) {
+  final l10n = context.l10n;
+  return showAtomicConfirm(
     context: context,
-    builder: (context) => AlertDialog(
-      title: Text(title),
-      content: Text(message),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, false),
-          child: Text(context.l10n.cancel),
-        ),
-        TextButton(
-          style: TextButton.styleFrom(
-            foregroundColor: Theme.of(context).colorScheme.error,
-          ),
-          onPressed: () => Navigator.pop(context, true),
-          child: Text(confirmLabel ?? context.l10n.delete),
-        ),
-      ],
-    ),
+    label: l10n.confirmSheetLabel,
+    title: title,
+    message: message,
+    confirmLabel: confirmLabel ?? l10n.delete,
+    cancelLabel: l10n.cancel,
   );
-  return confirmed ?? false;
 }

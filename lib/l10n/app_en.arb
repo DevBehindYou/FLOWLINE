@@ -7,6 +7,8 @@
   "retry": "Retry",
   "cancel": "Cancel",
   "delete": "Delete",
+  "confirmSheetLabel": "Confirm",
+  "@confirmSheetLabel": {"description": "Mono label at the top of a destructive confirmation sheet."},
   "settings": "Settings",
   "navToday": "Today",
   "navFocus": "Focus",

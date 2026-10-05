@@ -1,9 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:atomic_assist/core/error/user_message.dart';
+import 'package:atomic_assist/design/atomic.dart';
 import 'package:atomic_assist/l10n/l10n.dart';
 import 'package:atomic_assist/shared_widgets/error_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../support/finders.dart';
 
 void main() {
   final l10n = lookupAppLocalizations(const Locale('en'));
@@ -28,6 +31,7 @@ void main() {
   testWidgets('ErrorView shows plain copy and retries', (tester) async {
     var retries = 0;
     await tester.pumpWidget(MaterialApp(
+      theme: AtomicTheme.light(),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       home: Scaffold(
         body: ErrorView(
@@ -39,19 +43,20 @@ void main() {
 
     expect(find.textContaining('no such table'), findsNothing);
     expect(find.text('Something went wrong.'), findsOneWidget);
-    await tester.tap(find.text('Retry'));
+    await tester.tap(findLabel('Retry'));
     expect(retries, 1);
   });
 
   testWidgets('compact ErrorView fits inside a row of a section',
       (tester) async {
     await tester.pumpWidget(MaterialApp(
+      theme: AtomicTheme.light(),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       home: Scaffold(
         body: ErrorView(error: Exception('x'), compact: true, onRetry: () {}),
       ),
     ));
     expect(find.byIcon(Icons.error_outline), findsOneWidget);
-    expect(find.text('Retry'), findsOneWidget);
+    expect(findLabel('Retry'), findsOneWidget);
   });
 }

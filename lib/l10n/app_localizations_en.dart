@@ -31,6 +31,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get delete => 'Delete';
 
   @override
+  String get confirmSheetLabel => 'Confirm';
+
+  @override
   String get settings => 'Settings';
 
   @override

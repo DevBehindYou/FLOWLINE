@@ -1,5 +1,6 @@
 import 'package:clock/clock.dart';
 import 'package:drift/drift.dart' show Value;
+import 'package:atomic_assist/design/atomic.dart';
 import 'package:atomic_assist/data/local/drift/app_database.dart';
 import 'package:atomic_assist/data/repositories/schedule_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/task_repository_impl.dart';
@@ -72,7 +73,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(
         find.text('Its tasks stay and move to Unscheduled.'), findsOneWidget);
-    await tester.tap(find.widgetWithText(TextButton, 'Delete'));
+    await tester.tap(find.widgetWithText(AtomicButton, 'Delete'));
     await tester.pumpAndSettle();
 
     expect(find.text('Deep work'), findsNothing);

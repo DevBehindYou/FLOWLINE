@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/layout/window_size.dart';
+import '../../design/atomic.dart';
 import '../../l10n/l10n.dart';
 
+/// The top-level frame: the Atomic bottom bar on phones, the rail on
+/// wider windows (docs/05 §28, §30). One ink pill marks where you are.
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.navigationShell});
 
@@ -13,31 +16,23 @@ class AppShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final destinations = [
-      (Icons.calendar_today_outlined, Icons.calendar_today, l10n.navToday),
-      (Icons.hourglass_empty_outlined, Icons.hourglass_bottom, l10n.navFocus),
-      (Icons.auto_awesome_outlined, Icons.auto_awesome, l10n.navAssistant),
-      (Icons.bar_chart_outlined, Icons.bar_chart, l10n.navInsights),
+      AtomicDestination(icon: AtomicIcons.today, label: l10n.navToday),
+      AtomicDestination(icon: AtomicIcons.focus, label: l10n.navFocus),
+      AtomicDestination(icon: AtomicIcons.assist, label: l10n.navAssistant),
+      AtomicDestination(icon: AtomicIcons.review, label: l10n.navInsights),
     ];
     void select(int index) => navigationShell.goBranch(
           index,
           initialLocation: index == navigationShell.currentIndex,
         );
 
-    final sizeClass = WindowSizeClass.of(context);
-    if (sizeClass == WindowSizeClass.compact) {
+    if (WindowSizeClass.of(context) == WindowSizeClass.compact) {
       return Scaffold(
         body: navigationShell,
-        bottomNavigationBar: NavigationBar(
+        bottomNavigationBar: AtomicBottomBar(
+          destinations: destinations,
           selectedIndex: navigationShell.currentIndex,
-          onDestinationSelected: select,
-          destinations: [
-            for (final (icon, selectedIcon, label) in destinations)
-              NavigationDestination(
-                icon: Icon(icon),
-                selectedIcon: Icon(selectedIcon),
-                label: label,
-              ),
-          ],
+          onSelected: select,
         ),
       );
     }
@@ -47,26 +42,11 @@ class AppShell extends StatelessWidget {
     return Scaffold(
       body: Row(
         children: [
-          SafeArea(
-            right: false,
-            child: NavigationRail(
-              selectedIndex: navigationShell.currentIndex,
-              onDestinationSelected: select,
-              extended: sizeClass == WindowSizeClass.expanded,
-              labelType: sizeClass == WindowSizeClass.expanded
-                  ? NavigationRailLabelType.none
-                  : NavigationRailLabelType.all,
-              destinations: [
-                for (final (icon, selectedIcon, label) in destinations)
-                  NavigationRailDestination(
-                    icon: Icon(icon),
-                    selectedIcon: Icon(selectedIcon),
-                    label: Text(label),
-                  ),
-              ],
-            ),
+          AtomicNavRail(
+            destinations: destinations,
+            selectedIndex: navigationShell.currentIndex,
+            onSelected: select,
           ),
-          const VerticalDivider(width: 1),
           Expanded(child: navigationShell),
         ],
       ),
