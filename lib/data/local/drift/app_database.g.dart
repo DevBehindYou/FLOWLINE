@@ -3425,6 +3425,1419 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
   }
 }
 
+class $UtterancesTable extends Utterances
+    with TableInfo<$UtterancesTable, UtteranceRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UtterancesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _atMeta = const VerificationMeta('at');
+  @override
+  late final GeneratedColumn<DateTime> at = GeneratedColumn<DateTime>(
+      'at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+      'body', aliasedName, false,
+      check: () => ComparableExpr(body.length).isBiggerThanValue(0),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  @override
+  late final GeneratedColumnWithTypeConverter<UtteranceSource, int> source =
+      GeneratedColumn<int>('source', aliasedName, false,
+              type: DriftSqlType.int, requiredDuringInsert: true)
+          .withConverter<UtteranceSource>($UtterancesTable.$convertersource);
+  static const VerificationMeta _languageMeta =
+      const VerificationMeta('language');
+  @override
+  late final GeneratedColumn<String> language = GeneratedColumn<String>(
+      'language', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _confidenceMeta =
+      const VerificationMeta('confidence');
+  @override
+  late final GeneratedColumn<double> confidence = GeneratedColumn<double>(
+      'confidence', aliasedName, true,
+      check: () => ComparableExpr(confidence).isBetweenValues(0, 1),
+      type: DriftSqlType.double,
+      requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, at, body, source, language, confidence];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'utterances';
+  @override
+  VerificationContext validateIntegrity(Insertable<UtteranceRow> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('at')) {
+      context.handle(_atMeta, at.isAcceptableOrUnknown(data['at']!, _atMeta));
+    } else if (isInserting) {
+      context.missing(_atMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+          _bodyMeta, body.isAcceptableOrUnknown(data['body']!, _bodyMeta));
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    if (data.containsKey('language')) {
+      context.handle(_languageMeta,
+          language.isAcceptableOrUnknown(data['language']!, _languageMeta));
+    }
+    if (data.containsKey('confidence')) {
+      context.handle(
+          _confidenceMeta,
+          confidence.isAcceptableOrUnknown(
+              data['confidence']!, _confidenceMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  UtteranceRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UtteranceRow(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      at: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}at'])!,
+      body: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}body'])!,
+      source: $UtterancesTable.$convertersource.fromSql(attachedDatabase
+          .typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}source'])!),
+      language: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}language']),
+      confidence: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}confidence']),
+    );
+  }
+
+  @override
+  $UtterancesTable createAlias(String alias) {
+    return $UtterancesTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<UtteranceSource, int, int> $convertersource =
+      const EnumIndexConverter<UtteranceSource>(UtteranceSource.values);
+}
+
+class UtteranceRow extends DataClass implements Insertable<UtteranceRow> {
+  final int id;
+  final DateTime at;
+  final String body;
+  final UtteranceSource source;
+  final String? language;
+  final double? confidence;
+  const UtteranceRow(
+      {required this.id,
+      required this.at,
+      required this.body,
+      required this.source,
+      this.language,
+      this.confidence});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['at'] = Variable<DateTime>(at);
+    map['body'] = Variable<String>(body);
+    {
+      map['source'] =
+          Variable<int>($UtterancesTable.$convertersource.toSql(source));
+    }
+    if (!nullToAbsent || language != null) {
+      map['language'] = Variable<String>(language);
+    }
+    if (!nullToAbsent || confidence != null) {
+      map['confidence'] = Variable<double>(confidence);
+    }
+    return map;
+  }
+
+  UtterancesCompanion toCompanion(bool nullToAbsent) {
+    return UtterancesCompanion(
+      id: Value(id),
+      at: Value(at),
+      body: Value(body),
+      source: Value(source),
+      language: language == null && nullToAbsent
+          ? const Value.absent()
+          : Value(language),
+      confidence: confidence == null && nullToAbsent
+          ? const Value.absent()
+          : Value(confidence),
+    );
+  }
+
+  factory UtteranceRow.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UtteranceRow(
+      id: serializer.fromJson<int>(json['id']),
+      at: serializer.fromJson<DateTime>(json['at']),
+      body: serializer.fromJson<String>(json['body']),
+      source: $UtterancesTable.$convertersource
+          .fromJson(serializer.fromJson<int>(json['source'])),
+      language: serializer.fromJson<String?>(json['language']),
+      confidence: serializer.fromJson<double?>(json['confidence']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'at': serializer.toJson<DateTime>(at),
+      'body': serializer.toJson<String>(body),
+      'source': serializer
+          .toJson<int>($UtterancesTable.$convertersource.toJson(source)),
+      'language': serializer.toJson<String?>(language),
+      'confidence': serializer.toJson<double?>(confidence),
+    };
+  }
+
+  UtteranceRow copyWith(
+          {int? id,
+          DateTime? at,
+          String? body,
+          UtteranceSource? source,
+          Value<String?> language = const Value.absent(),
+          Value<double?> confidence = const Value.absent()}) =>
+      UtteranceRow(
+        id: id ?? this.id,
+        at: at ?? this.at,
+        body: body ?? this.body,
+        source: source ?? this.source,
+        language: language.present ? language.value : this.language,
+        confidence: confidence.present ? confidence.value : this.confidence,
+      );
+  UtteranceRow copyWithCompanion(UtterancesCompanion data) {
+    return UtteranceRow(
+      id: data.id.present ? data.id.value : this.id,
+      at: data.at.present ? data.at.value : this.at,
+      body: data.body.present ? data.body.value : this.body,
+      source: data.source.present ? data.source.value : this.source,
+      language: data.language.present ? data.language.value : this.language,
+      confidence:
+          data.confidence.present ? data.confidence.value : this.confidence,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UtteranceRow(')
+          ..write('id: $id, ')
+          ..write('at: $at, ')
+          ..write('body: $body, ')
+          ..write('source: $source, ')
+          ..write('language: $language, ')
+          ..write('confidence: $confidence')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, at, body, source, language, confidence);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UtteranceRow &&
+          other.id == this.id &&
+          other.at == this.at &&
+          other.body == this.body &&
+          other.source == this.source &&
+          other.language == this.language &&
+          other.confidence == this.confidence);
+}
+
+class UtterancesCompanion extends UpdateCompanion<UtteranceRow> {
+  final Value<int> id;
+  final Value<DateTime> at;
+  final Value<String> body;
+  final Value<UtteranceSource> source;
+  final Value<String?> language;
+  final Value<double?> confidence;
+  const UtterancesCompanion({
+    this.id = const Value.absent(),
+    this.at = const Value.absent(),
+    this.body = const Value.absent(),
+    this.source = const Value.absent(),
+    this.language = const Value.absent(),
+    this.confidence = const Value.absent(),
+  });
+  UtterancesCompanion.insert({
+    this.id = const Value.absent(),
+    required DateTime at,
+    required String body,
+    required UtteranceSource source,
+    this.language = const Value.absent(),
+    this.confidence = const Value.absent(),
+  })  : at = Value(at),
+        body = Value(body),
+        source = Value(source);
+  static Insertable<UtteranceRow> custom({
+    Expression<int>? id,
+    Expression<DateTime>? at,
+    Expression<String>? body,
+    Expression<int>? source,
+    Expression<String>? language,
+    Expression<double>? confidence,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (at != null) 'at': at,
+      if (body != null) 'body': body,
+      if (source != null) 'source': source,
+      if (language != null) 'language': language,
+      if (confidence != null) 'confidence': confidence,
+    });
+  }
+
+  UtterancesCompanion copyWith(
+      {Value<int>? id,
+      Value<DateTime>? at,
+      Value<String>? body,
+      Value<UtteranceSource>? source,
+      Value<String?>? language,
+      Value<double?>? confidence}) {
+    return UtterancesCompanion(
+      id: id ?? this.id,
+      at: at ?? this.at,
+      body: body ?? this.body,
+      source: source ?? this.source,
+      language: language ?? this.language,
+      confidence: confidence ?? this.confidence,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (at.present) {
+      map['at'] = Variable<DateTime>(at.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (source.present) {
+      map['source'] =
+          Variable<int>($UtterancesTable.$convertersource.toSql(source.value));
+    }
+    if (language.present) {
+      map['language'] = Variable<String>(language.value);
+    }
+    if (confidence.present) {
+      map['confidence'] = Variable<double>(confidence.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UtterancesCompanion(')
+          ..write('id: $id, ')
+          ..write('at: $at, ')
+          ..write('body: $body, ')
+          ..write('source: $source, ')
+          ..write('language: $language, ')
+          ..write('confidence: $confidence')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AssistantActionsTable extends AssistantActions
+    with TableInfo<$AssistantActionsTable, AssistantActionRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AssistantActionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _atMeta = const VerificationMeta('at');
+  @override
+  late final GeneratedColumn<DateTime> at = GeneratedColumn<DateTime>(
+      'at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _groupIdMeta =
+      const VerificationMeta('groupId');
+  @override
+  late final GeneratedColumn<String> groupId = GeneratedColumn<String>(
+      'group_id', aliasedName, false,
+      check: () => ComparableExpr(groupId.length).isBiggerThanValue(0),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _toolNameMeta =
+      const VerificationMeta('toolName');
+  @override
+  late final GeneratedColumn<String> toolName = GeneratedColumn<String>(
+      'tool_name', aliasedName, false,
+      check: () => ComparableExpr(toolName.length).isBiggerThanValue(0),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _argsJsonMeta =
+      const VerificationMeta('argsJson');
+  @override
+  late final GeneratedColumn<String> argsJson = GeneratedColumn<String>(
+      'args_json', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  late final GeneratedColumnWithTypeConverter<ActionOrigin, int> origin =
+      GeneratedColumn<int>('origin', aliasedName, false,
+              type: DriftSqlType.int, requiredDuringInsert: true)
+          .withConverter<ActionOrigin>($AssistantActionsTable.$converterorigin);
+  @override
+  late final GeneratedColumnWithTypeConverter<Decision, int> decision =
+      GeneratedColumn<int>('decision', aliasedName, false,
+              type: DriftSqlType.int, requiredDuringInsert: true)
+          .withConverter<Decision>($AssistantActionsTable.$converterdecision);
+  @override
+  late final GeneratedColumnWithTypeConverter<LedgerStatus, int> status =
+      GeneratedColumn<int>('status', aliasedName, false,
+              type: DriftSqlType.int, requiredDuringInsert: true)
+          .withConverter<LedgerStatus>($AssistantActionsTable.$converterstatus);
+  static const VerificationMeta _undoJsonMeta =
+      const VerificationMeta('undoJson');
+  @override
+  late final GeneratedColumn<String> undoJson = GeneratedColumn<String>(
+      'undo_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _utteranceIdMeta =
+      const VerificationMeta('utteranceId');
+  @override
+  late final GeneratedColumn<int> utteranceId = GeneratedColumn<int>(
+      'utterance_id', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES utterances (id) ON DELETE SET NULL'));
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        at,
+        groupId,
+        toolName,
+        argsJson,
+        origin,
+        decision,
+        status,
+        undoJson,
+        utteranceId
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'assistant_actions';
+  @override
+  VerificationContext validateIntegrity(Insertable<AssistantActionRow> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('at')) {
+      context.handle(_atMeta, at.isAcceptableOrUnknown(data['at']!, _atMeta));
+    } else if (isInserting) {
+      context.missing(_atMeta);
+    }
+    if (data.containsKey('group_id')) {
+      context.handle(_groupIdMeta,
+          groupId.isAcceptableOrUnknown(data['group_id']!, _groupIdMeta));
+    } else if (isInserting) {
+      context.missing(_groupIdMeta);
+    }
+    if (data.containsKey('tool_name')) {
+      context.handle(_toolNameMeta,
+          toolName.isAcceptableOrUnknown(data['tool_name']!, _toolNameMeta));
+    } else if (isInserting) {
+      context.missing(_toolNameMeta);
+    }
+    if (data.containsKey('args_json')) {
+      context.handle(_argsJsonMeta,
+          argsJson.isAcceptableOrUnknown(data['args_json']!, _argsJsonMeta));
+    } else if (isInserting) {
+      context.missing(_argsJsonMeta);
+    }
+    if (data.containsKey('undo_json')) {
+      context.handle(_undoJsonMeta,
+          undoJson.isAcceptableOrUnknown(data['undo_json']!, _undoJsonMeta));
+    }
+    if (data.containsKey('utterance_id')) {
+      context.handle(
+          _utteranceIdMeta,
+          utteranceId.isAcceptableOrUnknown(
+              data['utterance_id']!, _utteranceIdMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AssistantActionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AssistantActionRow(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      at: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}at'])!,
+      groupId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}group_id'])!,
+      toolName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tool_name'])!,
+      argsJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}args_json'])!,
+      origin: $AssistantActionsTable.$converterorigin.fromSql(attachedDatabase
+          .typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}origin'])!),
+      decision: $AssistantActionsTable.$converterdecision.fromSql(
+          attachedDatabase.typeMapping
+              .read(DriftSqlType.int, data['${effectivePrefix}decision'])!),
+      status: $AssistantActionsTable.$converterstatus.fromSql(attachedDatabase
+          .typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}status'])!),
+      undoJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}undo_json']),
+      utteranceId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}utterance_id']),
+    );
+  }
+
+  @override
+  $AssistantActionsTable createAlias(String alias) {
+    return $AssistantActionsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<ActionOrigin, int, int> $converterorigin =
+      const EnumIndexConverter<ActionOrigin>(ActionOrigin.values);
+  static JsonTypeConverter2<Decision, int, int> $converterdecision =
+      const EnumIndexConverter<Decision>(Decision.values);
+  static JsonTypeConverter2<LedgerStatus, int, int> $converterstatus =
+      const EnumIndexConverter<LedgerStatus>(LedgerStatus.values);
+}
+
+class AssistantActionRow extends DataClass
+    implements Insertable<AssistantActionRow> {
+  final int id;
+  final DateTime at;
+  final String groupId;
+  final String toolName;
+  final String argsJson;
+  final ActionOrigin origin;
+  final Decision decision;
+  final LedgerStatus status;
+
+  /// `encodeUndoRecipe` output; null when the action has no undo.
+  final String? undoJson;
+  final int? utteranceId;
+  const AssistantActionRow(
+      {required this.id,
+      required this.at,
+      required this.groupId,
+      required this.toolName,
+      required this.argsJson,
+      required this.origin,
+      required this.decision,
+      required this.status,
+      this.undoJson,
+      this.utteranceId});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['at'] = Variable<DateTime>(at);
+    map['group_id'] = Variable<String>(groupId);
+    map['tool_name'] = Variable<String>(toolName);
+    map['args_json'] = Variable<String>(argsJson);
+    {
+      map['origin'] =
+          Variable<int>($AssistantActionsTable.$converterorigin.toSql(origin));
+    }
+    {
+      map['decision'] = Variable<int>(
+          $AssistantActionsTable.$converterdecision.toSql(decision));
+    }
+    {
+      map['status'] =
+          Variable<int>($AssistantActionsTable.$converterstatus.toSql(status));
+    }
+    if (!nullToAbsent || undoJson != null) {
+      map['undo_json'] = Variable<String>(undoJson);
+    }
+    if (!nullToAbsent || utteranceId != null) {
+      map['utterance_id'] = Variable<int>(utteranceId);
+    }
+    return map;
+  }
+
+  AssistantActionsCompanion toCompanion(bool nullToAbsent) {
+    return AssistantActionsCompanion(
+      id: Value(id),
+      at: Value(at),
+      groupId: Value(groupId),
+      toolName: Value(toolName),
+      argsJson: Value(argsJson),
+      origin: Value(origin),
+      decision: Value(decision),
+      status: Value(status),
+      undoJson: undoJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(undoJson),
+      utteranceId: utteranceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(utteranceId),
+    );
+  }
+
+  factory AssistantActionRow.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AssistantActionRow(
+      id: serializer.fromJson<int>(json['id']),
+      at: serializer.fromJson<DateTime>(json['at']),
+      groupId: serializer.fromJson<String>(json['groupId']),
+      toolName: serializer.fromJson<String>(json['toolName']),
+      argsJson: serializer.fromJson<String>(json['argsJson']),
+      origin: $AssistantActionsTable.$converterorigin
+          .fromJson(serializer.fromJson<int>(json['origin'])),
+      decision: $AssistantActionsTable.$converterdecision
+          .fromJson(serializer.fromJson<int>(json['decision'])),
+      status: $AssistantActionsTable.$converterstatus
+          .fromJson(serializer.fromJson<int>(json['status'])),
+      undoJson: serializer.fromJson<String?>(json['undoJson']),
+      utteranceId: serializer.fromJson<int?>(json['utteranceId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'at': serializer.toJson<DateTime>(at),
+      'groupId': serializer.toJson<String>(groupId),
+      'toolName': serializer.toJson<String>(toolName),
+      'argsJson': serializer.toJson<String>(argsJson),
+      'origin': serializer
+          .toJson<int>($AssistantActionsTable.$converterorigin.toJson(origin)),
+      'decision': serializer.toJson<int>(
+          $AssistantActionsTable.$converterdecision.toJson(decision)),
+      'status': serializer
+          .toJson<int>($AssistantActionsTable.$converterstatus.toJson(status)),
+      'undoJson': serializer.toJson<String?>(undoJson),
+      'utteranceId': serializer.toJson<int?>(utteranceId),
+    };
+  }
+
+  AssistantActionRow copyWith(
+          {int? id,
+          DateTime? at,
+          String? groupId,
+          String? toolName,
+          String? argsJson,
+          ActionOrigin? origin,
+          Decision? decision,
+          LedgerStatus? status,
+          Value<String?> undoJson = const Value.absent(),
+          Value<int?> utteranceId = const Value.absent()}) =>
+      AssistantActionRow(
+        id: id ?? this.id,
+        at: at ?? this.at,
+        groupId: groupId ?? this.groupId,
+        toolName: toolName ?? this.toolName,
+        argsJson: argsJson ?? this.argsJson,
+        origin: origin ?? this.origin,
+        decision: decision ?? this.decision,
+        status: status ?? this.status,
+        undoJson: undoJson.present ? undoJson.value : this.undoJson,
+        utteranceId: utteranceId.present ? utteranceId.value : this.utteranceId,
+      );
+  AssistantActionRow copyWithCompanion(AssistantActionsCompanion data) {
+    return AssistantActionRow(
+      id: data.id.present ? data.id.value : this.id,
+      at: data.at.present ? data.at.value : this.at,
+      groupId: data.groupId.present ? data.groupId.value : this.groupId,
+      toolName: data.toolName.present ? data.toolName.value : this.toolName,
+      argsJson: data.argsJson.present ? data.argsJson.value : this.argsJson,
+      origin: data.origin.present ? data.origin.value : this.origin,
+      decision: data.decision.present ? data.decision.value : this.decision,
+      status: data.status.present ? data.status.value : this.status,
+      undoJson: data.undoJson.present ? data.undoJson.value : this.undoJson,
+      utteranceId:
+          data.utteranceId.present ? data.utteranceId.value : this.utteranceId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AssistantActionRow(')
+          ..write('id: $id, ')
+          ..write('at: $at, ')
+          ..write('groupId: $groupId, ')
+          ..write('toolName: $toolName, ')
+          ..write('argsJson: $argsJson, ')
+          ..write('origin: $origin, ')
+          ..write('decision: $decision, ')
+          ..write('status: $status, ')
+          ..write('undoJson: $undoJson, ')
+          ..write('utteranceId: $utteranceId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, at, groupId, toolName, argsJson, origin,
+      decision, status, undoJson, utteranceId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AssistantActionRow &&
+          other.id == this.id &&
+          other.at == this.at &&
+          other.groupId == this.groupId &&
+          other.toolName == this.toolName &&
+          other.argsJson == this.argsJson &&
+          other.origin == this.origin &&
+          other.decision == this.decision &&
+          other.status == this.status &&
+          other.undoJson == this.undoJson &&
+          other.utteranceId == this.utteranceId);
+}
+
+class AssistantActionsCompanion extends UpdateCompanion<AssistantActionRow> {
+  final Value<int> id;
+  final Value<DateTime> at;
+  final Value<String> groupId;
+  final Value<String> toolName;
+  final Value<String> argsJson;
+  final Value<ActionOrigin> origin;
+  final Value<Decision> decision;
+  final Value<LedgerStatus> status;
+  final Value<String?> undoJson;
+  final Value<int?> utteranceId;
+  const AssistantActionsCompanion({
+    this.id = const Value.absent(),
+    this.at = const Value.absent(),
+    this.groupId = const Value.absent(),
+    this.toolName = const Value.absent(),
+    this.argsJson = const Value.absent(),
+    this.origin = const Value.absent(),
+    this.decision = const Value.absent(),
+    this.status = const Value.absent(),
+    this.undoJson = const Value.absent(),
+    this.utteranceId = const Value.absent(),
+  });
+  AssistantActionsCompanion.insert({
+    this.id = const Value.absent(),
+    required DateTime at,
+    required String groupId,
+    required String toolName,
+    required String argsJson,
+    required ActionOrigin origin,
+    required Decision decision,
+    required LedgerStatus status,
+    this.undoJson = const Value.absent(),
+    this.utteranceId = const Value.absent(),
+  })  : at = Value(at),
+        groupId = Value(groupId),
+        toolName = Value(toolName),
+        argsJson = Value(argsJson),
+        origin = Value(origin),
+        decision = Value(decision),
+        status = Value(status);
+  static Insertable<AssistantActionRow> custom({
+    Expression<int>? id,
+    Expression<DateTime>? at,
+    Expression<String>? groupId,
+    Expression<String>? toolName,
+    Expression<String>? argsJson,
+    Expression<int>? origin,
+    Expression<int>? decision,
+    Expression<int>? status,
+    Expression<String>? undoJson,
+    Expression<int>? utteranceId,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (at != null) 'at': at,
+      if (groupId != null) 'group_id': groupId,
+      if (toolName != null) 'tool_name': toolName,
+      if (argsJson != null) 'args_json': argsJson,
+      if (origin != null) 'origin': origin,
+      if (decision != null) 'decision': decision,
+      if (status != null) 'status': status,
+      if (undoJson != null) 'undo_json': undoJson,
+      if (utteranceId != null) 'utterance_id': utteranceId,
+    });
+  }
+
+  AssistantActionsCompanion copyWith(
+      {Value<int>? id,
+      Value<DateTime>? at,
+      Value<String>? groupId,
+      Value<String>? toolName,
+      Value<String>? argsJson,
+      Value<ActionOrigin>? origin,
+      Value<Decision>? decision,
+      Value<LedgerStatus>? status,
+      Value<String?>? undoJson,
+      Value<int?>? utteranceId}) {
+    return AssistantActionsCompanion(
+      id: id ?? this.id,
+      at: at ?? this.at,
+      groupId: groupId ?? this.groupId,
+      toolName: toolName ?? this.toolName,
+      argsJson: argsJson ?? this.argsJson,
+      origin: origin ?? this.origin,
+      decision: decision ?? this.decision,
+      status: status ?? this.status,
+      undoJson: undoJson ?? this.undoJson,
+      utteranceId: utteranceId ?? this.utteranceId,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (at.present) {
+      map['at'] = Variable<DateTime>(at.value);
+    }
+    if (groupId.present) {
+      map['group_id'] = Variable<String>(groupId.value);
+    }
+    if (toolName.present) {
+      map['tool_name'] = Variable<String>(toolName.value);
+    }
+    if (argsJson.present) {
+      map['args_json'] = Variable<String>(argsJson.value);
+    }
+    if (origin.present) {
+      map['origin'] = Variable<int>(
+          $AssistantActionsTable.$converterorigin.toSql(origin.value));
+    }
+    if (decision.present) {
+      map['decision'] = Variable<int>(
+          $AssistantActionsTable.$converterdecision.toSql(decision.value));
+    }
+    if (status.present) {
+      map['status'] = Variable<int>(
+          $AssistantActionsTable.$converterstatus.toSql(status.value));
+    }
+    if (undoJson.present) {
+      map['undo_json'] = Variable<String>(undoJson.value);
+    }
+    if (utteranceId.present) {
+      map['utterance_id'] = Variable<int>(utteranceId.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AssistantActionsCompanion(')
+          ..write('id: $id, ')
+          ..write('at: $at, ')
+          ..write('groupId: $groupId, ')
+          ..write('toolName: $toolName, ')
+          ..write('argsJson: $argsJson, ')
+          ..write('origin: $origin, ')
+          ..write('decision: $decision, ')
+          ..write('status: $status, ')
+          ..write('undoJson: $undoJson, ')
+          ..write('utteranceId: $utteranceId')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ProposalsTable extends Proposals
+    with TableInfo<$ProposalsTable, ProposalRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ProposalsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _expiresAtMeta =
+      const VerificationMeta('expiresAt');
+  @override
+  late final GeneratedColumn<DateTime> expiresAt = GeneratedColumn<DateTime>(
+      'expires_at', aliasedName, true,
+      check: () => ComparableExpr(expiresAt).isBiggerThan(createdAt),
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false);
+  static const VerificationMeta _toolNameMeta =
+      const VerificationMeta('toolName');
+  @override
+  late final GeneratedColumn<String> toolName = GeneratedColumn<String>(
+      'tool_name', aliasedName, false,
+      check: () => ComparableExpr(toolName.length).isBiggerThanValue(0),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _argsJsonMeta =
+      const VerificationMeta('argsJson');
+  @override
+  late final GeneratedColumn<String> argsJson = GeneratedColumn<String>(
+      'args_json', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  late final GeneratedColumnWithTypeConverter<ActionOrigin, int> origin =
+      GeneratedColumn<int>('origin', aliasedName, false,
+              type: DriftSqlType.int, requiredDuringInsert: true)
+          .withConverter<ActionOrigin>($ProposalsTable.$converterorigin);
+  @override
+  late final GeneratedColumnWithTypeConverter<ProposalReason, int> reason =
+      GeneratedColumn<int>('reason', aliasedName, false,
+              type: DriftSqlType.int, requiredDuringInsert: true)
+          .withConverter<ProposalReason>($ProposalsTable.$converterreason);
+  static const VerificationMeta _reasonJsonMeta =
+      const VerificationMeta('reasonJson');
+  @override
+  late final GeneratedColumn<String> reasonJson = GeneratedColumn<String>(
+      'reason_json', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('{}'));
+  static const VerificationMeta _sourceTextMeta =
+      const VerificationMeta('sourceText');
+  @override
+  late final GeneratedColumn<String> sourceText = GeneratedColumn<String>(
+      'source_text', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _dedupeKeyMeta =
+      const VerificationMeta('dedupeKey');
+  @override
+  late final GeneratedColumn<String> dedupeKey = GeneratedColumn<String>(
+      'dedupe_key', aliasedName, false,
+      check: () => ComparableExpr(dedupeKey.length).isBiggerThanValue(0),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  @override
+  late final GeneratedColumnWithTypeConverter<ProposalStatus, int> status =
+      GeneratedColumn<int>('status', aliasedName, false,
+              type: DriftSqlType.int, requiredDuringInsert: true)
+          .withConverter<ProposalStatus>($ProposalsTable.$converterstatus);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        createdAt,
+        expiresAt,
+        toolName,
+        argsJson,
+        origin,
+        reason,
+        reasonJson,
+        sourceText,
+        dedupeKey,
+        status
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'proposals';
+  @override
+  VerificationContext validateIntegrity(Insertable<ProposalRow> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('expires_at')) {
+      context.handle(_expiresAtMeta,
+          expiresAt.isAcceptableOrUnknown(data['expires_at']!, _expiresAtMeta));
+    }
+    if (data.containsKey('tool_name')) {
+      context.handle(_toolNameMeta,
+          toolName.isAcceptableOrUnknown(data['tool_name']!, _toolNameMeta));
+    } else if (isInserting) {
+      context.missing(_toolNameMeta);
+    }
+    if (data.containsKey('args_json')) {
+      context.handle(_argsJsonMeta,
+          argsJson.isAcceptableOrUnknown(data['args_json']!, _argsJsonMeta));
+    } else if (isInserting) {
+      context.missing(_argsJsonMeta);
+    }
+    if (data.containsKey('reason_json')) {
+      context.handle(
+          _reasonJsonMeta,
+          reasonJson.isAcceptableOrUnknown(
+              data['reason_json']!, _reasonJsonMeta));
+    }
+    if (data.containsKey('source_text')) {
+      context.handle(
+          _sourceTextMeta,
+          sourceText.isAcceptableOrUnknown(
+              data['source_text']!, _sourceTextMeta));
+    }
+    if (data.containsKey('dedupe_key')) {
+      context.handle(_dedupeKeyMeta,
+          dedupeKey.isAcceptableOrUnknown(data['dedupe_key']!, _dedupeKeyMeta));
+    } else if (isInserting) {
+      context.missing(_dedupeKeyMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ProposalRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ProposalRow(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      expiresAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}expires_at']),
+      toolName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tool_name'])!,
+      argsJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}args_json'])!,
+      origin: $ProposalsTable.$converterorigin.fromSql(attachedDatabase
+          .typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}origin'])!),
+      reason: $ProposalsTable.$converterreason.fromSql(attachedDatabase
+          .typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}reason'])!),
+      reasonJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}reason_json'])!,
+      sourceText: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}source_text']),
+      dedupeKey: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}dedupe_key'])!,
+      status: $ProposalsTable.$converterstatus.fromSql(attachedDatabase
+          .typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}status'])!),
+    );
+  }
+
+  @override
+  $ProposalsTable createAlias(String alias) {
+    return $ProposalsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<ActionOrigin, int, int> $converterorigin =
+      const EnumIndexConverter<ActionOrigin>(ActionOrigin.values);
+  static JsonTypeConverter2<ProposalReason, int, int> $converterreason =
+      const EnumIndexConverter<ProposalReason>(ProposalReason.values);
+  static JsonTypeConverter2<ProposalStatus, int, int> $converterstatus =
+      const EnumIndexConverter<ProposalStatus>(ProposalStatus.values);
+}
+
+class ProposalRow extends DataClass implements Insertable<ProposalRow> {
+  final int id;
+  final DateTime createdAt;
+  final DateTime? expiresAt;
+  final String toolName;
+  final String argsJson;
+  final ActionOrigin origin;
+  final ProposalReason reason;
+  final String reasonJson;
+  final String? sourceText;
+  final String dedupeKey;
+  final ProposalStatus status;
+  const ProposalRow(
+      {required this.id,
+      required this.createdAt,
+      this.expiresAt,
+      required this.toolName,
+      required this.argsJson,
+      required this.origin,
+      required this.reason,
+      required this.reasonJson,
+      this.sourceText,
+      required this.dedupeKey,
+      required this.status});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || expiresAt != null) {
+      map['expires_at'] = Variable<DateTime>(expiresAt);
+    }
+    map['tool_name'] = Variable<String>(toolName);
+    map['args_json'] = Variable<String>(argsJson);
+    {
+      map['origin'] =
+          Variable<int>($ProposalsTable.$converterorigin.toSql(origin));
+    }
+    {
+      map['reason'] =
+          Variable<int>($ProposalsTable.$converterreason.toSql(reason));
+    }
+    map['reason_json'] = Variable<String>(reasonJson);
+    if (!nullToAbsent || sourceText != null) {
+      map['source_text'] = Variable<String>(sourceText);
+    }
+    map['dedupe_key'] = Variable<String>(dedupeKey);
+    {
+      map['status'] =
+          Variable<int>($ProposalsTable.$converterstatus.toSql(status));
+    }
+    return map;
+  }
+
+  ProposalsCompanion toCompanion(bool nullToAbsent) {
+    return ProposalsCompanion(
+      id: Value(id),
+      createdAt: Value(createdAt),
+      expiresAt: expiresAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(expiresAt),
+      toolName: Value(toolName),
+      argsJson: Value(argsJson),
+      origin: Value(origin),
+      reason: Value(reason),
+      reasonJson: Value(reasonJson),
+      sourceText: sourceText == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sourceText),
+      dedupeKey: Value(dedupeKey),
+      status: Value(status),
+    );
+  }
+
+  factory ProposalRow.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ProposalRow(
+      id: serializer.fromJson<int>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      expiresAt: serializer.fromJson<DateTime?>(json['expiresAt']),
+      toolName: serializer.fromJson<String>(json['toolName']),
+      argsJson: serializer.fromJson<String>(json['argsJson']),
+      origin: $ProposalsTable.$converterorigin
+          .fromJson(serializer.fromJson<int>(json['origin'])),
+      reason: $ProposalsTable.$converterreason
+          .fromJson(serializer.fromJson<int>(json['reason'])),
+      reasonJson: serializer.fromJson<String>(json['reasonJson']),
+      sourceText: serializer.fromJson<String?>(json['sourceText']),
+      dedupeKey: serializer.fromJson<String>(json['dedupeKey']),
+      status: $ProposalsTable.$converterstatus
+          .fromJson(serializer.fromJson<int>(json['status'])),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'expiresAt': serializer.toJson<DateTime?>(expiresAt),
+      'toolName': serializer.toJson<String>(toolName),
+      'argsJson': serializer.toJson<String>(argsJson),
+      'origin': serializer
+          .toJson<int>($ProposalsTable.$converterorigin.toJson(origin)),
+      'reason': serializer
+          .toJson<int>($ProposalsTable.$converterreason.toJson(reason)),
+      'reasonJson': serializer.toJson<String>(reasonJson),
+      'sourceText': serializer.toJson<String?>(sourceText),
+      'dedupeKey': serializer.toJson<String>(dedupeKey),
+      'status': serializer
+          .toJson<int>($ProposalsTable.$converterstatus.toJson(status)),
+    };
+  }
+
+  ProposalRow copyWith(
+          {int? id,
+          DateTime? createdAt,
+          Value<DateTime?> expiresAt = const Value.absent(),
+          String? toolName,
+          String? argsJson,
+          ActionOrigin? origin,
+          ProposalReason? reason,
+          String? reasonJson,
+          Value<String?> sourceText = const Value.absent(),
+          String? dedupeKey,
+          ProposalStatus? status}) =>
+      ProposalRow(
+        id: id ?? this.id,
+        createdAt: createdAt ?? this.createdAt,
+        expiresAt: expiresAt.present ? expiresAt.value : this.expiresAt,
+        toolName: toolName ?? this.toolName,
+        argsJson: argsJson ?? this.argsJson,
+        origin: origin ?? this.origin,
+        reason: reason ?? this.reason,
+        reasonJson: reasonJson ?? this.reasonJson,
+        sourceText: sourceText.present ? sourceText.value : this.sourceText,
+        dedupeKey: dedupeKey ?? this.dedupeKey,
+        status: status ?? this.status,
+      );
+  ProposalRow copyWithCompanion(ProposalsCompanion data) {
+    return ProposalRow(
+      id: data.id.present ? data.id.value : this.id,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      expiresAt: data.expiresAt.present ? data.expiresAt.value : this.expiresAt,
+      toolName: data.toolName.present ? data.toolName.value : this.toolName,
+      argsJson: data.argsJson.present ? data.argsJson.value : this.argsJson,
+      origin: data.origin.present ? data.origin.value : this.origin,
+      reason: data.reason.present ? data.reason.value : this.reason,
+      reasonJson:
+          data.reasonJson.present ? data.reasonJson.value : this.reasonJson,
+      sourceText:
+          data.sourceText.present ? data.sourceText.value : this.sourceText,
+      dedupeKey: data.dedupeKey.present ? data.dedupeKey.value : this.dedupeKey,
+      status: data.status.present ? data.status.value : this.status,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProposalRow(')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('toolName: $toolName, ')
+          ..write('argsJson: $argsJson, ')
+          ..write('origin: $origin, ')
+          ..write('reason: $reason, ')
+          ..write('reasonJson: $reasonJson, ')
+          ..write('sourceText: $sourceText, ')
+          ..write('dedupeKey: $dedupeKey, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, createdAt, expiresAt, toolName, argsJson,
+      origin, reason, reasonJson, sourceText, dedupeKey, status);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ProposalRow &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.expiresAt == this.expiresAt &&
+          other.toolName == this.toolName &&
+          other.argsJson == this.argsJson &&
+          other.origin == this.origin &&
+          other.reason == this.reason &&
+          other.reasonJson == this.reasonJson &&
+          other.sourceText == this.sourceText &&
+          other.dedupeKey == this.dedupeKey &&
+          other.status == this.status);
+}
+
+class ProposalsCompanion extends UpdateCompanion<ProposalRow> {
+  final Value<int> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> expiresAt;
+  final Value<String> toolName;
+  final Value<String> argsJson;
+  final Value<ActionOrigin> origin;
+  final Value<ProposalReason> reason;
+  final Value<String> reasonJson;
+  final Value<String?> sourceText;
+  final Value<String> dedupeKey;
+  final Value<ProposalStatus> status;
+  const ProposalsCompanion({
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.toolName = const Value.absent(),
+    this.argsJson = const Value.absent(),
+    this.origin = const Value.absent(),
+    this.reason = const Value.absent(),
+    this.reasonJson = const Value.absent(),
+    this.sourceText = const Value.absent(),
+    this.dedupeKey = const Value.absent(),
+    this.status = const Value.absent(),
+  });
+  ProposalsCompanion.insert({
+    this.id = const Value.absent(),
+    required DateTime createdAt,
+    this.expiresAt = const Value.absent(),
+    required String toolName,
+    required String argsJson,
+    required ActionOrigin origin,
+    required ProposalReason reason,
+    this.reasonJson = const Value.absent(),
+    this.sourceText = const Value.absent(),
+    required String dedupeKey,
+    required ProposalStatus status,
+  })  : createdAt = Value(createdAt),
+        toolName = Value(toolName),
+        argsJson = Value(argsJson),
+        origin = Value(origin),
+        reason = Value(reason),
+        dedupeKey = Value(dedupeKey),
+        status = Value(status);
+  static Insertable<ProposalRow> custom({
+    Expression<int>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? expiresAt,
+    Expression<String>? toolName,
+    Expression<String>? argsJson,
+    Expression<int>? origin,
+    Expression<int>? reason,
+    Expression<String>? reasonJson,
+    Expression<String>? sourceText,
+    Expression<String>? dedupeKey,
+    Expression<int>? status,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (expiresAt != null) 'expires_at': expiresAt,
+      if (toolName != null) 'tool_name': toolName,
+      if (argsJson != null) 'args_json': argsJson,
+      if (origin != null) 'origin': origin,
+      if (reason != null) 'reason': reason,
+      if (reasonJson != null) 'reason_json': reasonJson,
+      if (sourceText != null) 'source_text': sourceText,
+      if (dedupeKey != null) 'dedupe_key': dedupeKey,
+      if (status != null) 'status': status,
+    });
+  }
+
+  ProposalsCompanion copyWith(
+      {Value<int>? id,
+      Value<DateTime>? createdAt,
+      Value<DateTime?>? expiresAt,
+      Value<String>? toolName,
+      Value<String>? argsJson,
+      Value<ActionOrigin>? origin,
+      Value<ProposalReason>? reason,
+      Value<String>? reasonJson,
+      Value<String?>? sourceText,
+      Value<String>? dedupeKey,
+      Value<ProposalStatus>? status}) {
+    return ProposalsCompanion(
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      expiresAt: expiresAt ?? this.expiresAt,
+      toolName: toolName ?? this.toolName,
+      argsJson: argsJson ?? this.argsJson,
+      origin: origin ?? this.origin,
+      reason: reason ?? this.reason,
+      reasonJson: reasonJson ?? this.reasonJson,
+      sourceText: sourceText ?? this.sourceText,
+      dedupeKey: dedupeKey ?? this.dedupeKey,
+      status: status ?? this.status,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (expiresAt.present) {
+      map['expires_at'] = Variable<DateTime>(expiresAt.value);
+    }
+    if (toolName.present) {
+      map['tool_name'] = Variable<String>(toolName.value);
+    }
+    if (argsJson.present) {
+      map['args_json'] = Variable<String>(argsJson.value);
+    }
+    if (origin.present) {
+      map['origin'] =
+          Variable<int>($ProposalsTable.$converterorigin.toSql(origin.value));
+    }
+    if (reason.present) {
+      map['reason'] =
+          Variable<int>($ProposalsTable.$converterreason.toSql(reason.value));
+    }
+    if (reasonJson.present) {
+      map['reason_json'] = Variable<String>(reasonJson.value);
+    }
+    if (sourceText.present) {
+      map['source_text'] = Variable<String>(sourceText.value);
+    }
+    if (dedupeKey.present) {
+      map['dedupe_key'] = Variable<String>(dedupeKey.value);
+    }
+    if (status.present) {
+      map['status'] =
+          Variable<int>($ProposalsTable.$converterstatus.toSql(status.value));
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProposalsCompanion(')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('toolName: $toolName, ')
+          ..write('argsJson: $argsJson, ')
+          ..write('origin: $origin, ')
+          ..write('reason: $reason, ')
+          ..write('reasonJson: $reasonJson, ')
+          ..write('sourceText: $sourceText, ')
+          ..write('dedupeKey: $dedupeKey, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3441,6 +4854,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $AiConversationsTable aiConversations =
       $AiConversationsTable(this);
   late final $AiMessagesTable aiMessages = $AiMessagesTable(this);
+  late final $UtterancesTable utterances = $UtterancesTable(this);
+  late final $AssistantActionsTable assistantActions =
+      $AssistantActionsTable(this);
+  late final $ProposalsTable proposals = $ProposalsTable(this);
   late final Index tasksScheduleBlockId = Index('tasks_schedule_block_id',
       'CREATE INDEX tasks_schedule_block_id ON tasks (schedule_block_id)');
   late final Index subtasksTaskOrder = Index('subtasks_task_order',
@@ -3458,6 +4875,16 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final Index aiMessagesConversationOrder = Index(
       'ai_messages_conversation_order',
       'CREATE INDEX ai_messages_conversation_order ON ai_messages (conversation_id, sent_at, id)');
+  late final Index utterancesAt =
+      Index('utterances_at', 'CREATE INDEX utterances_at ON utterances (at)');
+  late final Index assistantActionsAt = Index('assistant_actions_at',
+      'CREATE INDEX assistant_actions_at ON assistant_actions (at)');
+  late final Index assistantActionsGroup = Index('assistant_actions_group',
+      'CREATE INDEX assistant_actions_group ON assistant_actions (group_id)');
+  late final Index proposalsOpenKey = Index('proposals_open_key',
+      'CREATE UNIQUE INDEX proposals_open_key ON proposals (dedupe_key) WHERE status = 0');
+  late final Index proposalsStatus = Index('proposals_status',
+      'CREATE INDEX proposals_status ON proposals (status)');
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3472,13 +4899,21 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         aiProviderConfigs,
         aiConversations,
         aiMessages,
+        utterances,
+        assistantActions,
+        proposals,
         tasksScheduleBlockId,
         subtasksTaskOrder,
         scheduleBlocksStartTime,
         scheduleBlocksSeriesOccurrence,
         focusSessionsOneActive,
         focusSessionsCompletedAt,
-        aiMessagesConversationOrder
+        aiMessagesConversationOrder,
+        utterancesAt,
+        assistantActionsAt,
+        assistantActionsGroup,
+        proposalsOpenKey,
+        proposalsStatus
       ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
@@ -3530,6 +4965,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
                 limitUpdateKind: UpdateKind.delete),
             result: [
               TableUpdate('ai_messages', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('utterances',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('assistant_actions', kind: UpdateKind.update),
             ],
           ),
         ],
@@ -6462,6 +7904,885 @@ typedef $$AiMessagesTableProcessedTableManager = ProcessedTableManager<
     (AiMessageRow, $$AiMessagesTableReferences),
     AiMessageRow,
     PrefetchHooks Function({bool conversationId})>;
+typedef $$UtterancesTableCreateCompanionBuilder = UtterancesCompanion Function({
+  Value<int> id,
+  required DateTime at,
+  required String body,
+  required UtteranceSource source,
+  Value<String?> language,
+  Value<double?> confidence,
+});
+typedef $$UtterancesTableUpdateCompanionBuilder = UtterancesCompanion Function({
+  Value<int> id,
+  Value<DateTime> at,
+  Value<String> body,
+  Value<UtteranceSource> source,
+  Value<String?> language,
+  Value<double?> confidence,
+});
+
+final class $$UtterancesTableReferences
+    extends BaseReferences<_$AppDatabase, $UtterancesTable, UtteranceRow> {
+  $$UtterancesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$AssistantActionsTable, List<AssistantActionRow>>
+      _assistantActionsRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.assistantActions,
+              aliasName: 'utterances__id__assistant_actions__utterance_id');
+
+  $$AssistantActionsTableProcessedTableManager get assistantActionsRefs {
+    final manager = $$AssistantActionsTableTableManager(
+            $_db, $_db.assistantActions)
+        .filter((f) => f.utteranceId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_assistantActionsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$UtterancesTableFilterComposer
+    extends Composer<_$AppDatabase, $UtterancesTable> {
+  $$UtterancesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get at => $composableBuilder(
+      column: $table.at, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get body => $composableBuilder(
+      column: $table.body, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<UtteranceSource, UtteranceSource, int>
+      get source => $composableBuilder(
+          column: $table.source,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<String> get language => $composableBuilder(
+      column: $table.language, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get confidence => $composableBuilder(
+      column: $table.confidence, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> assistantActionsRefs(
+      Expression<bool> Function($$AssistantActionsTableFilterComposer f) f) {
+    final $$AssistantActionsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.assistantActions,
+        getReferencedColumn: (t) => t.utteranceId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AssistantActionsTableFilterComposer(
+              $db: $db,
+              $table: $db.assistantActions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$UtterancesTableOrderingComposer
+    extends Composer<_$AppDatabase, $UtterancesTable> {
+  $$UtterancesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get at => $composableBuilder(
+      column: $table.at, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get body => $composableBuilder(
+      column: $table.body, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get source => $composableBuilder(
+      column: $table.source, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get language => $composableBuilder(
+      column: $table.language, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get confidence => $composableBuilder(
+      column: $table.confidence, builder: (column) => ColumnOrderings(column));
+}
+
+class $$UtterancesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $UtterancesTable> {
+  $$UtterancesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get at =>
+      $composableBuilder(column: $table.at, builder: (column) => column);
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<UtteranceSource, int> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<String> get language =>
+      $composableBuilder(column: $table.language, builder: (column) => column);
+
+  GeneratedColumn<double> get confidence => $composableBuilder(
+      column: $table.confidence, builder: (column) => column);
+
+  Expression<T> assistantActionsRefs<T extends Object>(
+      Expression<T> Function($$AssistantActionsTableAnnotationComposer a) f) {
+    final $$AssistantActionsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.assistantActions,
+        getReferencedColumn: (t) => t.utteranceId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AssistantActionsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.assistantActions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$UtterancesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $UtterancesTable,
+    UtteranceRow,
+    $$UtterancesTableFilterComposer,
+    $$UtterancesTableOrderingComposer,
+    $$UtterancesTableAnnotationComposer,
+    $$UtterancesTableCreateCompanionBuilder,
+    $$UtterancesTableUpdateCompanionBuilder,
+    (UtteranceRow, $$UtterancesTableReferences),
+    UtteranceRow,
+    PrefetchHooks Function({bool assistantActionsRefs})> {
+  $$UtterancesTableTableManager(_$AppDatabase db, $UtterancesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$UtterancesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$UtterancesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$UtterancesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<DateTime> at = const Value.absent(),
+            Value<String> body = const Value.absent(),
+            Value<UtteranceSource> source = const Value.absent(),
+            Value<String?> language = const Value.absent(),
+            Value<double?> confidence = const Value.absent(),
+          }) =>
+              UtterancesCompanion(
+            id: id,
+            at: at,
+            body: body,
+            source: source,
+            language: language,
+            confidence: confidence,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required DateTime at,
+            required String body,
+            required UtteranceSource source,
+            Value<String?> language = const Value.absent(),
+            Value<double?> confidence = const Value.absent(),
+          }) =>
+              UtterancesCompanion.insert(
+            id: id,
+            at: at,
+            body: body,
+            source: source,
+            language: language,
+            confidence: confidence,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable<$UtterancesTable, UtteranceRow>(table),
+                    $$UtterancesTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({assistantActionsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (assistantActionsRefs) db.assistantActions
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (assistantActionsRefs)
+                    await $_getPrefetchedData<UtteranceRow, $UtterancesTable,
+                            AssistantActionRow>(
+                        currentTable: table,
+                        referencedTable: $$UtterancesTableReferences
+                            ._assistantActionsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$UtterancesTableReferences(db, table, p0)
+                                .assistantActionsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.utteranceId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$UtterancesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $UtterancesTable,
+    UtteranceRow,
+    $$UtterancesTableFilterComposer,
+    $$UtterancesTableOrderingComposer,
+    $$UtterancesTableAnnotationComposer,
+    $$UtterancesTableCreateCompanionBuilder,
+    $$UtterancesTableUpdateCompanionBuilder,
+    (UtteranceRow, $$UtterancesTableReferences),
+    UtteranceRow,
+    PrefetchHooks Function({bool assistantActionsRefs})>;
+typedef $$AssistantActionsTableCreateCompanionBuilder
+    = AssistantActionsCompanion Function({
+  Value<int> id,
+  required DateTime at,
+  required String groupId,
+  required String toolName,
+  required String argsJson,
+  required ActionOrigin origin,
+  required Decision decision,
+  required LedgerStatus status,
+  Value<String?> undoJson,
+  Value<int?> utteranceId,
+});
+typedef $$AssistantActionsTableUpdateCompanionBuilder
+    = AssistantActionsCompanion Function({
+  Value<int> id,
+  Value<DateTime> at,
+  Value<String> groupId,
+  Value<String> toolName,
+  Value<String> argsJson,
+  Value<ActionOrigin> origin,
+  Value<Decision> decision,
+  Value<LedgerStatus> status,
+  Value<String?> undoJson,
+  Value<int?> utteranceId,
+});
+
+final class $$AssistantActionsTableReferences extends BaseReferences<
+    _$AppDatabase, $AssistantActionsTable, AssistantActionRow> {
+  $$AssistantActionsTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $UtterancesTable _utteranceIdTable(_$AppDatabase db) => db.utterances
+      .createAlias('assistant_actions__utterance_id__utterances__id');
+
+  $$UtterancesTableProcessedTableManager? get utteranceId {
+    final $_column = $_itemColumn<int>('utterance_id');
+    if ($_column == null) return null;
+    final manager = $$UtterancesTableTableManager($_db, $_db.utterances)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_utteranceIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$AssistantActionsTableFilterComposer
+    extends Composer<_$AppDatabase, $AssistantActionsTable> {
+  $$AssistantActionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get at => $composableBuilder(
+      column: $table.at, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get groupId => $composableBuilder(
+      column: $table.groupId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get toolName => $composableBuilder(
+      column: $table.toolName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get argsJson => $composableBuilder(
+      column: $table.argsJson, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<ActionOrigin, ActionOrigin, int> get origin =>
+      $composableBuilder(
+          column: $table.origin,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnWithTypeConverterFilters<Decision, Decision, int> get decision =>
+      $composableBuilder(
+          column: $table.decision,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnWithTypeConverterFilters<LedgerStatus, LedgerStatus, int> get status =>
+      $composableBuilder(
+          column: $table.status,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<String> get undoJson => $composableBuilder(
+      column: $table.undoJson, builder: (column) => ColumnFilters(column));
+
+  $$UtterancesTableFilterComposer get utteranceId {
+    final $$UtterancesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.utteranceId,
+        referencedTable: $db.utterances,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UtterancesTableFilterComposer(
+              $db: $db,
+              $table: $db.utterances,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$AssistantActionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AssistantActionsTable> {
+  $$AssistantActionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get at => $composableBuilder(
+      column: $table.at, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get groupId => $composableBuilder(
+      column: $table.groupId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get toolName => $composableBuilder(
+      column: $table.toolName, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get argsJson => $composableBuilder(
+      column: $table.argsJson, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get origin => $composableBuilder(
+      column: $table.origin, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get decision => $composableBuilder(
+      column: $table.decision, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get undoJson => $composableBuilder(
+      column: $table.undoJson, builder: (column) => ColumnOrderings(column));
+
+  $$UtterancesTableOrderingComposer get utteranceId {
+    final $$UtterancesTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.utteranceId,
+        referencedTable: $db.utterances,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UtterancesTableOrderingComposer(
+              $db: $db,
+              $table: $db.utterances,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$AssistantActionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AssistantActionsTable> {
+  $$AssistantActionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get at =>
+      $composableBuilder(column: $table.at, builder: (column) => column);
+
+  GeneratedColumn<String> get groupId =>
+      $composableBuilder(column: $table.groupId, builder: (column) => column);
+
+  GeneratedColumn<String> get toolName =>
+      $composableBuilder(column: $table.toolName, builder: (column) => column);
+
+  GeneratedColumn<String> get argsJson =>
+      $composableBuilder(column: $table.argsJson, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<ActionOrigin, int> get origin =>
+      $composableBuilder(column: $table.origin, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Decision, int> get decision =>
+      $composableBuilder(column: $table.decision, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<LedgerStatus, int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get undoJson =>
+      $composableBuilder(column: $table.undoJson, builder: (column) => column);
+
+  $$UtterancesTableAnnotationComposer get utteranceId {
+    final $$UtterancesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.utteranceId,
+        referencedTable: $db.utterances,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UtterancesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.utterances,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$AssistantActionsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $AssistantActionsTable,
+    AssistantActionRow,
+    $$AssistantActionsTableFilterComposer,
+    $$AssistantActionsTableOrderingComposer,
+    $$AssistantActionsTableAnnotationComposer,
+    $$AssistantActionsTableCreateCompanionBuilder,
+    $$AssistantActionsTableUpdateCompanionBuilder,
+    (AssistantActionRow, $$AssistantActionsTableReferences),
+    AssistantActionRow,
+    PrefetchHooks Function({bool utteranceId})> {
+  $$AssistantActionsTableTableManager(
+      _$AppDatabase db, $AssistantActionsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AssistantActionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AssistantActionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AssistantActionsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<DateTime> at = const Value.absent(),
+            Value<String> groupId = const Value.absent(),
+            Value<String> toolName = const Value.absent(),
+            Value<String> argsJson = const Value.absent(),
+            Value<ActionOrigin> origin = const Value.absent(),
+            Value<Decision> decision = const Value.absent(),
+            Value<LedgerStatus> status = const Value.absent(),
+            Value<String?> undoJson = const Value.absent(),
+            Value<int?> utteranceId = const Value.absent(),
+          }) =>
+              AssistantActionsCompanion(
+            id: id,
+            at: at,
+            groupId: groupId,
+            toolName: toolName,
+            argsJson: argsJson,
+            origin: origin,
+            decision: decision,
+            status: status,
+            undoJson: undoJson,
+            utteranceId: utteranceId,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required DateTime at,
+            required String groupId,
+            required String toolName,
+            required String argsJson,
+            required ActionOrigin origin,
+            required Decision decision,
+            required LedgerStatus status,
+            Value<String?> undoJson = const Value.absent(),
+            Value<int?> utteranceId = const Value.absent(),
+          }) =>
+              AssistantActionsCompanion.insert(
+            id: id,
+            at: at,
+            groupId: groupId,
+            toolName: toolName,
+            argsJson: argsJson,
+            origin: origin,
+            decision: decision,
+            status: status,
+            undoJson: undoJson,
+            utteranceId: utteranceId,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable<$AssistantActionsTable, AssistantActionRow>(
+                        table),
+                    $$AssistantActionsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({utteranceId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (utteranceId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.utteranceId,
+                    referencedTable:
+                        $$AssistantActionsTableReferences._utteranceIdTable(db),
+                    referencedColumn: $$AssistantActionsTableReferences
+                        ._utteranceIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$AssistantActionsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $AssistantActionsTable,
+    AssistantActionRow,
+    $$AssistantActionsTableFilterComposer,
+    $$AssistantActionsTableOrderingComposer,
+    $$AssistantActionsTableAnnotationComposer,
+    $$AssistantActionsTableCreateCompanionBuilder,
+    $$AssistantActionsTableUpdateCompanionBuilder,
+    (AssistantActionRow, $$AssistantActionsTableReferences),
+    AssistantActionRow,
+    PrefetchHooks Function({bool utteranceId})>;
+typedef $$ProposalsTableCreateCompanionBuilder = ProposalsCompanion Function({
+  Value<int> id,
+  required DateTime createdAt,
+  Value<DateTime?> expiresAt,
+  required String toolName,
+  required String argsJson,
+  required ActionOrigin origin,
+  required ProposalReason reason,
+  Value<String> reasonJson,
+  Value<String?> sourceText,
+  required String dedupeKey,
+  required ProposalStatus status,
+});
+typedef $$ProposalsTableUpdateCompanionBuilder = ProposalsCompanion Function({
+  Value<int> id,
+  Value<DateTime> createdAt,
+  Value<DateTime?> expiresAt,
+  Value<String> toolName,
+  Value<String> argsJson,
+  Value<ActionOrigin> origin,
+  Value<ProposalReason> reason,
+  Value<String> reasonJson,
+  Value<String?> sourceText,
+  Value<String> dedupeKey,
+  Value<ProposalStatus> status,
+});
+
+class $$ProposalsTableFilterComposer
+    extends Composer<_$AppDatabase, $ProposalsTable> {
+  $$ProposalsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get expiresAt => $composableBuilder(
+      column: $table.expiresAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get toolName => $composableBuilder(
+      column: $table.toolName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get argsJson => $composableBuilder(
+      column: $table.argsJson, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<ActionOrigin, ActionOrigin, int> get origin =>
+      $composableBuilder(
+          column: $table.origin,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnWithTypeConverterFilters<ProposalReason, ProposalReason, int>
+      get reason => $composableBuilder(
+          column: $table.reason,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<String> get reasonJson => $composableBuilder(
+      column: $table.reasonJson, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get sourceText => $composableBuilder(
+      column: $table.sourceText, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get dedupeKey => $composableBuilder(
+      column: $table.dedupeKey, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<ProposalStatus, ProposalStatus, int>
+      get status => $composableBuilder(
+          column: $table.status,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+}
+
+class $$ProposalsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ProposalsTable> {
+  $$ProposalsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get expiresAt => $composableBuilder(
+      column: $table.expiresAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get toolName => $composableBuilder(
+      column: $table.toolName, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get argsJson => $composableBuilder(
+      column: $table.argsJson, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get origin => $composableBuilder(
+      column: $table.origin, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get reason => $composableBuilder(
+      column: $table.reason, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get reasonJson => $composableBuilder(
+      column: $table.reasonJson, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get sourceText => $composableBuilder(
+      column: $table.sourceText, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get dedupeKey => $composableBuilder(
+      column: $table.dedupeKey, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+}
+
+class $$ProposalsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ProposalsTable> {
+  $$ProposalsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get expiresAt =>
+      $composableBuilder(column: $table.expiresAt, builder: (column) => column);
+
+  GeneratedColumn<String> get toolName =>
+      $composableBuilder(column: $table.toolName, builder: (column) => column);
+
+  GeneratedColumn<String> get argsJson =>
+      $composableBuilder(column: $table.argsJson, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<ActionOrigin, int> get origin =>
+      $composableBuilder(column: $table.origin, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<ProposalReason, int> get reason =>
+      $composableBuilder(column: $table.reason, builder: (column) => column);
+
+  GeneratedColumn<String> get reasonJson => $composableBuilder(
+      column: $table.reasonJson, builder: (column) => column);
+
+  GeneratedColumn<String> get sourceText => $composableBuilder(
+      column: $table.sourceText, builder: (column) => column);
+
+  GeneratedColumn<String> get dedupeKey =>
+      $composableBuilder(column: $table.dedupeKey, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<ProposalStatus, int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+}
+
+class $$ProposalsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ProposalsTable,
+    ProposalRow,
+    $$ProposalsTableFilterComposer,
+    $$ProposalsTableOrderingComposer,
+    $$ProposalsTableAnnotationComposer,
+    $$ProposalsTableCreateCompanionBuilder,
+    $$ProposalsTableUpdateCompanionBuilder,
+    (ProposalRow, BaseReferences<_$AppDatabase, $ProposalsTable, ProposalRow>),
+    ProposalRow,
+    PrefetchHooks Function()> {
+  $$ProposalsTableTableManager(_$AppDatabase db, $ProposalsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ProposalsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ProposalsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ProposalsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime?> expiresAt = const Value.absent(),
+            Value<String> toolName = const Value.absent(),
+            Value<String> argsJson = const Value.absent(),
+            Value<ActionOrigin> origin = const Value.absent(),
+            Value<ProposalReason> reason = const Value.absent(),
+            Value<String> reasonJson = const Value.absent(),
+            Value<String?> sourceText = const Value.absent(),
+            Value<String> dedupeKey = const Value.absent(),
+            Value<ProposalStatus> status = const Value.absent(),
+          }) =>
+              ProposalsCompanion(
+            id: id,
+            createdAt: createdAt,
+            expiresAt: expiresAt,
+            toolName: toolName,
+            argsJson: argsJson,
+            origin: origin,
+            reason: reason,
+            reasonJson: reasonJson,
+            sourceText: sourceText,
+            dedupeKey: dedupeKey,
+            status: status,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required DateTime createdAt,
+            Value<DateTime?> expiresAt = const Value.absent(),
+            required String toolName,
+            required String argsJson,
+            required ActionOrigin origin,
+            required ProposalReason reason,
+            Value<String> reasonJson = const Value.absent(),
+            Value<String?> sourceText = const Value.absent(),
+            required String dedupeKey,
+            required ProposalStatus status,
+          }) =>
+              ProposalsCompanion.insert(
+            id: id,
+            createdAt: createdAt,
+            expiresAt: expiresAt,
+            toolName: toolName,
+            argsJson: argsJson,
+            origin: origin,
+            reason: reason,
+            reasonJson: reasonJson,
+            sourceText: sourceText,
+            dedupeKey: dedupeKey,
+            status: status,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable<$ProposalsTable, ProposalRow>(table),
+                    BaseReferences<_$AppDatabase, $ProposalsTable, ProposalRow>(
+                        db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$ProposalsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $ProposalsTable,
+    ProposalRow,
+    $$ProposalsTableFilterComposer,
+    $$ProposalsTableOrderingComposer,
+    $$ProposalsTableAnnotationComposer,
+    $$ProposalsTableCreateCompanionBuilder,
+    $$ProposalsTableUpdateCompanionBuilder,
+    (ProposalRow, BaseReferences<_$AppDatabase, $ProposalsTable, ProposalRow>),
+    ProposalRow,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -6485,4 +8806,10 @@ class $AppDatabaseManager {
       $$AiConversationsTableTableManager(_db, _db.aiConversations);
   $$AiMessagesTableTableManager get aiMessages =>
       $$AiMessagesTableTableManager(_db, _db.aiMessages);
+  $$UtterancesTableTableManager get utterances =>
+      $$UtterancesTableTableManager(_db, _db.utterances);
+  $$AssistantActionsTableTableManager get assistantActions =>
+      $$AssistantActionsTableTableManager(_db, _db.assistantActions);
+  $$ProposalsTableTableManager get proposals =>
+      $$ProposalsTableTableManager(_db, _db.proposals);
 }

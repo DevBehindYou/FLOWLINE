@@ -1417,11 +1417,430 @@ i1.GeneratedColumn<int> _column_84(String aliasedName) =>
 i1.GeneratedColumn<int> _column_85(String aliasedName) =>
     i1.GeneratedColumn<int>('error_status', aliasedName, true,
         type: i1.DriftSqlType.int, $customConstraints: 'NULL');
+
+final class Schema8 extends i0.VersionedSchema {
+  Schema8({required super.database}) : super(version: 8);
+  @override
+  late final List<i1.DatabaseSchemaEntity> entities = [
+    appSettings,
+    scheduleBlocks,
+    tasks,
+    subtasks,
+    scheduleBlockExceptions,
+    focusSessions,
+    aiProviderConfigs,
+    aiConversations,
+    aiMessages,
+    utterances,
+    assistantActions,
+    proposals,
+    tasksScheduleBlockId,
+    subtasksTaskOrder,
+    scheduleBlocksStartTime,
+    scheduleBlocksSeriesOccurrence,
+    focusSessionsOneActive,
+    focusSessionsCompletedAt,
+    aiMessagesConversationOrder,
+    utterancesAt,
+    assistantActionsAt,
+    assistantActionsGroup,
+    proposalsOpenKey,
+    proposalsStatus,
+  ];
+  late final Shape7 appSettings = Shape7(
+      source: i0.VersionedTable(
+        entityName: 'app_settings',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY("key")',
+        ],
+        columns: [
+          _column_38,
+          _column_39,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape14 scheduleBlocks = Shape14(
+      source: i0.VersionedTable(
+        entityName: 'schedule_blocks',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'CHECK((series_id IS NULL)=(occurrence_date IS NULL))',
+          'CHECK(series_id IS NULL OR recurrence IS NULL)',
+        ],
+        columns: [
+          _column_40,
+          _column_41,
+          _column_42,
+          _column_43,
+          _column_44,
+          _column_45,
+          _column_78,
+          _column_79,
+          _column_80,
+          _column_81,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape9 tasks = Shape9(
+      source: i0.VersionedTable(
+        entityName: 'tasks',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [],
+        columns: [
+          _column_40,
+          _column_46,
+          _column_41,
+          _column_47,
+          _column_48,
+          _column_49,
+          _column_50,
+          _column_51,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape2 subtasks = Shape2(
+      source: i0.VersionedTable(
+        entityName: 'subtasks',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [],
+        columns: [
+          _column_40,
+          _column_52,
+          _column_41,
+          _column_49,
+          _column_53,
+          _column_54,
+          _column_55,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape15 scheduleBlockExceptions = Shape15(
+      source: i0.VersionedTable(
+        entityName: 'schedule_block_exceptions',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(series_id, occurrence_date)',
+        ],
+        columns: [
+          _column_82,
+          _column_83,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape10 focusSessions = Shape10(
+      source: i0.VersionedTable(
+        entityName: 'focus_sessions',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [],
+        columns: [
+          _column_40,
+          _column_56,
+          _column_57,
+          _column_58,
+          _column_59,
+          _column_60,
+          _column_61,
+          _column_62,
+          _column_63,
+          _column_64,
+          _column_65,
+          _column_66,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape11 aiProviderConfigs = Shape11(
+      source: i0.VersionedTable(
+        entityName: 'ai_provider_configs',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [
+          'PRIMARY KEY(provider_id)',
+        ],
+        columns: [
+          _column_67,
+          _column_68,
+          _column_69,
+          _column_70,
+          _column_71,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape12 aiConversations = Shape12(
+      source: i0.VersionedTable(
+        entityName: 'ai_conversations',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [],
+        columns: [
+          _column_40,
+          _column_67,
+          _column_41,
+          _column_51,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape16 aiMessages = Shape16(
+      source: i0.VersionedTable(
+        entityName: 'ai_messages',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [],
+        columns: [
+          _column_40,
+          _column_72,
+          _column_73,
+          _column_74,
+          _column_75,
+          _column_76,
+          _column_77,
+          _column_84,
+          _column_85,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape17 utterances = Shape17(
+      source: i0.VersionedTable(
+        entityName: 'utterances',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [],
+        columns: [
+          _column_40,
+          _column_86,
+          _column_87,
+          _column_88,
+          _column_89,
+          _column_90,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape18 assistantActions = Shape18(
+      source: i0.VersionedTable(
+        entityName: 'assistant_actions',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [],
+        columns: [
+          _column_40,
+          _column_86,
+          _column_91,
+          _column_92,
+          _column_93,
+          _column_94,
+          _column_95,
+          _column_49,
+          _column_96,
+          _column_97,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  late final Shape19 proposals = Shape19(
+      source: i0.VersionedTable(
+        entityName: 'proposals',
+        withoutRowId: false,
+        isStrict: false,
+        tableConstraints: [],
+        columns: [
+          _column_40,
+          _column_98,
+          _column_99,
+          _column_92,
+          _column_93,
+          _column_94,
+          _column_100,
+          _column_101,
+          _column_102,
+          _column_103,
+          _column_49,
+        ],
+        attachedDatabase: database,
+      ),
+      alias: null);
+  final i1.Index tasksScheduleBlockId = i1.Index('tasks_schedule_block_id',
+      'CREATE INDEX tasks_schedule_block_id ON tasks (schedule_block_id)');
+  final i1.Index subtasksTaskOrder = i1.Index('subtasks_task_order',
+      'CREATE INDEX subtasks_task_order ON subtasks (task_id, order_index)');
+  final i1.Index scheduleBlocksStartTime = i1.Index(
+      'schedule_blocks_start_time',
+      'CREATE INDEX schedule_blocks_start_time ON schedule_blocks (start_time)');
+  final i1.Index scheduleBlocksSeriesOccurrence = i1.Index(
+      'schedule_blocks_series_occurrence',
+      'CREATE UNIQUE INDEX schedule_blocks_series_occurrence ON schedule_blocks (series_id, occurrence_date)');
+  final i1.Index focusSessionsOneActive = i1.Index('focus_sessions_one_active',
+      'CREATE UNIQUE INDEX focus_sessions_one_active ON focus_sessions (completed_at IS NULL) WHERE completed_at IS NULL');
+  final i1.Index focusSessionsCompletedAt = i1.Index(
+      'focus_sessions_completed_at',
+      'CREATE INDEX focus_sessions_completed_at ON focus_sessions (completed_at)');
+  final i1.Index aiMessagesConversationOrder = i1.Index(
+      'ai_messages_conversation_order',
+      'CREATE INDEX ai_messages_conversation_order ON ai_messages (conversation_id, sent_at, id)');
+  final i1.Index utterancesAt = i1.Index(
+      'utterances_at', 'CREATE INDEX utterances_at ON utterances (at)');
+  final i1.Index assistantActionsAt = i1.Index('assistant_actions_at',
+      'CREATE INDEX assistant_actions_at ON assistant_actions (at)');
+  final i1.Index assistantActionsGroup = i1.Index('assistant_actions_group',
+      'CREATE INDEX assistant_actions_group ON assistant_actions (group_id)');
+  final i1.Index proposalsOpenKey = i1.Index('proposals_open_key',
+      'CREATE UNIQUE INDEX proposals_open_key ON proposals (dedupe_key) WHERE status = 0');
+  final i1.Index proposalsStatus = i1.Index('proposals_status',
+      'CREATE INDEX proposals_status ON proposals (status)');
+}
+
+class Shape17 extends i0.VersionedTable {
+  Shape17({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<int> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get at =>
+      columnsByName['at']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get body =>
+      columnsByName['body']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get source =>
+      columnsByName['source']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get language =>
+      columnsByName['language']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<double> get confidence =>
+      columnsByName['confidence']! as i1.GeneratedColumn<double>;
+}
+
+i1.GeneratedColumn<int> _column_86(String aliasedName) =>
+    i1.GeneratedColumn<int>('at', aliasedName, false,
+        type: i1.DriftSqlType.int, $customConstraints: 'NOT NULL');
+i1.GeneratedColumn<String> _column_87(String aliasedName) =>
+    i1.GeneratedColumn<String>('body', aliasedName, false,
+        type: i1.DriftSqlType.string,
+        $customConstraints: 'NOT NULL CHECK (LENGTH(body) > 0)');
+i1.GeneratedColumn<int> _column_88(String aliasedName) =>
+    i1.GeneratedColumn<int>('source', aliasedName, false,
+        type: i1.DriftSqlType.int, $customConstraints: 'NOT NULL');
+i1.GeneratedColumn<String> _column_89(String aliasedName) =>
+    i1.GeneratedColumn<String>('language', aliasedName, true,
+        type: i1.DriftSqlType.string, $customConstraints: 'NULL');
+i1.GeneratedColumn<double> _column_90(String aliasedName) =>
+    i1.GeneratedColumn<double>('confidence', aliasedName, true,
+        type: i1.DriftSqlType.double,
+        $customConstraints: 'NULL CHECK (confidence BETWEEN 0.0 AND 1.0)');
+
+class Shape18 extends i0.VersionedTable {
+  Shape18({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<int> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get at =>
+      columnsByName['at']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get groupId =>
+      columnsByName['group_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get toolName =>
+      columnsByName['tool_name']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get argsJson =>
+      columnsByName['args_json']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get origin =>
+      columnsByName['origin']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get decision =>
+      columnsByName['decision']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get status =>
+      columnsByName['status']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get undoJson =>
+      columnsByName['undo_json']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get utteranceId =>
+      columnsByName['utterance_id']! as i1.GeneratedColumn<int>;
+}
+
+i1.GeneratedColumn<String> _column_91(String aliasedName) =>
+    i1.GeneratedColumn<String>('group_id', aliasedName, false,
+        type: i1.DriftSqlType.string,
+        $customConstraints: 'NOT NULL CHECK (LENGTH(group_id) > 0)');
+i1.GeneratedColumn<String> _column_92(String aliasedName) =>
+    i1.GeneratedColumn<String>('tool_name', aliasedName, false,
+        type: i1.DriftSqlType.string,
+        $customConstraints: 'NOT NULL CHECK (LENGTH(tool_name) > 0)');
+i1.GeneratedColumn<String> _column_93(String aliasedName) =>
+    i1.GeneratedColumn<String>('args_json', aliasedName, false,
+        type: i1.DriftSqlType.string, $customConstraints: 'NOT NULL');
+i1.GeneratedColumn<int> _column_94(String aliasedName) =>
+    i1.GeneratedColumn<int>('origin', aliasedName, false,
+        type: i1.DriftSqlType.int, $customConstraints: 'NOT NULL');
+i1.GeneratedColumn<int> _column_95(String aliasedName) =>
+    i1.GeneratedColumn<int>('decision', aliasedName, false,
+        type: i1.DriftSqlType.int, $customConstraints: 'NOT NULL');
+i1.GeneratedColumn<String> _column_96(String aliasedName) =>
+    i1.GeneratedColumn<String>('undo_json', aliasedName, true,
+        type: i1.DriftSqlType.string, $customConstraints: 'NULL');
+i1.GeneratedColumn<int> _column_97(String aliasedName) =>
+    i1.GeneratedColumn<int>('utterance_id', aliasedName, true,
+        type: i1.DriftSqlType.int,
+        $customConstraints: 'NULL REFERENCES utterances(id)ON DELETE SET NULL');
+
+class Shape19 extends i0.VersionedTable {
+  Shape19({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<int> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get createdAt =>
+      columnsByName['created_at']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get expiresAt =>
+      columnsByName['expires_at']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get toolName =>
+      columnsByName['tool_name']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get argsJson =>
+      columnsByName['args_json']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get origin =>
+      columnsByName['origin']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get reason =>
+      columnsByName['reason']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get reasonJson =>
+      columnsByName['reason_json']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get sourceText =>
+      columnsByName['source_text']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get dedupeKey =>
+      columnsByName['dedupe_key']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get status =>
+      columnsByName['status']! as i1.GeneratedColumn<int>;
+}
+
+i1.GeneratedColumn<int> _column_98(String aliasedName) =>
+    i1.GeneratedColumn<int>('created_at', aliasedName, false,
+        type: i1.DriftSqlType.int, $customConstraints: 'NOT NULL');
+i1.GeneratedColumn<int> _column_99(String aliasedName) =>
+    i1.GeneratedColumn<int>('expires_at', aliasedName, true,
+        type: i1.DriftSqlType.int,
+        $customConstraints: 'NULL CHECK (expires_at > created_at)');
+i1.GeneratedColumn<int> _column_100(String aliasedName) =>
+    i1.GeneratedColumn<int>('reason', aliasedName, false,
+        type: i1.DriftSqlType.int, $customConstraints: 'NOT NULL');
+i1.GeneratedColumn<String> _column_101(String aliasedName) =>
+    i1.GeneratedColumn<String>('reason_json', aliasedName, false,
+        type: i1.DriftSqlType.string,
+        $customConstraints: 'NOT NULL DEFAULT \'{}\'',
+        defaultValue: const i1.CustomExpression('\'{}\''));
+i1.GeneratedColumn<String> _column_102(String aliasedName) =>
+    i1.GeneratedColumn<String>('source_text', aliasedName, true,
+        type: i1.DriftSqlType.string, $customConstraints: 'NULL');
+i1.GeneratedColumn<String> _column_103(String aliasedName) =>
+    i1.GeneratedColumn<String>('dedupe_key', aliasedName, false,
+        type: i1.DriftSqlType.string,
+        $customConstraints: 'NOT NULL CHECK (LENGTH(dedupe_key) > 0)');
 i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema4 schema) from3To4,
   required Future<void> Function(i1.Migrator m, Schema5 schema) from4To5,
   required Future<void> Function(i1.Migrator m, Schema6 schema) from5To6,
   required Future<void> Function(i1.Migrator m, Schema7 schema) from6To7,
+  required Future<void> Function(i1.Migrator m, Schema8 schema) from7To8,
 }) {
   return (currentVersion, database) async {
     switch (currentVersion) {
@@ -1445,6 +1864,11 @@ i0.MigrationStepWithVersion migrationSteps({
         final migrator = i1.Migrator(database, schema);
         await from6To7(migrator, schema);
         return 7;
+      case 7:
+        final schema = Schema8(database: database);
+        final migrator = i1.Migrator(database, schema);
+        await from7To8(migrator, schema);
+        return 8;
       default:
         throw ArgumentError.value('Unknown migration from $currentVersion');
     }
@@ -1456,6 +1880,7 @@ i1.OnUpgrade stepByStep({
   required Future<void> Function(i1.Migrator m, Schema5 schema) from4To5,
   required Future<void> Function(i1.Migrator m, Schema6 schema) from5To6,
   required Future<void> Function(i1.Migrator m, Schema7 schema) from6To7,
+  required Future<void> Function(i1.Migrator m, Schema8 schema) from7To8,
 }) =>
     i0.VersionedSchema.stepByStepHelper(
         step: migrationSteps(
@@ -1463,4 +1888,5 @@ i1.OnUpgrade stepByStep({
       from4To5: from4To5,
       from5To6: from5To6,
       from6To7: from6To7,
+      from7To8: from7To8,
     ));

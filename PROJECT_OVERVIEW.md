@@ -626,8 +626,8 @@ erDiagram
 
 ### 7.3 Migrations
 
-`AppDatabase.schemaVersion = 7`. Snapshots of v3 (what every APK
-before Phase 3 shipped) to v6 live in `drift_schemas/`; `test/drift/`
+`AppDatabase.schemaVersion = 8`. Snapshots of v3 (what every APK
+before Phase 3 shipped) to v8 live in `drift_schemas/`; `test/drift/`
 verifies the upgrade schema and data. Upgrades run **step by step**
 through the generated `app_database.steps.dart`, so each step sees its
 own version's tables. Run `dart run drift_dev make-migrations` after each
@@ -641,10 +641,29 @@ bump, then add the new `fromNToM` step.
 | 4 → 5 | `createTable(app_settings)` (Phase 3) |
 | 5 → 6 | `schedule_blocks` rebuilt with `recurrence`, `recurrence_until`, `series_id` (FK, cascade), `occurrence_date` and two CHECKs; `createTable(schedule_block_exceptions)`; unique index on `(series_id, occurrence_date)` (Phase 3) |
 | 6 → 7 | `ai_messages.error_kind`, `ai_messages.error_status` (typed AI errors, Phase 4) |
+| 7 → 8 | `createTable(utterances, assistant_actions, proposals)` and their indexes, including the partial unique `proposals_open_key` (one open proposal per dedupe key). New tables only (docs/05 Phase E.2) |
+
+**Assistant tables (v8), not yet written by any code path** — the
+orchestrator and tools that fill them are later Phase E slices:
+
+| Table | Holds | Invariants in SQL |
+|---|---|---|
+| `utterances` | What the user said or typed: `body`, `source` (`UtteranceSource`), `language`, `confidence` | `body` non-empty; `confidence` in 0..1 |
+| `assistant_actions` | The ledger: `group_id` (one UNDO per turn), `tool_name`, `args_json`, `origin`, `decision`, `status` (`LedgerStatus`), `undo_json` (`encodeUndoRecipe`), `utterance_id` | `tool_name`, `group_id` non-empty; `utterance_id` FK `ON DELETE SET NULL` |
+| `proposals` | Suggestions for the Inbox: tool + args, `origin`, `reason` (`ProposalReason`), `reason_json`, `source_text`, `dedupe_key`, `status`, `expires_at` | One open row per `dedupe_key`; `expires_at > created_at`; `dedupe_key` non-empty |
+
+The enum columns have no range CHECK on purpose: the enums are
+append-only (R1), and a CHECK would force a table rebuild each time one
+grows. Undo recipes (`lib/domain/assistant/ledger.dart`) are JSON with
+table *names*, and `decodeUndoRecipe` returns null for anything it can't
+read, so an unreadable recipe makes one entry un-undoable instead of
+breaking the Activity list.
 
 Schema verification uses Drift's `SchemaVerifier` (generated tests plus a
-data-integrity tests: a v3 database full of edge cases, and v5 → v6
-keeping blocks and their tasks).
+data-integrity tests: a v3 database full of edge cases, v5 → v6
+keeping blocks and their tasks, and v7 → v8 keeping tasks and chat
+history). `test/data/local/assistant_tables_test.dart` pins the v8 SQL
+invariants.
 
 ---
 

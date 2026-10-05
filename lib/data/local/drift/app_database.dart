@@ -11,6 +11,10 @@ import 'package:sqlite3/sqlite3.dart' show sqlite3;
 // table stores via intEnum<T>() must be imported here, not only in the
 // table's own file.
 import '../../../domain/ai/ai_contract.dart';
+import '../../../domain/assistant/autonomy.dart';
+import '../../../domain/assistant/ledger.dart';
+import '../../../domain/assistant/proposal.dart';
+import '../../../domain/assistant/utterance.dart';
 import '../../../domain/entities/ai_message.dart';
 import '../../../domain/entities/ai_provider_config.dart';
 import '../../../domain/entities/focus_session.dart';
@@ -21,10 +25,13 @@ import 'tables/ai_conversations_table.dart';
 import 'tables/app_settings_table.dart';
 import 'tables/ai_messages_table.dart';
 import 'tables/ai_provider_configs_table.dart';
+import 'tables/assistant_actions_table.dart';
 import 'tables/focus_sessions_table.dart';
+import 'tables/proposals_table.dart';
 import 'tables/schedule_blocks_table.dart';
 import 'tables/subtasks_table.dart';
 import 'tables/tasks_table.dart';
+import 'tables/utterances_table.dart';
 import 'app_database.steps.dart';
 
 part 'app_database.g.dart';
@@ -39,6 +46,9 @@ part 'app_database.g.dart';
   AiProviderConfigs,
   AiConversations,
   AiMessages,
+  Utterances,
+  AssistantActions,
+  Proposals,
 ])
 class AppDatabase extends _$AppDatabase {
   /// [executor] is for tests and migration verification; the app always
@@ -51,7 +61,7 @@ class AppDatabase extends _$AppDatabase {
   // Every bump: add a step below, then `dart run drift_dev make-migrations`
   // and commit drift_schemas/ and test/drift/ (rule R2).
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -109,6 +119,19 @@ class AppDatabase extends _$AppDatabase {
               await m.addColumn(
                   schema.aiMessages, schema.aiMessages.errorStatus);
             },
+            // The assistant core (docs/05 Phase E): the action ledger,
+            // proposals and utterances. New tables only; nothing existing
+            // changes.
+            from7To8: (m, schema) async {
+              await m.createTable(schema.utterances);
+              await m.createTable(schema.assistantActions);
+              await m.createTable(schema.proposals);
+              await m.create(schema.utterancesAt);
+              await m.create(schema.assistantActionsAt);
+              await m.create(schema.assistantActionsGroup);
+              await m.create(schema.proposalsOpenKey);
+              await m.create(schema.proposalsStatus);
+            },
           )(m, from, to);
           await _assertForeignKeysIntact();
         },
@@ -125,6 +148,9 @@ class AppDatabase extends _$AppDatabase {
   Future<void> wipeAllData() {
     return transaction(() async {
       for (final TableInfo<Table, Object?> table in [
+        assistantActions,
+        proposals,
+        utterances,
         aiMessages,
         aiConversations,
         focusSessions,
