@@ -1,5 +1,6 @@
 import 'package:atomic_assist/main.dart' as app;
 import 'package:flutter/material.dart';
+import 'package:atomic_assist/design/atomic.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -48,7 +49,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     // A task, stored in the real database.
-    await tap(tester, find.widgetWithText(FloatingActionButton, 'Add Task'));
+    await tap(tester, find.widgetWithText(AtomicButton, 'Add Task').last);
     await pumpUntil(tester, find.widgetWithText(TextField, 'Title'));
     await tester.enterText(
         find.widgetWithText(TextField, 'Title'), 'Write the report');

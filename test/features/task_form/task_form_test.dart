@@ -28,7 +28,7 @@ void main() {
         endTime: DateTime(day.year, day.month, day.day, 10)));
     await pumpScreen(tester, db: db, child: const TodayScreen());
 
-    await tester.tap(find.widgetWithText(FloatingActionButton, 'Add Task'));
+    await tester.tap(find.widgetWithText(AtomicButton, 'Add Task').last);
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextField, 'Title'), 'Outline');
 

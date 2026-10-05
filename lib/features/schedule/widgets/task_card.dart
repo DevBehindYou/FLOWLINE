@@ -21,6 +21,7 @@ class TaskCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDone = task.status == TaskStatus.done;
+    final palette = context.atomic.palette;
 
     return Dismissible(
       key: ValueKey('task-${task.id}'),
@@ -28,14 +29,14 @@ class TaskCard extends ConsumerWidget {
       background: _swipeBackground(
         context,
         alignLeft: true,
-        icon: Icons.check,
-        color: context.atomic.palette.accent,
+        icon: AtomicIcons.check,
+        color: context.atomic.palette.accentText,
       ),
       secondaryBackground: _swipeBackground(
         context,
         alignLeft: false,
-        icon: Icons.delete,
-        color: Theme.of(context).colorScheme.error,
+        icon: AtomicIcons.delete,
+        color: context.atomic.palette.danger,
       ),
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.startToEnd) {
@@ -49,46 +50,59 @@ class TaskCard extends ConsumerWidget {
         () => ref.read(todayActionsProvider.notifier).deleteTask(task.id),
         failureMessage: context.l10n.deleteTaskFailed,
       ),
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 8),
-        child: ListTile(
-          // Tight padding: the leading and trailing buttons already bring
-          // 48dp touch targets, and on a 360dp phone the title needs the
-          // width (seen in the goldens).
-          contentPadding: const EdgeInsetsDirectional.symmetric(horizontal: 4),
-          horizontalTitleGap: 4,
-          minLeadingWidth: 0,
-          onTap: () => context.push('/today/task/${task.id}'),
-          // The spec's accessible alternative to swiping (§8).
-          onLongPress: () => _showActions(context, ref),
-          leading: IconButton(
-            tooltip: isDone ? context.l10n.markNotDone : context.l10n.markDone,
-            icon: Icon(isDone ? Icons.check_circle : Icons.circle_outlined),
-            color: isDone ? context.atomic.palette.accentText : null,
-            onPressed: () => _toggleDone(context, ref),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: AtomicSpace.xs),
+        child: AtomicCard(
+          padding: EdgeInsets.zero,
+          child: ListTile(
+            // Tight padding: the leading and trailing buttons already bring
+            // 48dp touch targets, and on a 360dp phone the title needs the
+            // width (seen in the goldens).
+            contentPadding:
+                const EdgeInsetsDirectional.only(end: AtomicSpace.xxs),
+            horizontalTitleGap: 0,
+            minLeadingWidth: 0,
+            onTap: () => context.push('/today/task/${task.id}'),
+            // The spec's accessible alternative to swiping (§8).
+            onLongPress: () => _showActions(context, ref),
+            // Done is a Signal checkbox and a slate strikethrough
+            // (docs/05 DS-5).
+            leading: AtomicIconButton(
+              icon: isDone ? AtomicIcons.taskDone : AtomicIcons.task,
+              semanticLabel:
+                  isDone ? context.l10n.markNotDone : context.l10n.markDone,
+              color: isDone ? palette.accentText : palette.textMuted,
+              onPressed: () => _toggleDone(context, ref),
+            ),
+            title: AtomicText.body(
+              task.title,
+              style: isDone
+                  ? AtomicType.bodyLarge.copyWith(
+                      color: palette.textMuted,
+                      decoration: TextDecoration.lineThrough,
+                      decorationColor: palette.textMuted)
+                  : AtomicType.bodyLarge,
+            ),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: AtomicSpace.xxs),
+              child: Wrap(
+                spacing: AtomicSpace.xs,
+                runSpacing: AtomicSpace.xxs,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  PriorityChip(priority: task.priority),
+                  _DueLabel(task: task),
+                ],
+              ),
+            ),
+            trailing: isDone
+                ? null
+                : AtomicIconButton(
+                    icon: AtomicIcons.startSession,
+                    semanticLabel: context.l10n.startFocusSession,
+                    onPressed: () => _startFocus(context, ref),
+                  ),
           ),
-          title: Text(
-            task.title,
-            style: isDone
-                ? const TextStyle(decoration: TextDecoration.lineThrough)
-                : null,
-          ),
-          subtitle: Wrap(
-            spacing: 8,
-            runSpacing: 4,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              PriorityChip(priority: task.priority),
-              _DueLabel(task: task),
-            ],
-          ),
-          trailing: isDone
-              ? null
-              : IconButton(
-                  icon: const Icon(Icons.play_circle_outline),
-                  tooltip: context.l10n.startFocusSession,
-                  onPressed: () => _startFocus(context, ref),
-                ),
         ),
       ),
     );
@@ -132,33 +146,32 @@ class TaskCard extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                title: Text(task.title,
-                    style: Theme.of(context).textTheme.titleMedium,
-                    overflow: TextOverflow.ellipsis),
+                title: AtomicText.display(task.title,
+                    style: AtomicType.rowTitle, maxLines: 1),
               ),
               ListTile(
-                leading: const Icon(Icons.edit_outlined),
+                leading: const Icon(AtomicIcons.edit),
                 title: Text(context.l10n.edit),
                 onTap: () => Navigator.pop(context, _TaskAction.edit),
               ),
               if (task.status != TaskStatus.done)
                 ListTile(
-                  leading: const Icon(Icons.play_circle_outline),
+                  leading: const Icon(AtomicIcons.startSession),
                   title: Text(context.l10n.startFocusSession),
                   onTap: () => Navigator.pop(context, _TaskAction.focus),
                 ),
               for (final priority in TaskPriority.values)
                 if (priority != task.priority)
                   ListTile(
-                    leading: const Icon(Icons.flag_outlined),
+                    leading: const Icon(AtomicIcons.priority),
                     title: Text(context.l10n
                         .priorityOption(context.l10n.priorityName(priority))),
                     onTap: () =>
                         Navigator.pop(context, _TaskAction.priority(priority)),
                   ),
               ListTile(
-                leading: Icon(Icons.delete_outline,
-                    color: Theme.of(context).colorScheme.error),
+                leading: Icon(AtomicIcons.delete,
+                    color: context.atomic.palette.danger),
                 title: Text(context.l10n.delete),
                 onTap: () => Navigator.pop(context, _TaskAction.delete),
               ),
@@ -196,7 +209,7 @@ class TaskCard extends ConsumerWidget {
     return Container(
       color: color.withValues(alpha: 0.15),
       alignment: alignLeft ? Alignment.centerLeft : Alignment.centerRight,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: AtomicSpace.l),
       child: Icon(icon, color: color),
     );
   }
@@ -246,38 +259,23 @@ class _DueLabel extends StatelessWidget {
     final state = dueStateOf(task);
     if (due == null || state == DueState.none) return const SizedBox.shrink();
     final l10n = context.l10n;
+    final palette = context.atomic.palette;
     final (text, color) = switch (state) {
-      DueState.overdue => (
-          l10n.dueOverdue(l10n.monthDay(due)),
-          context.atomic.palette.danger
-        ),
-      DueState.dueToday => (
-          l10n.dueToday(l10n.time(due)),
-          Theme.of(context).colorScheme.primary
-        ),
-      _ => (
-          l10n.dueOn(l10n.monthDay(due)),
-          Theme.of(context).colorScheme.onSurfaceVariant
-        ),
+      DueState.overdue => (l10n.dueOverdue(l10n.monthDay(due)), palette.danger),
+      DueState.dueToday => (l10n.dueToday(l10n.time(due)), palette.accentText),
+      _ => (l10n.dueOn(l10n.monthDay(due)), palette.textMuted),
     };
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(
-            state == DueState.overdue
-                ? Icons.warning_amber_rounded
-                : Icons.event_outlined,
-            size: 14,
+            state == DueState.overdue ? AtomicIcons.warning : AtomicIcons.event,
+            size: AtomicSize.iconTiny,
             color: color),
-        const SizedBox(width: 4),
+        const SizedBox(width: AtomicSpace.xxs),
         Flexible(
-          child: Text(
-            text,
-            style: Theme.of(context)
-                .textTheme
-                .labelSmall
-                ?.copyWith(color: color, fontWeight: FontWeight.w600),
-          ),
+          child: AtomicText.mono(text,
+              style: AtomicType.caption.copyWith(color: color)),
         ),
       ],
     );

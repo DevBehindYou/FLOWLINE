@@ -155,6 +155,8 @@
   "addTask": "Add Task",
   "previousDay": "Previous day",
   "jumpToToday": "Jump to today",
+  "loadingDay": "Loading the day…",
+  "@loadingDay": {"description": "Mono caps loading line on Today."},
   "nextDay": "Next day",
   "addScheduleBlock": "Add schedule block",
   "unscheduled": "Unscheduled",

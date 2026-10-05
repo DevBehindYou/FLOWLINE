@@ -8,3 +8,12 @@ Finder findLabel(String label) => find.byWidgetPredicate(
       (w) => w is Text && (w.data == label || (w.semanticsLabel == label)),
       description: 'Text "$label" (as written or in mono caps)',
     );
+
+/// Like [findLabel], for a substring ("Overdue" in "OVERDUE · MAR 9").
+Finder findLabelContaining(String part) => find.byWidgetPredicate(
+      (w) =>
+          w is Text &&
+          ((w.data?.contains(part) ?? false) ||
+              (w.semanticsLabel?.contains(part) ?? false)),
+      description: 'Text containing "$part" (as written or in mono caps)',
+    );

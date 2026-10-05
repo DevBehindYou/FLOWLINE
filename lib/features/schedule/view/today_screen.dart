@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/time/current_day.dart';
+import '../../../design/atomic.dart';
 import '../../../domain/time/calendar_day.dart';
 import '../../../shared_widgets/empty_state.dart';
 import '../../../shared_widgets/error_view.dart';
@@ -19,32 +20,31 @@ class TodayScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final selectedDate = ref.watch(selectedDateProvider);
     final planAsync = ref.watch(dayPlanProvider);
     final backlogAsync = ref.watch(openBacklogProvider);
     final doneCount = ref.watch(completedBacklogCountProvider).value ?? 0;
+    final loading = AtomicLoading(label: l10n.loadingDay);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.appTitle),
-        actions: const [
-          SettingsAction(),
-        ],
+        title: Text(l10n.appTitle),
+        actions: const [SettingsAction()],
       ),
       body: Column(
         children: [
           _DateHeader(date: selectedDate),
           Expanded(
             child: planAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => loading,
               error: (error, _) => ErrorView(
                 error: error,
                 onRetry: () => ref.invalidate(dayPlanProvider),
               ),
               data: (plan) {
                 return backlogAsync.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
+                  loading: () => loading,
                   error: (error, _) => ErrorView(
                     error: error,
                     onRetry: () => ref.invalidate(openBacklogProvider),
@@ -52,10 +52,10 @@ class TodayScreen extends ConsumerWidget {
                   data: (backlog) {
                     if (plan.isEmpty && backlog.isEmpty && doneCount == 0) {
                       return EmptyState(
-                        icon: Icons.calendar_today_outlined,
-                        title: context.l10n.todayEmptyTitle,
-                        message: context.l10n.todayEmptyMessage,
-                        actionLabel: context.l10n.addTask,
+                        icon: AtomicIcons.calendar,
+                        title: l10n.todayEmptyTitle,
+                        message: l10n.todayEmptyMessage,
+                        actionLabel: l10n.addTask,
                         onAction: () => _openAddTask(context),
                       );
                     }
@@ -71,10 +71,13 @@ class TodayScreen extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      // The floating action (system §9.6): ink, not Signal, so the screen
+      // keeps at most one Signal primary.
+      floatingActionButton: AtomicButton(
+        label: l10n.addTask,
+        icon: AtomicIcons.add,
+        variant: AtomicButtonVariant.solid,
         onPressed: () => _openAddTask(context),
-        icon: const Icon(Icons.add),
-        label: Text(context.l10n.addTask),
       ),
     );
   }
@@ -98,36 +101,40 @@ class _DateHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final actions = ref.read(selectedDateProvider.notifier);
     final isToday = isSameDay(date, ref.watch(currentDayProvider));
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AtomicSpace.xs, vertical: AtomicSpace.xs),
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.chevron_left),
-            tooltip: context.l10n.previousDay,
+          AtomicIconButton(
+            icon: AtomicIcons.chevronLeft,
+            semanticLabel: l10n.previousDay,
             onPressed: actions.previousDay,
           ),
           Expanded(
             child: Column(
               children: [
-                Text(
-                  context.l10n.dayLong(date),
-                  style: Theme.of(context).textTheme.titleLarge,
+                Semantics(
+                  header: true,
+                  child: AtomicText.display(l10n.dayLong(date),
+                      style: AtomicType.cardTitle, textAlign: TextAlign.center),
                 ),
                 if (!isToday)
-                  TextButton(
+                  AtomicButton(
+                    label: l10n.jumpToToday,
+                    variant: AtomicButtonVariant.text,
                     onPressed: actions.goToToday,
-                    child: Text(context.l10n.jumpToToday),
                   ),
               ],
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.chevron_right),
-            tooltip: context.l10n.nextDay,
+          AtomicIconButton(
+            icon: AtomicIcons.chevronRight,
+            semanticLabel: l10n.nextDay,
             onPressed: actions.nextDay,
           ),
         ],

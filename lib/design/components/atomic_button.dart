@@ -270,18 +270,24 @@ class AtomicIconButton extends StatelessWidget {
               ),
             ),
           );
-    return Semantics(
-      button: true,
-      enabled: enabled,
-      label: semanticLabel,
-      onTap: onPressed,
-      excludeSemantics: true,
-      child: Opacity(
-        opacity: enabled ? 1 : atomicDisabledOpacity,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: onPressed,
-          child: box,
+    // A tooltip on long-press like IconButton's; the Semantics node
+    // already names the button, so the tooltip stays out of semantics.
+    return Tooltip(
+      message: semanticLabel,
+      excludeFromSemantics: true,
+      child: Semantics(
+        button: true,
+        enabled: enabled,
+        label: semanticLabel,
+        onTap: onPressed,
+        excludeSemantics: true,
+        child: Opacity(
+          opacity: enabled ? 1 : atomicDisabledOpacity,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onPressed,
+            child: box,
+          ),
         ),
       ),
     );

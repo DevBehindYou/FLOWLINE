@@ -10,6 +10,8 @@ import 'package:atomic_assist/features/schedule/view/today_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../support/finders.dart';
+
 import '../../support/pump_app.dart';
 import '../../support/test_database.dart';
 
@@ -77,7 +79,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Deep work'), findsNothing);
-    expect(find.text('Unscheduled'), findsOneWidget);
+    expect(findLabel('Unscheduled'), findsOneWidget);
     expect(find.text('Draft chapter'), findsOneWidget);
   });
 

@@ -358,6 +358,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get jumpToToday => 'Jump to today';
 
   @override
+  String get loadingDay => 'Loading the day…';
+
+  @override
   String get nextDay => 'Next day';
 
   @override

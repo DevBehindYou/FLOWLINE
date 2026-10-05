@@ -6,6 +6,8 @@ import 'package:atomic_assist/features/schedule/view/today_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../support/finders.dart';
+
 import '../../support/pump_app.dart';
 import '../../support/test_database.dart';
 
@@ -31,13 +33,13 @@ void main() {
       (tester) async {
     await seed(tester, dueAt: DateTime(2020, 1, 1, 9));
     await pumpScreen(tester, db: db, child: const TodayScreen());
-    expect(find.textContaining('Overdue'), findsOneWidget);
+    expect(findLabelContaining('Overdue'), findsOneWidget);
   });
 
   testWidgets('a done task is never shown as overdue', (tester) async {
     await seed(tester, dueAt: DateTime(2020, 1, 1, 9), status: TaskStatus.done);
     await pumpScreen(tester, db: db, child: const TodayScreen());
-    expect(find.textContaining('Overdue'), findsNothing);
+    expect(findLabelContaining('Overdue'), findsNothing);
   });
 
   testWidgets('marking done offers Undo that restores the old status',

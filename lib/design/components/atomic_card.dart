@@ -75,7 +75,12 @@ class AtomicCard extends StatelessWidget {
                     color: priorityColor!, width: AtomicStroke.priority),
               ),
       ),
-      child: kind == AtomicCardKind.dark ? _Inverted(child: child) : child,
+      // A transparent Material so ListTiles and ink inside the card paint
+      // (system §13 #6: content needs a Material ancestor).
+      child: Material(
+        type: MaterialType.transparency,
+        child: kind == AtomicCardKind.dark ? _Inverted(child: child) : child,
+      ),
     );
     if (onTap != null || onLongPress != null || shadowLevel > 0) {
       body = AtomicPressable(

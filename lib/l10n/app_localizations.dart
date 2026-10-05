@@ -706,6 +706,12 @@ abstract class AppLocalizations {
   /// **'Jump to today'**
   String get jumpToToday;
 
+  /// Mono caps loading line on Today.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading the day…'**
+  String get loadingDay;
+
   /// No description provided for @nextDay.
   ///
   /// In en, this message translates to:

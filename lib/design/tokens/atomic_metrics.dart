@@ -77,6 +77,9 @@ abstract final class AtomicSize {
   static const backButton = 36.0;
   static const icon = 24.0;
   static const iconSmall = 20.0;
+
+  /// Inline icons beside a mono label (a due date, a lock).
+  static const iconTiny = 16.0;
   static const unreadDot = 8.0;
   static const progressBar = 8.0;
   static const loadingBar = 2.0;
@@ -89,6 +92,10 @@ abstract final class AtomicSize {
 
   /// Body text stays under ~75 characters per line.
   static const readingWidth = 640.0;
+
+  /// Space a list leaves at its end so the floating action never covers
+  /// the last row.
+  static const floatingActionClearance = buttonPrimary + AtomicSpace.x3l;
 }
 
 /// The disabled look (§9.1): 40% opacity, no shadow.
