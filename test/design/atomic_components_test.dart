@@ -135,6 +135,16 @@ void main() {
         throwsAssertionError);
   });
 
+  testWidgets('a priority-border card paints (sides differ in colour)',
+      (tester) async {
+    await tester.pumpWidget(_app(const SizedBox(
+        width: 200,
+        child: AtomicCard(
+            priorityColor: AtomicColors.error, child: Text('Overlap')))));
+    expect(tester.takeException(), isNull);
+    expect(find.text('Overlap'), findsOneWidget);
+  });
+
   testWidgets('showAtomicConfirm is true only on an explicit confirm',
       (tester) async {
     late BuildContext ctx;

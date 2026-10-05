@@ -23,11 +23,11 @@ class _Rule {
 /// Offending lines allowed today, per rule. Only ever lowered.
 const _baselines = {
   'no colour literals': 0,
-  'no radius literals': 9,
-  'no spacing literals': 115,
-  'no raw Material buttons': 30,
-  'no spinners on content': 18,
-  'icons come from AtomicIcons': 67,
+  'no radius literals': 5,
+  'no spacing literals': 65,
+  'no raw Material buttons': 15,
+  'no spinners on content': 13,
+  'icons come from AtomicIcons': 47,
   'no raw durations': 0,
   'no bouncy motion': 0,
   'no font names outside the tokens': 0,

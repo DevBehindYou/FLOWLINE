@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/async/run_action.dart';
+import '../../../design/atomic.dart';
 import '../../../domain/entities/schedule_block.dart';
 import '../../../domain/services/conflict_resolution_ai.dart';
 import '../../schedule_block_form/viewmodel/add_edit_schedule_block_view_model.dart';
@@ -165,100 +166,87 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
+    final p = context.atomic.palette;
+    final busy = _asking || _saving;
 
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.warning_amber_rounded, color: scheme.error),
-                const SizedBox(width: 8),
-                Text(context.l10n.scheduleConflict,
-                    style: Theme.of(context).textTheme.titleLarge),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              context.l10n.conflictOverlaps(widget.pendingTitle,
-                  _fmt(widget.pendingStart), _fmt(widget.pendingEnd)),
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 8),
-            for (final conflict in widget.conflicts)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text(
-                  context.l10n.conflictItem(conflict.title,
-                      _fmt(conflict.startTime), _fmt(conflict.endTime)),
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ),
-            const SizedBox(height: 20),
-            if (_suggestion != null)
-              _SuggestionCard(
-                suggestion: _suggestion!,
-                formatTime: _fmt,
-                problem: _suggestionProblem,
-              ),
-            if (_aiRawText != null) _RawAiTextCard(text: _aiRawText!),
-            if (_aiError != null)
-              _ErrorCard(
-                message: context.l10n.aiFailure(
-                    _aiError!, ref.watch(activeAiProviderProvider).value),
-              ),
-            const SizedBox(height: 12),
-            if (_suggestion != null) ...[
-              ElevatedButton.icon(
-                onPressed: _saving || _asking || _suggestionProblem != null
-                    ? null
-                    : _applySuggestion,
-                icon: const Icon(Icons.check),
-                label: Text(context.l10n.applySuggestedTime),
-              ),
-              const SizedBox(height: 8),
-            ],
-            OutlinedButton.icon(
-              onPressed: _asking || _saving ? null : _askAi,
-              icon: _asking
-                  ? const SizedBox(
-                      height: 16,
-                      width: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.auto_awesome),
-              label: Text(
-                _asking
-                    ? context.l10n.asking
-                    : _suggestion == null && _aiRawText == null
-                        ? context.l10n.askAiToHelp
-                        : context.l10n.askAgain,
+    return AtomicSheetFrame(
+      label: l10n.scheduleConflict,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AtomicText.body(
+            l10n.conflictOverlaps(widget.pendingTitle,
+                _fmt(widget.pendingStart), _fmt(widget.pendingEnd)),
+            style: AtomicType.body.copyWith(color: p.danger),
+          ),
+          const SizedBox(height: AtomicSpace.xs),
+          for (final conflict in widget.conflicts)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AtomicSpace.xxs),
+              child: AtomicText.mono(
+                l10n.conflictItem(conflict.title, _fmt(conflict.startTime),
+                    _fmt(conflict.endTime)),
+                style: AtomicType.caption,
               ),
             ),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              // true = reopen the form with these values (K15).
-              onPressed: _saving ? null : () => Navigator.of(context).pop(true),
-              icon: const Icon(Icons.edit_outlined),
-              label: Text(context.l10n.editTimes),
+          const SizedBox(height: AtomicSpace.m),
+          if (_suggestion != null)
+            _SuggestionCard(
+              suggestion: _suggestion!,
+              formatTime: _fmt,
+              problem: _suggestionProblem,
             ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: _saving ? null : _saveAnyway,
-              child: _saving
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(context.l10n.saveAnyway),
+          if (_aiRawText != null) _RawAiTextCard(text: _aiRawText!),
+          if (_aiError != null)
+            AtomicWarningBox(
+              title: l10n.aiCouldNotHelp,
+              message: l10n.aiFailure(
+                  _aiError!, ref.watch(activeAiProviderProvider).value),
             ),
+          const SizedBox(height: AtomicSpace.s),
+          if (_suggestion != null) ...[
+            AtomicButton(
+              label: l10n.applySuggestedTime,
+              icon: AtomicIcons.check,
+              expand: true,
+              onPressed:
+                  busy || _suggestionProblem != null ? null : _applySuggestion,
+            ),
+            const SizedBox(height: AtomicSpace.s),
           ],
-        ),
+          AtomicButton(
+            label: _suggestion == null && _aiRawText == null
+                ? l10n.askAiToHelp
+                : l10n.askAgain,
+            busyLabel: l10n.asking,
+            busy: _asking,
+            icon: AtomicIcons.ai,
+            variant: AtomicButtonVariant.ghost,
+            expand: true,
+            onPressed: _saving ? null : _askAi,
+          ),
+          const SizedBox(height: AtomicSpace.s),
+          AtomicButton(
+            label: l10n.editTimes,
+            icon: AtomicIcons.edit,
+            variant: AtomicButtonVariant.ghost,
+            expand: true,
+            // true = reopen the form with these values (K15).
+            onPressed: _saving ? null : () => Navigator.of(context).pop(true),
+          ),
+          const SizedBox(height: AtomicSpace.xs),
+          Center(
+            child: AtomicButton(
+              label: l10n.saveAnyway,
+              busyLabel: l10n.saving,
+              busy: _saving,
+              variant: AtomicButtonVariant.text,
+              onPressed: _asking ? null : _saveAnyway,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -278,45 +266,40 @@ class _SuggestionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.only(bottom: 4),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.suggestedTime(formatTime(suggestion.newStartTime),
-                formatTime(suggestion.newEndTime)),
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-          const SizedBox(height: 4),
-          Text(suggestion.reason, style: Theme.of(context).textTheme.bodySmall),
-          if (problem != null) ...[
-            const SizedBox(height: 8),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.block,
-                    size: 16, color: Theme.of(context).colorScheme.error),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    l10n.cantApply(_problemText(l10n, problem!)),
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(color: Theme.of(context).colorScheme.error),
-                  ),
-                ),
-              ],
+    final p = context.atomic.palette;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AtomicSpace.xs),
+      child: AtomicCard(
+        kind: problem == null ? AtomicCardKind.selected : AtomicCardKind.panel,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AtomicText.display(
+              l10n.suggestedTime(formatTime(suggestion.newStartTime),
+                  formatTime(suggestion.newEndTime)),
+              style: AtomicType.rowTitle,
             ),
+            const SizedBox(height: AtomicSpace.xxs),
+            AtomicText.body(suggestion.reason),
+            if (problem != null) ...[
+              const SizedBox(height: AtomicSpace.xs),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(AtomicIcons.blocked,
+                      size: AtomicSize.iconTiny, color: p.danger),
+                  const SizedBox(width: AtomicSpace.iconLabelGap),
+                  Expanded(
+                    child: AtomicText.body(
+                      l10n.cantApply(_problemText(l10n, problem!)),
+                      style: AtomicType.bodySmall.copyWith(color: p.danger),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -329,46 +312,20 @@ class _RawAiTextCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.only(bottom: 4),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(12),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AtomicSpace.xs),
+      child: AtomicCard(
+        kind: AtomicCardKind.panel,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AtomicText.mono(context.l10n.aiRawTextIntro,
+                style: AtomicType.caption),
+            const SizedBox(height: AtomicSpace.xxs),
+            AtomicText.body(text),
+          ],
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            context.l10n.aiRawTextIntro,
-            style: Theme.of(context).textTheme.labelMedium,
-          ),
-          const SizedBox(height: 4),
-          Text(text, style: Theme.of(context).textTheme.bodySmall),
-        ],
-      ),
-    );
-  }
-}
-
-class _ErrorCard extends StatelessWidget {
-  const _ErrorCard({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.only(bottom: 4),
-      decoration: BoxDecoration(
-        color: scheme.errorContainer,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(message, style: TextStyle(color: scheme.onErrorContainer)),
     );
   }
 }

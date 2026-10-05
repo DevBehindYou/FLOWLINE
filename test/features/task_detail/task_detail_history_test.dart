@@ -1,13 +1,16 @@
 import 'package:drift/drift.dart' show Value;
+import 'package:atomic_assist/design/atomic.dart';
 import 'package:atomic_assist/data/local/drift/app_database.dart';
 import 'package:atomic_assist/data/repositories/task_repository_impl.dart';
+import 'package:atomic_assist/domain/entities/subtask.dart';
 import 'package:atomic_assist/domain/entities/focus_session.dart';
 import 'package:atomic_assist/domain/entities/task.dart';
 import 'package:atomic_assist/features/task_detail/view/task_detail_screen.dart';
 import 'package:flutter/gestures.dart' show kLongPressTimeout;
-import 'package:flutter/material.dart' show Icons, Scrollable;
+import 'package:flutter/material.dart' show Scrollable, TextField;
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../support/finders.dart';
 import '../../support/pump_app.dart';
 import '../../support/test_database.dart';
 
@@ -36,7 +39,7 @@ void main() {
     }
     await pumpScreen(tester, db: db, child: TaskDetailScreen(taskId: id));
 
-    await tester.scrollUntilVisible(find.text('Focus history'), 200);
+    await tester.scrollUntilVisible(findLabel('Focus history'), 200);
     expect(find.text('2 sessions · 35 min total'), findsOneWidget);
     expect(find.text('10 min · ended early'), findsOneWidget);
   });
@@ -66,7 +69,7 @@ void main() {
         scrollable: find.byType(Scrollable).first);
 
     // Drag "Outline" below "Polish".
-    final handle = find.byIcon(Icons.drag_indicator).first;
+    final handle = find.byIcon(AtomicIcons.dragHandle).first;
     final gesture = await tester.startGesture(tester.getCenter(handle));
     await tester.pump(kLongPressTimeout);
     // In steps, as a finger moves, so the drag starts before the page's
@@ -83,5 +86,31 @@ void main() {
         .map((s) => s.title)
         .toList();
     expect(order, ['Draft', 'Polish', 'Outline']);
+  });
+
+  testWidgets('a subtask is added from the sheet, and cancel adds nothing',
+      (tester) async {
+    final id = (await tester.runAsync(() => TaskRepositoryImpl(db)
+        .createTask(title: 'Write', priority: TaskPriority.high)))!;
+    await pumpScreen(tester, db: db, child: TaskDetailScreen(taskId: id));
+    Future<List<Subtask>> subtasks() async => (await tester
+        .runAsync(() => TaskRepositoryImpl(db).watchSubtasks(id).first))!;
+
+    final add = find.widgetWithText(AtomicButton, 'Add subtask');
+    await tester.scrollUntilVisible(add, 200,
+        scrollable: find.byType(Scrollable).first);
+    await tester.tap(add);
+    await tester.pumpAndSettle();
+    expect(findLabel('New subtask'), findsOneWidget);
+    await tester.tap(find.widgetWithText(AtomicButton, 'Cancel'));
+    await tester.pumpAndSettle();
+    expect(await subtasks(), isEmpty);
+
+    await tester.tap(add);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'Outline');
+    await tester.tap(find.widgetWithText(AtomicButton, 'Add subtask').last);
+    await tester.pumpAndSettle();
+    expect((await subtasks()).map((s) => s.title), ['Outline']);
   });
 }

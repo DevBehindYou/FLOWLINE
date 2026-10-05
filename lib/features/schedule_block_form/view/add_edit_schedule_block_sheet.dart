@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../design/atomic.dart';
+
 import '../../../domain/entities/schedule_block.dart';
 import '../../../domain/recurrence/recurrence_rule.dart';
 import '../../../core/async/run_action.dart';
@@ -200,73 +202,59 @@ class _AddEditScheduleBlockSheetState
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _isEditing
-                  ? context.l10n.editScheduleBlock
-                  : context.l10n.addScheduleBlockTitle,
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _titleController,
-              autofocus: !_isEditing,
-              decoration: InputDecoration(
-                  labelText: context.l10n.blockTitleField, errorText: _error),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => _pickTime(isStart: true),
-                    child:
-                        Text(context.l10n.startAt(_startTime.format(context))),
-                  ),
+    final l10n = context.l10n;
+    const gap = SizedBox(height: AtomicSpace.s);
+    return AtomicSheetFrame(
+      label: _isEditing ? l10n.editScheduleBlock : l10n.addScheduleBlockTitle,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            controller: _titleController,
+            autofocus: !_isEditing,
+            decoration: InputDecoration(
+                labelText: l10n.blockTitleField, errorText: _error),
+          ),
+          gap,
+          Row(
+            children: [
+              Expanded(
+                child: AtomicButton(
+                  label: l10n.startAt(_startTime.format(context)),
+                  variant: AtomicButtonVariant.ghost,
+                  expand: true,
+                  onPressed: () => _pickTime(isStart: true),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => _pickTime(isStart: false),
-                    child: Text(context.l10n.endAt(_endTime.format(context))),
-                  ),
+              ),
+              const SizedBox(width: AtomicSpace.s),
+              Expanded(
+                child: AtomicButton(
+                  label: l10n.endAt(_endTime.format(context)),
+                  variant: AtomicButtonVariant.ghost,
+                  expand: true,
+                  onPressed: () => _pickTime(isStart: false),
                 ),
-              ],
-            ),
-            if (_canRepeat) ...[
-              const SizedBox(height: 12),
-              RepeatPicker(
-                value: _recurrence,
-                firstDay: widget.initialDate,
-                onChanged: (rule) => setState(() => _recurrence = rule),
               ),
             ],
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _saving ? null : _save,
-              child: _saving
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(_isEditing
-                      ? context.l10n.saveChanges
-                      : context.l10n.addBlock),
+          ),
+          if (_canRepeat) ...[
+            gap,
+            RepeatPicker(
+              value: _recurrence,
+              firstDay: widget.initialDate,
+              onChanged: (rule) => setState(() => _recurrence = rule),
             ),
           ],
-        ),
+          const SizedBox(height: AtomicSpace.xl),
+          AtomicButton(
+            label: _isEditing ? l10n.saveChanges : l10n.addBlock,
+            busyLabel: l10n.saving,
+            busy: _saving,
+            expand: true,
+            onPressed: _save,
+          ),
+        ],
       ),
     );
   }
@@ -327,15 +315,14 @@ class RepeatPicker extends StatelessWidget {
           }),
         ),
         if (kind == _RepeatKind.weekly) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: AtomicSpace.xs),
           Wrap(
-            spacing: 6,
-            runSpacing: 6,
+            spacing: AtomicSpace.chipGap,
             children: [
               for (var d = DateTime.monday; d <= DateTime.sunday; d++)
-                FilterChip(
-                  label: Text(
-                      l10n.weekdayShort(DateTime(2026, 3, monday.day + d - 1))),
+                AtomicChip(
+                  label:
+                      l10n.weekdayShort(DateTime(2026, 3, monday.day + d - 1)),
                   selected: value!.weekdays.contains(d),
                   // At least one day stays selected.
                   onSelected: (on) {

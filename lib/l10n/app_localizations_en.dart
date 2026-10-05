@@ -358,6 +358,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get jumpToToday => 'Jump to today';
 
   @override
+  String get loadingTask => 'Loading the task…';
+
+  @override
   String get loadingDay => 'Loading the day…';
 
   @override
@@ -580,6 +583,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get saveChanges => 'Save Changes';
+
+  @override
+  String get saving => 'Saving…';
 
   @override
   String get deleteTaskButton => 'Delete task';
@@ -819,6 +825,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get askAiToHelp => 'Ask AI to help';
+
+  @override
+  String get aiCouldNotHelp => 'AI couldn\'t help';
 
   @override
   String get askAgain => 'Ask again';

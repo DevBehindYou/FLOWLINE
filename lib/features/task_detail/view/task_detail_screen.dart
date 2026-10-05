@@ -36,9 +36,9 @@ class TaskDetailScreen extends ConsumerWidget {
           taskAsync.maybeWhen(
             data: (task) => task == null
                 ? const SizedBox.shrink()
-                : IconButton(
-                    icon: const Icon(Icons.edit_outlined),
-                    tooltip: context.l10n.editTask,
+                : AtomicIconButton(
+                    icon: AtomicIcons.edit,
+                    semanticLabel: context.l10n.editTask,
                     onPressed: () async {
                       final deleted = await showModalBottomSheet<bool>(
                         context: context,
@@ -53,9 +53,9 @@ class TaskDetailScreen extends ConsumerWidget {
                   ),
             orElse: () => const SizedBox.shrink(),
           ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            tooltip: context.l10n.deleteTask,
+          AtomicIconButton(
+            icon: AtomicIcons.delete,
+            semanticLabel: context.l10n.deleteTask,
             onPressed: () async {
               final confirmed = await confirmDestructive(
                 context,
@@ -71,73 +71,84 @@ class TaskDetailScreen extends ConsumerWidget {
         ],
       ),
       body: taskAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => AtomicLoading(label: context.l10n.loadingTask),
         error: (error, _) => ErrorView(
           error: error,
           onRetry: () => ref.invalidate(taskByIdProvider(taskId)),
         ),
         data: (task) {
+          final l10n = context.l10n;
+          final p = context.atomic.palette;
           if (task == null) {
-            return Center(child: Text(context.l10n.taskMissing));
+            return AtomicEmptyState(
+                title: l10n.taskTitle, message: l10n.taskMissing);
           }
+          const gap = SizedBox(height: AtomicSpace.m);
           return ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AtomicSpace.screenMargin),
             children: [
               Wrap(
-                spacing: 8,
+                spacing: AtomicSpace.chipGap,
+                runSpacing: AtomicSpace.xxs,
                 children: [
                   PriorityChip(priority: task.priority),
                   StatusChip(status: task.status),
                 ],
               ),
-              const SizedBox(height: 16),
-              Text(task.title,
-                  style: Theme.of(context).textTheme.headlineSmall),
+              gap,
+              Semantics(
+                header: true,
+                child: AtomicText.display(task.title,
+                    style: AtomicType.pushedTitle),
+              ),
               if (task.dueAt != null) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: AtomicSpace.xs),
                 Row(
                   children: [
-                    Icon(Icons.event_outlined,
-                        size: 18,
+                    Icon(AtomicIcons.event,
+                        size: AtomicSize.iconTiny,
                         color: dueStateOf(task) == DueState.overdue
-                            ? context.atomic.palette.danger
-                            : Theme.of(context).colorScheme.onSurfaceVariant),
-                    const SizedBox(width: 6),
+                            ? p.danger
+                            : p.textMuted),
+                    const SizedBox(width: AtomicSpace.iconLabelGap),
                     Expanded(
-                      child: Text(
-                        _dueText(context.l10n, task),
-                        style: Theme.of(context).textTheme.bodyMedium,
+                      child: AtomicText.body(
+                        _dueText(l10n, task),
+                        style: dueStateOf(task) == DueState.overdue
+                            ? AtomicType.body.copyWith(color: p.danger)
+                            : null,
                       ),
                     ),
                   ],
                 ),
               ],
               if (task.notes.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(task.notes, style: Theme.of(context).textTheme.bodyMedium),
+                const SizedBox(height: AtomicSpace.xs),
+                AtomicText.body(task.notes),
               ],
-              const SizedBox(height: 16),
-              OutlinedButton.icon(
+              const SizedBox(height: AtomicSpace.l),
+              AtomicButton(
+                label: l10n.startFocusSessionButton,
+                icon: AtomicIcons.play,
+                expand: true,
                 onPressed: () => _startFocus(context, ref,
                     taskId: task.id, label: task.title),
-                icon: const Icon(Icons.play_arrow),
-                label: Text(context.l10n.startFocusSessionButton),
               ),
-              const SizedBox(height: 24),
-              Text(context.l10n.subtasks,
-                  style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
+              const SizedBox(height: AtomicSpace.xxl),
+              AtomicSectionLabel(l10n.subtasks),
+              const SizedBox(height: AtomicSpace.xs),
               _SubtaskList(taskId: taskId),
-              const SizedBox(height: 8),
-              OutlinedButton.icon(
+              const SizedBox(height: AtomicSpace.xs),
+              AtomicButton(
+                label: l10n.addSubtask,
+                icon: AtomicIcons.add,
+                variant: AtomicButtonVariant.ghost,
+                expand: true,
                 onPressed: () => _promptAddSubtask(context, ref),
-                icon: const Icon(Icons.add),
-                label: Text(context.l10n.addSubtask),
               ),
-              const SizedBox(height: 24),
-              Text(context.l10n.focusHistory,
-                  style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
+              const SizedBox(height: AtomicSpace.xxl),
+              AtomicSectionLabel(l10n.focusHistory),
+              const SizedBox(height: AtomicSpace.xs),
               _SessionHistory(taskId: taskId),
             ],
           );
@@ -147,9 +158,10 @@ class TaskDetailScreen extends ConsumerWidget {
   }
 
   Future<void> _promptAddSubtask(BuildContext context, WidgetRef ref) async {
-    final title = await showDialog<String>(
+    final title = await showAtomicSheet<String>(
       context: context,
-      builder: (context) => const _NewSubtaskDialog(),
+      label: context.l10n.newSubtask,
+      builder: (context) => const _NewSubtaskForm(),
     );
     if (title != null && title.isNotEmpty) {
       await ref
@@ -174,16 +186,16 @@ void _startFocus(
   context.go('/focus');
 }
 
-/// Owns its controller so it's disposed with the dialog, after the exit
+/// Owns its controller so it's disposed with the sheet, after the exit
 /// animation, rather than leaked or disposed while still on screen (K16).
-class _NewSubtaskDialog extends StatefulWidget {
-  const _NewSubtaskDialog();
+class _NewSubtaskForm extends StatefulWidget {
+  const _NewSubtaskForm();
 
   @override
-  State<_NewSubtaskDialog> createState() => _NewSubtaskDialogState();
+  State<_NewSubtaskForm> createState() => _NewSubtaskFormState();
 }
 
-class _NewSubtaskDialogState extends State<_NewSubtaskDialog> {
+class _NewSubtaskFormState extends State<_NewSubtaskForm> {
   final _controller = TextEditingController();
 
   @override
@@ -196,21 +208,27 @@ class _NewSubtaskDialogState extends State<_NewSubtaskDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(context.l10n.newSubtask),
-      content: TextField(
-        controller: _controller,
-        autofocus: true,
-        textInputAction: TextInputAction.done,
-        onSubmitted: (_) => _submit(),
-        decoration: InputDecoration(labelText: context.l10n.titleField),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(context.l10n.cancel),
+    final l10n = context.l10n;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TextField(
+          controller: _controller,
+          autofocus: true,
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => _submit(),
+          decoration: InputDecoration(labelText: l10n.titleField),
         ),
-        TextButton(onPressed: _submit, child: Text(context.l10n.add)),
+        const SizedBox(height: AtomicSpace.xl),
+        AtomicButton(label: l10n.addSubtask, expand: true, onPressed: _submit),
+        const SizedBox(height: AtomicSpace.s),
+        AtomicButton(
+          label: l10n.cancel,
+          variant: AtomicButtonVariant.ghost,
+          expand: true,
+          onPressed: () => Navigator.pop(context),
+        ),
       ],
     );
   }
@@ -235,8 +253,9 @@ class _SubtaskList extends ConsumerWidget {
       ),
       data: (subtasks) {
         if (subtasks.isEmpty) {
-          return Text(context.l10n.subtasksEmpty,
-              style: Theme.of(context).textTheme.bodySmall);
+          return AtomicText.body(context.l10n.subtasksEmpty,
+              style: AtomicType.bodySmall
+                  .copyWith(color: context.atomic.palette.textMuted));
         }
         // Drag by the handle, or use the screen reader's move actions,
         // which ReorderableListView adds to every item.
@@ -254,31 +273,37 @@ class _SubtaskList extends ConsumerWidget {
           },
           itemBuilder: (context, index) {
             final subtask = subtasks[index];
+            final done = subtask.status == SubtaskStatus.done;
+            final p = context.atomic.palette;
             return CheckboxListTile(
               key: ValueKey(subtask.id),
               contentPadding: EdgeInsets.zero,
-              // Checkbox first, actions and the drag handle at the end, so
-              // the title isn't squeezed behind three icons.
+              // Checkbox first and only the drag handle at the end: the
+              // title gets the width, and the row's actions sit under it
+              // and wrap at large text sizes.
               controlAffinity: ListTileControlAffinity.leading,
-              value: subtask.status == SubtaskStatus.done,
+              value: done,
               onChanged: (_) => actions.toggleSubtask(subtask),
-              title: Text(
+              title: AtomicText.body(
                 subtask.title,
-                style: subtask.status == SubtaskStatus.done
-                    ? const TextStyle(decoration: TextDecoration.lineThrough)
-                    : null,
+                style: done
+                    ? AtomicType.bodyLarge.copyWith(
+                        color: p.textMuted,
+                        decoration: TextDecoration.lineThrough,
+                        decorationColor: p.textMuted)
+                    : AtomicType.bodyLarge,
               ),
-              subtitle: Text(
-                context.l10n.subtaskSprints(
-                    subtask.completedSprints, subtask.plannedSprints),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              secondary: Row(
-                mainAxisSize: MainAxisSize.min,
+              subtitle: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.play_circle_outline, size: 20),
-                    tooltip: context.l10n.startFocusSession,
+                  AtomicText.mono(
+                    context.l10n.subtaskSprints(
+                        subtask.completedSprints, subtask.plannedSprints),
+                    style: AtomicType.caption,
+                  ),
+                  AtomicIconButton(
+                    icon: AtomicIcons.startSession,
+                    semanticLabel: context.l10n.startFocusSession,
                     onPressed: () => _startFocus(
                       context,
                       ref,
@@ -287,9 +312,9 @@ class _SubtaskList extends ConsumerWidget {
                       label: subtask.title,
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close, size: 18),
-                    tooltip: context.l10n.deleteSubtask,
+                  AtomicIconButton(
+                    icon: AtomicIcons.close,
+                    semanticLabel: context.l10n.deleteSubtask,
                     onPressed: () async {
                       final confirmed = await confirmDestructive(
                         context,
@@ -300,17 +325,18 @@ class _SubtaskList extends ConsumerWidget {
                       if (confirmed) await actions.deleteSubtask(subtask.id);
                     },
                   ),
-                  // No Tooltip here: its long-press would win the gesture
-                  // from a finger that rests before dragging.
-                  ReorderableDragStartListener(
-                    index: index,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Icon(Icons.drag_indicator,
-                          size: 20, semanticLabel: context.l10n.reorderSubtask),
-                    ),
-                  ),
                 ],
+              ),
+              // No Tooltip here: its long-press would win the gesture
+              // from a finger that rests before dragging.
+              secondary: ReorderableDragStartListener(
+                index: index,
+                child: Padding(
+                  padding: const EdgeInsets.all(AtomicSpace.s),
+                  child: Icon(AtomicIcons.dragHandle,
+                      size: AtomicSize.iconSmall,
+                      semanticLabel: context.l10n.reorderSubtask),
+                ),
               ),
             );
           },
@@ -329,8 +355,9 @@ class _SessionHistory extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sessionsAsync = ref.watch(sessionsForTaskProvider(taskId));
-    final small = Theme.of(context).textTheme.bodySmall;
     final l10n = context.l10n;
+    final small =
+        AtomicType.bodySmall.copyWith(color: context.atomic.palette.textMuted);
     return sessionsAsync.when(
       loading: () => const SizedBox.shrink(),
       error: (error, _) => ErrorView(
@@ -345,14 +372,14 @@ class _SessionHistory extends ConsumerWidget {
                 s.sessionType == FocusSessionType.focus)
             .toList();
         if (done.isEmpty) {
-          return Text(l10n.focusHistoryEmpty, style: small);
+          return AtomicText.body(l10n.focusHistoryEmpty, style: small);
         }
         final total =
             done.fold<int>(0, (sum, s) => sum + (s.actualDurationSec ?? 0));
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            AtomicText.body(
               l10n.focusHistorySummary(done.length, (total / 60).round()),
               style: small,
             ),
@@ -361,10 +388,8 @@ class _SessionHistory extends ConsumerWidget {
                 dense: true,
                 contentPadding: EdgeInsets.zero,
                 leading: Icon(
-                    s.endedEarly
-                        ? Icons.stop_circle_outlined
-                        : Icons.check_circle_outline,
-                    size: 20),
+                    s.endedEarly ? AtomicIcons.endSession : AtomicIcons.done,
+                    size: AtomicSize.iconSmall),
                 title: Text(l10n.dateTime(
                     l10n.dayShort(s.completedAt!), l10n.time(s.startedAt))),
                 subtitle: Text(s.endedEarly

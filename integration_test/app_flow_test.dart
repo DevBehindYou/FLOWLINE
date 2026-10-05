@@ -54,7 +54,7 @@ void main() {
     await tester.enterText(
         find.widgetWithText(TextField, 'Title'), 'Write the report');
     // The sheet's button; the empty state behind it has one too.
-    await tap(tester, find.widgetWithText(ElevatedButton, 'Add Task').last);
+    await tap(tester, find.widgetWithText(AtomicButton, 'Add Task').last);
     await pumpUntil(tester, find.text('Write the report'));
 
     // Focus on it: start, pause, end early, then the summary.

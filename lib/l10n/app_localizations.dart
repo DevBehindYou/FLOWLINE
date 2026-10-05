@@ -706,6 +706,12 @@ abstract class AppLocalizations {
   /// **'Jump to today'**
   String get jumpToToday;
 
+  /// Mono caps loading line on Task Detail.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading the task…'**
+  String get loadingTask;
+
   /// Mono caps loading line on Today.
   ///
   /// In en, this message translates to:
@@ -1078,6 +1084,12 @@ abstract class AppLocalizations {
   /// **'Save Changes'**
   String get saveChanges;
 
+  /// Busy label on a save button while it works.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving…'**
+  String get saving;
+
   /// No description provided for @deleteTaskButton.
   ///
   /// In en, this message translates to:
@@ -1419,6 +1431,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ask AI to help'**
   String get askAiToHelp;
+
+  /// Title of the warning box when the AI request for a conflict fix failed.
+  ///
+  /// In en, this message translates to:
+  /// **'AI couldn\'t help'**
+  String get aiCouldNotHelp;
 
   /// No description provided for @askAgain.
   ///

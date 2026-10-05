@@ -51,7 +51,7 @@ void main() {
     await tester.tap(find.text('Edit block'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Edit Schedule Block'), findsOneWidget);
+    expect(findLabel('Edit Schedule Block'), findsOneWidget);
     await tester.enterText(
         find.widgetWithText(TextField, 'Deep work'), 'Writing');
     await tester.tap(find.text('Save Changes'));
@@ -108,14 +108,39 @@ void main() {
     await tester.tap(find.text('Add Block'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Schedule conflict'), findsOneWidget);
+    expect(findLabel('Schedule conflict'), findsOneWidget);
     await tester.tap(find.text('Edit times'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Add Schedule Block'), findsOneWidget);
+    expect(findLabel('Add Schedule Block'), findsOneWidget);
     expect(find.widgetWithText(TextField, 'Planning'), findsOneWidget,
         reason: 'the title the user typed is kept');
     expect(find.textContaining('9:00'), findsWidgets);
+  });
+
+  testWidgets('"Save anyway" keeps both blocks and flags the overlap in words',
+      (tester) async {
+    await seedBlock(tester, 'Standup', from: 9, to: 10);
+    await pumpScreen(tester, db: db, child: const TodayScreen());
+
+    await tester.tap(find.text('Add schedule block'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'Planning');
+    await tester.tap(find.text('Add Block'));
+    await tester.pumpAndSettle();
+    expect(findLabel('Schedule conflict'), findsOneWidget);
+    expect(findLabelContaining('Standup'), findsWidgets,
+        reason: 'the sheet names the block it overlaps');
+
+    await tester.ensureVisible(findLabel('Save anyway (overlap allowed)'));
+    await tester.tap(findLabel('Save anyway (overlap allowed)'));
+    await tester.pumpAndSettle();
+
+    final titles = (await tester.runAsync(
+        () => db.select(db.scheduleBlocks).map((b) => b.title).get()))!;
+    expect(titles, unorderedEquals(['Standup', 'Planning']));
+    expect(find.text('Overlaps another block'), findsNWidgets(2),
+        reason: 'never colour alone: both blocks say so in text');
   });
 
   testWidgets('a locked calendar block has no edit/delete menu',

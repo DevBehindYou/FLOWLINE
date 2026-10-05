@@ -99,6 +99,11 @@ class ComponentGallery extends StatelessWidget {
           ),
           gap,
           const AtomicCard(
+            priorityColor: AtomicColors.error,
+            child: Text('A card with a priority border.'),
+          ),
+          gap,
+          const AtomicCard(
             kind: AtomicCardKind.selected,
             child: Text('Selected.'),
           ),

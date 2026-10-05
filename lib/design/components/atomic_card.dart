@@ -60,28 +60,42 @@ class AtomicCard extends StatelessWidget {
       AtomicCardKind.danger => (p.panel, p.danger, AtomicStroke.danger),
     };
     final side = BorderSide(color: border, width: width);
-    Widget body = Container(
-      padding: padding,
-      decoration: BoxDecoration(
-        color: fill,
-        borderRadius: BorderRadius.circular(AtomicRadius.sm),
-        border: priorityColor == null
-            ? Border.fromBorderSide(side)
-            : Border(
-                top: side,
-                right: side,
-                bottom: side,
-                left: BorderSide(
-                    color: priorityColor!, width: AtomicStroke.priority),
-              ),
-      ),
-      // A transparent Material so ListTiles and ink inside the card paint
-      // (system §13 #6: content needs a Material ancestor).
-      child: Material(
-        type: MaterialType.transparency,
-        child: kind == AtomicCardKind.dark ? _Inverted(child: child) : child,
-      ),
+    final radius = BorderRadius.circular(AtomicRadius.sm);
+    // A content Material so ListTiles and ink inside the card paint
+    // (system §13 #6: content needs a Material ancestor).
+    final content = Material(
+      type: MaterialType.transparency,
+      child: kind == AtomicCardKind.dark ? _Inverted(child: child) : child,
     );
+    Widget body = priorityColor == null
+        ? Container(
+            padding: padding,
+            decoration: BoxDecoration(
+              color: fill,
+              borderRadius: radius,
+              border: Border.fromBorderSide(side),
+            ),
+            child: content,
+          )
+        // Flutter can't round a border whose sides differ in colour, so
+        // the priority card clips to the radius and draws square borders.
+        : ClipRRect(
+            borderRadius: radius,
+            child: Container(
+              padding: padding,
+              decoration: BoxDecoration(
+                color: fill,
+                border: Border(
+                  top: side,
+                  right: side,
+                  bottom: side,
+                  left: BorderSide(
+                      color: priorityColor!, width: AtomicStroke.priority),
+                ),
+              ),
+              child: content,
+            ),
+          );
     if (onTap != null || onLongPress != null || shadowLevel > 0) {
       body = AtomicPressable(
         onTap: onTap,

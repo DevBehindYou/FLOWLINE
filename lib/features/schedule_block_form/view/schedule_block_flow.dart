@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../design/atomic.dart';
+
 import '../../../core/async/run_action.dart';
 import '../../../domain/entities/schedule_block.dart';
 import '../../../shared_widgets/confirm_dialog.dart';
@@ -119,34 +121,32 @@ Future<_Scope?> _askScope(
   required String rest,
   bool destructive = false,
 }) {
-  return showModalBottomSheet<_Scope>(
+  return showAtomicSheet<_Scope>(
     context: context,
+    label: title,
     builder: (context) {
-      final color = destructive ? Theme.of(context).colorScheme.error : null;
-      return SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title:
-                  Text(title, style: Theme.of(context).textTheme.titleMedium),
-            ),
-            ListTile(
-              leading: Icon(Icons.today_outlined, color: color),
-              title: Text(thisDay),
-              onTap: () => Navigator.pop(context, _Scope.thisDay),
-            ),
-            ListTile(
-              leading: Icon(Icons.repeat, color: color),
-              title: Text(rest),
-              onTap: () => Navigator.pop(context, _Scope.rest),
-            ),
-            ListTile(
-              title: Text(context.l10n.cancel),
-              onTap: () => Navigator.pop(context),
-            ),
-          ],
-        ),
+      final color = destructive ? context.atomic.palette.danger : null;
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: Icon(AtomicIcons.today, color: color),
+            title: Text(thisDay),
+            onTap: () => Navigator.pop(context, _Scope.thisDay),
+          ),
+          ListTile(
+            leading: Icon(AtomicIcons.repeat, color: color),
+            title: Text(rest),
+            onTap: () => Navigator.pop(context, _Scope.rest),
+          ),
+          const SizedBox(height: AtomicSpace.s),
+          AtomicButton(
+            label: context.l10n.cancel,
+            variant: AtomicButtonVariant.ghost,
+            expand: true,
+            onPressed: () => Navigator.pop(context),
+          ),
+        ],
       );
     },
   );

@@ -2,6 +2,8 @@ import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../design/atomic.dart';
+
 import '../../../core/async/run_action.dart';
 import '../../../domain/entities/schedule_block.dart';
 import '../../../domain/entities/task.dart';
@@ -144,129 +146,95 @@ class _AddEditTaskSheetState extends ConsumerState<AddEditTaskSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final blocks =
         ref.watch(scheduleBlocksForSelectedDateProvider).value ?? const [];
+    const gap = SizedBox(height: AtomicSpace.s);
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 32,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.outlineVariant,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-              ),
-            ),
-            Text(
-              _isEditing ? context.l10n.editTaskTitle : context.l10n.addTask,
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _titleController,
-              autofocus: !_isEditing,
-              decoration: InputDecoration(
-                  labelText: context.l10n.titleField, errorText: _titleError),
-              onChanged: (_) {
-                if (_titleError != null) setState(() => _titleError = null);
-              },
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _notesController,
-              decoration: InputDecoration(labelText: context.l10n.notesField),
-              minLines: 2,
-              maxLines: 4,
-            ),
-            const SizedBox(height: 12),
-            Text(context.l10n.priorityField,
-                style: Theme.of(context).textTheme.labelLarge),
-            const SizedBox(height: 8),
-            SegmentedButton<TaskPriority>(
+    return AtomicSheetFrame(
+      label: _isEditing ? l10n.editTaskTitle : l10n.addTask,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            controller: _titleController,
+            autofocus: !_isEditing,
+            decoration: InputDecoration(
+                labelText: l10n.titleField, errorText: _titleError),
+            onChanged: (_) {
+              if (_titleError != null) setState(() => _titleError = null);
+            },
+          ),
+          gap,
+          TextField(
+            controller: _notesController,
+            decoration: InputDecoration(labelText: l10n.notesField),
+            minLines: 2,
+            maxLines: 4,
+          ),
+          gap,
+          AtomicText.mono(l10n.priorityField),
+          const SizedBox(height: AtomicSpace.xs),
+          SegmentedButton<TaskPriority>(
+            segments: [
+              for (final p in TaskPriority.values)
+                ButtonSegment(value: p, label: Text(l10n.priorityName(p))),
+            ],
+            selected: {_priority},
+            onSelectionChanged: (selection) =>
+                setState(() => _priority = selection.first),
+          ),
+          if (_isEditing) ...[
+            gap,
+            AtomicText.mono(l10n.statusField),
+            const SizedBox(height: AtomicSpace.xs),
+            SegmentedButton<TaskStatus>(
               segments: [
-                for (final p in TaskPriority.values)
-                  ButtonSegment(
-                      value: p, label: Text(context.l10n.priorityName(p))),
+                ButtonSegment(
+                    value: TaskStatus.todo, label: Text(l10n.formStatusTodo)),
+                ButtonSegment(
+                    value: TaskStatus.inProgress,
+                    label: Text(l10n.formStatusDoing)),
+                ButtonSegment(
+                    value: TaskStatus.done, label: Text(l10n.statusDone)),
               ],
-              selected: {_priority},
+              selected: {_status},
               onSelectionChanged: (selection) =>
-                  setState(() => _priority = selection.first),
+                  setState(() => _status = selection.first),
             ),
-            if (_isEditing) ...[
-              const SizedBox(height: 12),
-              Text(context.l10n.statusField,
-                  style: Theme.of(context).textTheme.labelLarge),
-              const SizedBox(height: 8),
-              SegmentedButton<TaskStatus>(
-                segments: [
-                  ButtonSegment(
-                      value: TaskStatus.todo,
-                      label: Text(context.l10n.formStatusTodo)),
-                  ButtonSegment(
-                      value: TaskStatus.inProgress,
-                      label: Text(context.l10n.formStatusDoing)),
-                  ButtonSegment(
-                      value: TaskStatus.done,
-                      label: Text(context.l10n.statusDone)),
-                ],
-                selected: {_status},
-                onSelectionChanged: (selection) =>
-                    setState(() => _status = selection.first),
-              ),
-            ],
-            const SizedBox(height: 12),
-            _BlockPicker(
-              blocks: blocks,
-              selectedId: _blockId,
-              onChanged: (id) => setState(() => _blockId = id),
-            ),
-            const SizedBox(height: 12),
-            _DueField(
-              dueAt: _dueAt,
-              onPick: _pickDue,
-              onClear: () => setState(() => _dueAt = null),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _saving ? null : _save,
-              child: _saving
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(_isEditing
-                      ? context.l10n.saveChanges
-                      : context.l10n.addTask),
-            ),
-            if (_isEditing) ...[
-              const SizedBox(height: 8),
-              Center(
-                child: TextButton.icon(
-                  onPressed: _saving ? null : _delete,
-                  style: TextButton.styleFrom(
-                      foregroundColor: Theme.of(context).colorScheme.error),
-                  icon: const Icon(Icons.delete_outline),
-                  label: Text(context.l10n.deleteTaskButton),
-                ),
-              ),
-            ],
-            const SizedBox(height: 8),
           ],
-        ),
+          gap,
+          _BlockPicker(
+            blocks: blocks,
+            selectedId: _blockId,
+            onChanged: (id) => setState(() => _blockId = id),
+          ),
+          gap,
+          _DueField(
+            dueAt: _dueAt,
+            onPick: _pickDue,
+            onClear: () => setState(() => _dueAt = null),
+          ),
+          const SizedBox(height: AtomicSpace.xl),
+          AtomicButton(
+            label: _isEditing ? l10n.saveChanges : l10n.addTask,
+            busyLabel: l10n.saving,
+            busy: _saving,
+            expand: true,
+            onPressed: _save,
+          ),
+          if (_isEditing) ...[
+            gap,
+            AtomicButton(
+              label: l10n.deleteTaskButton,
+              icon: AtomicIcons.delete,
+              variant: AtomicButtonVariant.destructive,
+              expand: true,
+              onPressed: _saving ? null : _delete,
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -332,16 +300,18 @@ class _DueField extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: OutlinedButton.icon(
+          child: AtomicButton(
+            label: label,
+            icon: AtomicIcons.event,
+            variant: AtomicButtonVariant.ghost,
+            expand: true,
             onPressed: onPick,
-            icon: const Icon(Icons.event_outlined),
-            label: Text(label, overflow: TextOverflow.ellipsis),
           ),
         ),
         if (dueAt != null)
-          IconButton(
-            tooltip: l10n.removeDueDate,
-            icon: const Icon(Icons.close),
+          AtomicIconButton(
+            icon: AtomicIcons.close,
+            semanticLabel: l10n.removeDueDate,
             onPressed: onClear,
           ),
       ],

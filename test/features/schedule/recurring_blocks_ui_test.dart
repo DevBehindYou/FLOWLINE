@@ -6,7 +6,10 @@ import 'package:atomic_assist/domain/recurrence/recurrence_rule.dart';
 import 'package:atomic_assist/domain/time/calendar_day.dart';
 import 'package:atomic_assist/features/schedule/view/today_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:atomic_assist/design/atomic.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../support/finders.dart';
 
 import '../../support/pump_app.dart';
 import '../../support/test_database.dart';
@@ -78,15 +81,15 @@ void main() {
     await tester.tap(find.text('Weekly on…').last);
     await tester.pumpAndSettle();
 
-    final chips = find.byType(FilterChip);
+    final chips = find.byType(AtomicChip);
     expect(chips, findsNWidgets(7));
     final selected =
-        tester.widgetList<FilterChip>(chips).where((c) => c.selected).toList();
+        tester.widgetList<AtomicChip>(chips).where((c) => c.selected).toList();
     expect(selected, hasLength(1));
     // Unselecting the only day is refused.
     selected.single.onSelected!(false);
     await tester.pumpAndSettle();
-    expect(tester.widgetList<FilterChip>(chips).where((c) => c.selected),
+    expect(tester.widgetList<AtomicChip>(chips).where((c) => c.selected),
         hasLength(1));
   });
 
@@ -97,7 +100,7 @@ void main() {
     await openBlockMenu(tester);
     await tester.tap(find.text('Delete block'));
     await tester.pumpAndSettle();
-    expect(find.text('Delete repeating block'), findsOneWidget);
+    expect(findLabel('Delete repeating block'), findsOneWidget);
     await tester.tap(find.text('Only this day'));
     await tester.pumpAndSettle();
 
@@ -132,7 +135,7 @@ void main() {
     await tester.tap(find.text('All days'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Edit Schedule Block'), findsOneWidget);
+    expect(findLabel('Edit Schedule Block'), findsOneWidget);
     expect(find.text('Every day'), findsOneWidget); // the rule is editable
     await tester.enterText(find.widgetWithText(TextField, 'Standup'), 'Sync');
     await tester.tap(find.text('Save Changes'));
@@ -172,7 +175,7 @@ void main() {
     await tester.tap(find.byTooltip('Add task to this block'));
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextField, 'Title'), 'Notes');
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Add Task'));
+    await tester.tap(find.widgetWithText(AtomicButton, 'Add Task').last);
     await tester.pumpAndSettle();
 
     expect(find.text('Notes'), findsOneWidget);
