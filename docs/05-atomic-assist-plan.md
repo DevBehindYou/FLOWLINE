@@ -2410,7 +2410,7 @@ developer working with AI help.
 **Status** (ticked in the commit that finishes each phase):
 
 - [x] **A. Design foundation** — tokens, Atomic theme (light/dark), fonts bundled (Bebas Neue, Hanken Grotesk, JetBrains Mono; Inter and Space Grotesk removed), `AtomicText`, `AtomicIcons`, `AtomicMotion`, `AtomicTag`, contrast tests, design-rule ratchet, goldens regenerated. The old `AppTheme` and its off-brand semantic colours are already gone (planned for C, done early because nothing needed them)
-- [ ] B. Component library
+- [x] **B. Component library** — `AtomicPressable` (pressed-key translate, hard shadow), `AtomicButton` (primary/solid/ghost/destructive/text, busy label, 48 dp target), `AtomicIconButton`, `AtomicCard` (content/panel/raised/dark/selected/danger; dark modules invert the palette for their content), `AtomicChip`, `AtomicTag`, `AtomicEyebrow`, `AtomicRule`, `AtomicSectionLabel`, `AtomicTitleRow`, `AtomicSplitHeadline`, `AtomicFactRow`, `AtomicSettingsRow`, `AtomicDangerZone`, `AtomicLoading`/`AtomicLoadingBar`, `AtomicEmptyState`, `AtomicErrorState`, `AtomicWarningBox`, `showAtomicSheet`/`AtomicSheetFrame`, `showAtomicConfirm`, `AtomicProgressBar` (energy thresholds), `AtomicBottomBar`/`AtomicNavRail` (ink pill, badge), `AtomMark` (orbit only without reduced motion). Tested for behaviour and semantics (each one exposes its tap to TalkBack), with Flutter's tap-target, label and contrast guidelines over a gallery in both themes, and gallery goldens (light/dark × 1x/2x). Deviation: the gallery is a test fixture, not an in-app debug route, so it needs no shipped strings
 - [ ] C. Screen migration
 - [ ] D. AI contract v3
 - [ ] E. Assistant core

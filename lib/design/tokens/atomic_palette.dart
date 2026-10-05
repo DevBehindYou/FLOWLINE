@@ -69,6 +69,11 @@ final class AtomicPalette {
   /// The empty part of a progress bar.
   final Color track;
 
+  /// The roles for content on an inverse module (a dark card on light,
+  /// a paper card on dark): text, muted text and the accent flip to the
+  /// values that read on it (§3.5: signal-light on ink).
+  AtomicPalette get inverted => identical(this, light) ? dark : light;
+
   static const light = AtomicPalette(
     background: AtomicColors.paper,
     card: AtomicColors.white,

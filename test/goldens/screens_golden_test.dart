@@ -18,9 +18,9 @@ import 'package:atomic_assist/features/schedule/view/today_screen.dart';
 import 'package:atomic_assist/features/settings/view/settings_home_screen.dart';
 import 'package:atomic_assist/features/task_detail/view/task_detail_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../support/golden_fonts.dart';
 import '../support/pump_app.dart';
 import '../support/test_database.dart';
 
@@ -50,34 +50,13 @@ class _QuietNotifications implements NotificationService {
   Future<void> cancelSessionNotification() async {}
 }
 
-Future<void> _loadFonts() async {
-  Future<void> family(String name, List<String> files) async {
-    final loader = FontLoader(name);
-    for (final file in files) {
-      loader.addFont(rootBundle.load(file));
-    }
-    await loader.load();
-  }
-
-  await family('BebasNeue', ['assets/fonts/BebasNeue-Regular.ttf']);
-  await family('HankenGrotesk', [
-    for (final w in ['Regular', 'Medium', 'Bold'])
-      'assets/fonts/HankenGrotesk-$w.ttf',
-  ]);
-  await family('JetBrainsMono', [
-    for (final w in ['Regular', 'Medium', 'Bold'])
-      'assets/fonts/JetBrainsMono-$w.ttf',
-  ]);
-  await family('MaterialIcons', ['fonts/MaterialIcons-Regular.otf']);
-}
-
 // Tuesday 10 March 2026, 9:30: every date on screen is fixed.
 final _now = DateTime(2026, 3, 10, 9, 30);
 DateTime _at(int hour, [int minute = 0]) => DateTime(2026, 3, 10, hour, minute);
 
 void main() {
   late AppDatabase db;
-  setUpAll(_loadFonts);
+  setUpAll(loadGoldenFonts);
   setUp(() => db = createTestDatabase());
   tearDown(() => db.close());
 

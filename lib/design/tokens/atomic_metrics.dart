@@ -19,6 +19,9 @@ abstract final class AtomicSpace {
   static const rowGap = s;
   static const chipGap = xs;
 
+  /// Horizontal padding inside a filter chip (§9.2).
+  static const chipPadding = 14.0;
+
   /// Gap inside a chip or between an icon and its label (system: 6–9).
   static const iconLabelGap = 6.0;
 }
@@ -78,6 +81,9 @@ abstract final class AtomicSize {
   static const progressBar = 8.0;
   static const loadingBar = 2.0;
   static const switchWidth = 52.0;
+
+  /// Settings and list rows (≈ 56 dp, §9.4).
+  static const rowHeight = 56.0;
   static const dragHandleWidth = 32.0;
   static const dragHandleHeight = 4.0;
 
