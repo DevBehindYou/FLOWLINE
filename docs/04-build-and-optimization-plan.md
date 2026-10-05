@@ -485,12 +485,12 @@ Tick these in the PR that closes each item.
 - [x] `AIClient` v2 interface (typed failures stored with replies, schema v7; non-streaming until 4.3)
 - [x] Model registry + Test connection (K6): live model lists, picker, a warning when the saved model isn't offered
 - [x] Streaming + Stop (SSE for Anthropic/OpenAI/Gemini, NDJSON for Ollama; partial text kept on drop or Stop). Device check per vendor still owed
-- [ ] Context windowing (K10)
+- [x] Context windowing (K10) — `windowHistory`, done in docs/05 Phase D
 - [ ] Markdown, retry, "Fix in Settings"
 - [ ] Conversation history + in-chat switcher
 - [ ] Task Breakdown Engine
 - [ ] Add to Today's Timeline
-- [ ] Configurable output tokens, cut-off detection (B18)
+- [ ] Configurable output tokens, cut-off detection (B18) — `maxOutputTokens` and the max-tokens stop are read; showing "cut off" needs a stored stop reason (docs/05 Phase E, schema v8)
 
 **Phase 5 — Insights & intelligence v2**
 - [ ] Monthly view + heatmap + adherence

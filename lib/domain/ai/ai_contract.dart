@@ -3,7 +3,7 @@ import 'dart:async';
 import '../entities/ai_message.dart';
 import '../entities/ai_provider_config.dart';
 
-// The AI contract, v2 (docs/04 §4.1). Every vendor client speaks it; the
+// The AI contract, v3 (docs/04 §4.1, docs/05 §8): v2 plus tools. Every vendor client speaks it; the
 // features above it (chat, conflict help, Task Breakdown later) never see
 // a vendor payload. Streaming, structured output, cancellation and usage
 // are fields or events, so adding them doesn't change the interface.
@@ -20,6 +20,9 @@ final class AIRequest {
     this.system,
     this.maxOutputTokens = 1024,
     this.format = AIResponseFormat.text,
+    this.tools = const [],
+    this.toolChoice = AIToolChoice.auto,
+    this.continuation = const [],
   });
 
   final AIProviderConfig config;
@@ -36,10 +39,67 @@ final class AIRequest {
   final String prompt;
   final int maxOutputTokens;
   final AIResponseFormat format;
+
+  /// Functions the model may call (empty: a plain text request).
+  final List<AIToolSpec> tools;
+  final AIToolChoice toolChoice;
+
+  /// This request's own earlier rounds, after [prompt]: the model's tool
+  /// calls and the results the app sent back (docs/05 §9.3).
+  final List<AITurn> continuation;
+}
+
+/// A function the model may call. [parameters] is a JSON Schema object
+/// limited to the subset every vendor accepts (docs/05 §8.2): type,
+/// properties, required, enum, items, description, minimum, maximum,
+/// maxLength.
+final class AIToolSpec {
+  const AIToolSpec({
+    required this.name,
+    required this.description,
+    required this.parameters,
+  });
+
+  /// `^[a-z][a-z0-9_]{0,63}$`: stable, stored in the ledger.
+  final String name;
+
+  /// For the model only; never shown in the UI.
+  final String description;
+  final Map<String, Object?> parameters;
+}
+
+enum AIToolChoice { auto, none, required }
+
+/// A turn inside one assistant request, replayed on the next round.
+sealed class AITurn {
+  const AITurn();
+}
+
+/// What the model said in a round: text and/or tool calls.
+final class AIAssistantTurn extends AITurn {
+  const AIAssistantTurn({this.text = '', this.toolCalls = const []});
+  final String text;
+  final List<AIToolCall> toolCalls;
+}
+
+/// The app's answer to one tool call.
+final class AIToolResultTurn extends AITurn {
+  const AIToolResultTurn({
+    required this.callId,
+    required this.name,
+    required this.json,
+    this.isError = false,
+  });
+  final String callId;
+  final String name;
+
+  /// Compact JSON the tool returned (validated, size-capped).
+  final String json;
+  final bool isError;
 }
 
 /// Why a reply ended.
-enum AIStopReason { complete, maxTokens, cancelled, other }
+enum AIStopReason { complete, maxTokens, cancelled, other, toolUse }
 
 /// What went wrong, for the UI to put in words (and localize). Stored by
 /// index with error replies: append-only (R1).
@@ -76,6 +136,10 @@ enum AIFailureKind {
 
   /// The app was closed while the reply was on its way (B23).
   interrupted,
+
+  /// The model or server rejected a request with tools (docs/05 §8.2);
+  /// the caller falls back to a JSON plan.
+  toolsUnsupported,
 }
 
 final class AIUsage {
@@ -99,6 +163,21 @@ final class AIDone extends AIEvent {
   const AIDone({this.stopReason = AIStopReason.complete, this.usage});
   final AIStopReason stopReason;
   final AIUsage? usage;
+}
+
+/// One complete tool call. Clients assemble streamed argument fragments
+/// themselves and emit the call once, after the text. [argumentsJson] is
+/// raw model output (R16): callers parse and validate it, clients never
+/// do.
+final class AIToolCall extends AIEvent {
+  const AIToolCall({
+    required this.id,
+    required this.name,
+    required this.argumentsJson,
+  });
+  final String id;
+  final String name;
+  final String argumentsJson;
 }
 
 final class AIFailure extends AIEvent {
@@ -173,8 +252,57 @@ Future<AICompletion> collect(Stream<AIEvent> events) async {
             : AIText(buffer.toString(), stopReason: stopReason);
       case AIFailure():
         return AIError(event);
+      case AIToolCall():
+        break; // text callers send no tools; a stray call is ignored
     }
   }
   // A stream that ended without Done or Failure broke the contract.
   return const AIError(AIFailure(AIFailureKind.unknown));
+}
+
+/// One round of a request with tools: what the model said and the calls
+/// it made, or why it failed.
+sealed class AIToolTurnResult {
+  const AIToolTurnResult();
+}
+
+final class AIToolTurnReply extends AIToolTurnResult {
+  const AIToolTurnReply({
+    this.text = '',
+    this.calls = const [],
+    this.stopReason = AIStopReason.complete,
+  });
+  final String text;
+  final List<AIToolCall> calls;
+  final AIStopReason stopReason;
+}
+
+final class AIToolTurnFailed extends AIToolTurnResult {
+  const AIToolTurnFailed(this.failure);
+  final AIFailure failure;
+}
+
+/// Collects a client's event stream into one [AIToolTurnResult].
+Future<AIToolTurnResult> collectToolTurn(Stream<AIEvent> events) async {
+  final text = StringBuffer();
+  final calls = <AIToolCall>[];
+  await for (final event in events) {
+    switch (event) {
+      case AITextDelta(text: final t):
+        text.write(t);
+      case AIToolCall():
+        calls.add(event);
+      case AIDone(:final stopReason):
+        if (text.isEmpty && calls.isEmpty) {
+          return AIToolTurnFailed(AIFailure(stopReason == AIStopReason.cancelled
+              ? AIFailureKind.cancelled
+              : AIFailureKind.emptyResponse));
+        }
+        return AIToolTurnReply(
+            text: text.toString(), calls: calls, stopReason: stopReason);
+      case AIFailure():
+        return AIToolTurnFailed(event);
+    }
+  }
+  return const AIToolTurnFailed(AIFailure(AIFailureKind.unknown));
 }

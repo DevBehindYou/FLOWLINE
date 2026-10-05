@@ -23,6 +23,8 @@ extension L10nAiFailure on AppLocalizations {
       AIFailureKind.noActiveProvider => aiErrorNoProvider,
       AIFailureKind.cancelled => aiStopped,
       AIFailureKind.interrupted => aiErrorInterrupted,
+      AIFailureKind.toolsUnsupported =>
+        aiErrorToolsUnsupported(provider?.defaultModel ?? vendor),
       AIFailureKind.serverError ||
       AIFailureKind.unknown =>
         aiErrorUnknown(vendor),

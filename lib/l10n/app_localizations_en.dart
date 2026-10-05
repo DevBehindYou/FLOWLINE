@@ -358,6 +358,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get jumpToToday => 'Jump to today';
 
   @override
+  String aiErrorToolsUnsupported(String model) {
+    return '$model can\'t take actions directly, so AA will ask it for a plan instead.';
+  }
+
+  @override
   String get exporting => 'Exporting…';
 
   @override

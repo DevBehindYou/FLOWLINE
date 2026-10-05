@@ -36,6 +36,50 @@ class StreamState {
   AIUsage? get usage => inputTokens == null && outputTokens == null
       ? null
       : AIUsage(inputTokens: inputTokens, outputTokens: outputTokens);
+
+  // Tool calls being assembled, keyed the way the vendor identifies them
+  // in its stream (a content-block or call index), in arrival order.
+  final _calls = <Object, _PendingCall>{};
+
+  /// A streamed call begins (Anthropic `content_block_start`, the first
+  /// OpenAI fragment). Repeated starts for the same [key] fill in what
+  /// was missing.
+  void startToolCall(Object key, {String? id, String? name}) {
+    final call = _calls.putIfAbsent(key, _PendingCall.new);
+    call.id ??= id;
+    call.name ??= name;
+  }
+
+  /// One fragment of a streamed call's arguments (raw JSON text).
+  void appendToolArguments(Object key, String fragment) =>
+      _calls.putIfAbsent(key, _PendingCall.new).arguments.write(fragment);
+
+  /// A call that arrives whole (Gemini, Ollama).
+  void addToolCall({String? id, required String name, required String json}) {
+    _calls[Object()] = _PendingCall()
+      ..id = id
+      ..name = name
+      ..arguments.write(json);
+  }
+
+  /// The assembled calls, in order. A call without a name is dropped; a
+  /// missing id is synthesised; empty arguments become `{}`.
+  List<AIToolCall> takeToolCalls() => [
+        for (final (i, c) in _calls.values.indexed)
+          if (c.name case final name? when name.isNotEmpty)
+            AIToolCall(
+              id: c.id ?? 'call_$i',
+              name: name,
+              argumentsJson:
+                  c.arguments.isEmpty ? '{}' : c.arguments.toString(),
+            ),
+      ];
+}
+
+class _PendingCall {
+  String? id;
+  String? name;
+  final arguments = StringBuffer();
 }
 
 /// The shared request/stream/error handling for every HTTP vendor. A
@@ -74,6 +118,7 @@ abstract class HttpAIClient implements AIClient {
     final call = buildChat(request);
     final state = StreamState();
     var gotText = false;
+    final withTools = request.tools.isNotEmpty;
     try {
       final response = await dio.post<ResponseBody>(
         call.url,
@@ -110,8 +155,11 @@ abstract class HttpAIClient implements AIClient {
     } on DioException catch (e) {
       if (e.type == DioExceptionType.cancel) {
         yield const AIDone(stopReason: AIStopReason.cancelled);
+      } else if (!gotText && withTools && await _rejectsTools(e)) {
+        yield const AIFailure(AIFailureKind.toolsUnsupported, status: 400);
       } else {
-        // Dropped mid-reply: keep what arrived.
+        // Dropped mid-reply: keep what arrived. Half-received tool calls
+        // are dropped: an incomplete call must never run.
         yield gotText
             ? const AIDone(stopReason: AIStopReason.other)
             : _failureFor(e);
@@ -123,10 +171,47 @@ abstract class HttpAIClient implements AIClient {
           : const AIFailure(AIFailureKind.unknown);
       return;
     }
-    yield gotText
-        ? AIDone(stopReason: state.stopReason, usage: state.usage)
-        : const AIFailure(AIFailureKind.emptyResponse);
+    // Calls come after the text, each once, complete.
+    final calls = state.takeToolCalls();
+    for (final c in calls) {
+      yield c;
+    }
+    if (!gotText && calls.isEmpty) {
+      yield const AIFailure(AIFailureKind.emptyResponse);
+      return;
+    }
+    // Some vendors (Gemini) report a plain stop after calls.
+    final stop = calls.isNotEmpty && state.stopReason == AIStopReason.complete
+        ? AIStopReason.toolUse
+        : state.stopReason;
+    yield AIDone(stopReason: stop, usage: state.usage);
   }
+
+  /// Whether a failed request was refused because of its tools: a 400
+  /// whose body talks about tools (Ollama: "does not support tools";
+  /// OpenAI-compatible servers similarly). Reads at most a few KB.
+  Future<bool> _rejectsTools(DioException e) async {
+    if (e.response?.statusCode != 400) return false;
+    final data = e.response?.data;
+    String body;
+    try {
+      body = switch (data) {
+        final ResponseBody b => utf8.decode(
+            await b.stream
+                .take(_errorBodyChunks)
+                .fold<List<int>>([], (all, c) => all..addAll(c)),
+            allowMalformed: true),
+        final String text => text,
+        final Map<Object?, Object?> map => jsonEncode(map),
+        _ => '',
+      };
+    } catch (_) {
+      return false;
+    }
+    return body.toLowerCase().contains('tool');
+  }
+
+  static const _errorBodyChunks = 4;
 
   /// One decoded JSON chunk from a line of the stream, or null for
   /// framing, keep-alives, `[DONE]` and anything that isn't JSON.
@@ -220,6 +305,45 @@ List<Map<String, Object?>> chatTurns(
         },
       {'role': 'user', 'content': prompt},
     ];
+
+/// A JSON object from raw model or app JSON text; `{}` when it isn't one.
+/// For replaying tool calls and results to vendors that want objects.
+Map<String, Object?> jsonObjectOf(String json) {
+  try {
+    return jsonMap(jsonDecode(json)) ?? const {};
+  } on FormatException {
+    return const {};
+  }
+}
+
+/// Decoded JSON, or the text itself when it isn't JSON (a tool result
+/// that is a bare message).
+Object? jsonDecodeOrText(String json) {
+  try {
+    return jsonDecode(json);
+  } on FormatException {
+    return json;
+  }
+}
+
+/// Consecutive [AIToolResultTurn]s grouped, so vendors that want all the
+/// results of one round in a single message can send them together.
+List<Object> groupToolResults(List<AITurn> turns) {
+  final out = <Object>[];
+  for (final t in turns) {
+    switch (t) {
+      case AIAssistantTurn():
+        out.add(t);
+      case AIToolResultTurn():
+        if (out.isNotEmpty && out.last is List<AIToolResultTurn>) {
+          (out.last as List<AIToolResultTurn>).add(t);
+        } else {
+          out.add(<AIToolResultTurn>[t]);
+        }
+    }
+  }
+  return out;
+}
 
 // Typed, never-throwing reads of a decoded JSON response. Vendors change
 // response shapes, and a malformed or unexpected body must become an

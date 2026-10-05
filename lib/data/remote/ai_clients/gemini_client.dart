@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import '../../../domain/ai/ai_contract.dart';
 import '../../../domain/entities/ai_message.dart';
 import '../../../domain/entities/ai_provider_config.dart';
@@ -44,7 +46,31 @@ class GeminiClient extends HttpAIClient {
               _content(
                   m.role == AIMessageRole.user ? 'user' : 'model', m.content),
             _content('user', request.prompt),
+            ..._continuation(request.continuation),
           ],
+          if (request.tools.isNotEmpty) ...{
+            'tools': [
+              {
+                'functionDeclarations': [
+                  for (final t in request.tools)
+                    {
+                      'name': t.name,
+                      'description': t.description,
+                      'parameters': t.parameters,
+                    },
+                ],
+              },
+            ],
+            'toolConfig': {
+              'functionCallingConfig': {
+                'mode': switch (request.toolChoice) {
+                  AIToolChoice.auto => 'AUTO',
+                  AIToolChoice.none => 'NONE',
+                  AIToolChoice.required => 'ANY',
+                },
+              },
+            },
+          },
           'generationConfig': {
             'maxOutputTokens': request.maxOutputTokens,
             if (request.format == AIResponseFormat.json)
@@ -52,6 +78,42 @@ class GeminiClient extends HttpAIClient {
           },
         },
       );
+
+  // The model's calls as a 'model' turn of functionCall parts; a round's
+  // results as one 'user' turn of functionResponse parts (the response
+  // must be an object, so the result JSON is wrapped).
+  List<Map<String, Object?>> _continuation(List<AITurn> turns) => [
+        for (final t in groupToolResults(turns))
+          if (t is AIAssistantTurn)
+            {
+              'role': 'model',
+              'parts': [
+                if (t.text.isNotEmpty) {'text': t.text},
+                for (final c in t.toolCalls)
+                  {
+                    'functionCall': {
+                      'name': c.name,
+                      'args': jsonObjectOf(c.argumentsJson),
+                    },
+                  },
+              ],
+            }
+          else if (t is List<AIToolResultTurn>)
+            {
+              'role': 'user',
+              'parts': [
+                for (final r in t)
+                  {
+                    'functionResponse': {
+                      'name': r.name,
+                      'response': {
+                        r.isError ? 'error' : 'result': jsonDecodeOrText(r.json)
+                      },
+                    },
+                  },
+              ],
+            },
+      ];
 
   @override
   String? readChunk(Map<String, Object?> chunk, StreamState state) {
@@ -72,6 +134,16 @@ class GeminiClient extends HttpAIClient {
         state.stopReason = AIStopReason.other;
     }
     final parts = jsonList(jsonMap(candidate?['content'])?['parts']);
+    // Calls arrive whole, one per part (an id only on some models).
+    for (final part in parts.map(jsonMap)) {
+      final call = jsonMap(part?['functionCall']);
+      if (jsonString(call?['name']) case final name?) {
+        state.addToolCall(
+            id: jsonString(call?['id']),
+            name: name,
+            json: jsonEncode(call?['args'] ?? const {}));
+      }
+    }
     return parts.map((p) => jsonString(jsonMap(p)?['text']) ?? '').join();
   }
 

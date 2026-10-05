@@ -706,6 +706,12 @@ abstract class AppLocalizations {
   /// **'Jump to today'**
   String get jumpToToday;
 
+  /// Shown when a model rejects tool calling.
+  ///
+  /// In en, this message translates to:
+  /// **'{model} can\'t take actions directly, so AA will ask it for a plan instead.'**
+  String aiErrorToolsUnsupported(String model);
+
   /// Mono caps line while an export is being built.
   ///
   /// In en, this message translates to:

@@ -68,4 +68,38 @@ void main() {
 
   test(
       'empty in, empty out', () => expect(buildChatHistory(const []), isEmpty));
+
+  group('windowHistory (K10)', () {
+    List<AIMessage> exchanges(int n, {int size = 10}) => [
+          for (var i = 0; i < n; i++) ...[
+            _user('q$i'.padRight(size, '.')),
+            _reply('a$i'.padRight(size, '.')),
+          ],
+        ];
+
+    test('keeps everything that fits', () {
+      final all = exchanges(3);
+      expect(windowHistory(all), all);
+    });
+
+    test('keeps only the most recent exchanges, whole and in order', () {
+      final window = windowHistory(exchanges(15), maxMessages: 4);
+      expect(texts(window).map((t) => t.substring(0, 3)),
+          ['q13', 'a13', 'q14', 'a14']);
+    });
+
+    test('stops at the character budget', () {
+      // Each exchange is 2 x 10 characters.
+      final window = windowHistory(exchanges(5), maxChars: 45);
+      expect(window, hasLength(4), reason: 'two exchanges fit, three do not');
+    });
+
+    test('one exchange larger than the budget sends no history', () {
+      expect(windowHistory(exchanges(1, size: 100), maxChars: 50), isEmpty);
+    });
+
+    test('the default window is ten exchanges', () {
+      expect(windowHistory(exchanges(30)), hasLength(defaultHistoryMessages));
+    });
+  });
 }

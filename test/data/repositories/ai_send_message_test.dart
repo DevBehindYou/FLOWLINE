@@ -210,4 +210,84 @@ void main() {
       expect(client.requests.single.history, isEmpty);
     });
   });
+
+  group('completeWithTools', () {
+    const tool = AIToolSpec(
+      name: 'create_task',
+      description: 'Create a task.',
+      parameters: {'type': 'object'},
+    );
+
+    test('native calls come back as they are', () async {
+      await repo.setActiveProvider(AIProviderId.ollama);
+      client.replies.add((_) => Stream.fromIterable(const [
+            AIToolCall(
+                id: 'c1', name: 'create_task', argumentsJson: '{"title":"A"}'),
+            AIDone(stopReason: AIStopReason.toolUse),
+          ]));
+      final result = await repo.completeWithTools(
+          prompt: 'remind me', tools: const [tool], system: 'Be exact');
+      final reply = result as AIToolTurnReply;
+      expect(reply.calls.single.name, 'create_task');
+      expect(client.requests.single.tools.single.name, 'create_task');
+      expect(client.requests.single.system, 'Be exact');
+    });
+
+    test('a model without tools is asked for a JSON plan instead', () async {
+      await repo.setActiveProvider(AIProviderId.ollama);
+      client
+        ..fail(AIFailureKind.toolsUnsupported, status: 400)
+        ..reply('{"reply":"Okay.","actions":'
+            '[{"tool":"create_task","args":{"title":"A"}}]}');
+      final result = await repo
+          .completeWithTools(prompt: 'remind me', tools: const [tool]);
+      final reply = result as AIToolTurnReply;
+      expect(reply.text, 'Okay.');
+      expect(reply.calls.single.argumentsJson, '{"title":"A"}');
+      final retry = client.requests[1];
+      expect(retry.tools, isEmpty, reason: 'the retry sends no tools');
+      expect(retry.format, AIResponseFormat.json);
+      expect(retry.system, contains('create_task'));
+    });
+
+    test('an unusable plan is an empty response, not a guess', () async {
+      await repo.setActiveProvider(AIProviderId.ollama);
+      client
+        ..fail(AIFailureKind.toolsUnsupported, status: 400)
+        ..reply('I would create a task for you.');
+      final result = await repo
+          .completeWithTools(prompt: 'remind me', tools: const [tool]);
+      expect((result as AIToolTurnFailed).failure.kind,
+          AIFailureKind.emptyResponse);
+    });
+
+    test('other failures are not retried', () async {
+      await repo.setActiveProvider(AIProviderId.ollama);
+      client.fail(AIFailureKind.rateLimited, status: 429);
+      final result =
+          await repo.completeWithTools(prompt: 'x', tools: const [tool]);
+      expect(
+          (result as AIToolTurnFailed).failure.kind, AIFailureKind.rateLimited);
+      expect(client.requests, hasLength(1));
+    });
+
+    test('without an active provider', () async {
+      final result =
+          await repo.completeWithTools(prompt: 'x', tools: const [tool]);
+      expect((result as AIToolTurnFailed).failure.kind,
+          AIFailureKind.noActiveProvider);
+    });
+  });
+
+  test('chat history sent to the vendor is windowed (K10)', () async {
+    for (var i = 0; i < 25; i++) {
+      client.reply('a$i');
+      await repo.sendMessage(conversationId: conversationId, prompt: 'q$i');
+    }
+    client.reply('last');
+    await repo.sendMessage(conversationId: conversationId, prompt: 'final');
+    final sent = client.requests.last.history;
+    expect(sent, hasLength(20), reason: 'ten exchanges, not all 25');
+    expect(sent.last.content, 'a24', reason: 'the most recent ones');
+  });
 }

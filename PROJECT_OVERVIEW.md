@@ -699,15 +699,16 @@ Details of each algorithm are in [§15](#15-key-algorithms-and-functions).
 | `TaskRepositoryImpl` | Straight Drift CRUD. Subtasks ordered by `orderIndex` (always 0 today — no reordering UI). |
 | `ScheduleRepositoryImpl` | `watchBlocksForDay` = blocks whose **start** falls in `[day, day+1)`, ordered by start. `deleteBlock` un-schedules tasks first, in one transaction. |
 | `FocusSessionRepositoryImpl` | Wall-clock timer persistence, self-heal, natural-end completion, extension grows `plannedDurationSec`. See [§15.1](#151-wall-clock-focus-timer). |
-| `AIRepositoryImpl` | Seeds providers, keeps the "exactly one active" rule in a transaction, orchestrates a chat send, and `completeOnce` for no-history one-shot prompts. |
+| `AIRepositoryImpl` | Seeds providers, keeps the "exactly one active" rule in a transaction, orchestrates a chat send, `completeOnce` for no-history one-shot prompts, and `completeWithTools` (one round with tools; falls back to a JSON plan when the model refuses tools). |
 
 ### 9.2 AI vendor clients
 
 All four extend `HttpAIClient` (`data/remote/ai_clients/http_ai_client.dart`),
 which owns the HTTP call, cancellation, failure mapping and the contract's
 event order; a vendor only builds its call and reads its reply and model
-list. They share the app's single `Dio` instance, send the full
-conversation history each time (**unbounded**, until K10), and **stream**
+list. They share the app's single `Dio` instance, send a **windowed**
+history (the last ten completed exchanges or ~24,000 characters,
+`windowHistory`, K10), and **stream**
 (Phase 4.3): server-sent events for the hosted vendors, NDJSON for
 Ollama. The reply row fills in as text arrives (written at most every
 120 ms); the chat's send button becomes **Stop**, and a stopped or
@@ -716,6 +717,25 @@ send the system prompt the vendor's way, ask for JSON when requested
 (OpenAI `response_format`, Gemini `responseMimeType`, Ollama `format`,
 an instruction for Anthropic), and read stop reason (cut-off = B18) and
 token usage.
+
+**Tool calling (AI contract v3, docs/05 Phase D).** A request may carry
+`tools` (`AIToolSpec`: name, description, a JSON Schema in the portable
+subset checked by `unsupportedSchemaKeywords`), a `toolChoice` and the
+`continuation` of earlier rounds (the model's calls and the app's
+results). Each vendor maps them to its own format: Anthropic `tools` +
+`tool_use`/`tool_result` blocks, OpenAI `tools` + `tool_calls`/`tool`
+messages, Gemini `functionDeclarations` + `functionCall`/
+`functionResponse` parts, Ollama the OpenAI shape with object arguments.
+`HttpAIClient` assembles streamed argument fragments and emits each call
+once, complete, after the text (`AIToolCall`, with the arguments as raw
+JSON for the caller to validate, R16); a call cut off by a dropped stream
+is never emitted. A 400 whose body talks about tools becomes
+`toolsUnsupported`, and `completeWithTools` then asks the same model for a
+JSON plan (`json_plan.dart`) whose actions become the same calls.
+Pinned by `tool_calls_contract_test.dart` (one call, two calls, text then
+a call, raw arguments, a drop mid-call, a 400 about tools vs. other 400s,
+request encoding) for all four vendors. Not yet used by any screen: the
+orchestrator that does is Phase E.
 
 | Client | Endpoint | Auth | Request shape | Notes |
 |---|---|---|---|---|

@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import '../../domain/ai/ai_contract.dart';
+import '../../domain/ai/json_plan.dart';
 import '../../domain/entities/ai_conversation.dart';
 import '../../domain/entities/ai_message.dart';
 import '../../domain/entities/ai_provider_config.dart';
@@ -228,7 +229,9 @@ class AIRepositoryImpl implements AIRepository {
           ..where((m) => m.conversationId.equals(conversationId))
           ..orderBy(_messageOrder))
         .get();
-    final history = buildChatHistory(historyRows.map(_mapMessage).toList());
+    // Completed exchanges only (B31), windowed to the recent ones (K10).
+    final history =
+        windowHistory(buildChatHistory(historyRows.map(_mapMessage).toList()));
 
     // The prompt and a pending placeholder for its reply are written
     // together, before the network call: if the process dies mid-request,
@@ -278,6 +281,8 @@ class AIRepositoryImpl implements AIRepository {
           case AIFailure():
             await _failReply(replyId, event);
             return;
+          case AIToolCall():
+            break; // the chat sends no tools (the orchestrator does)
         }
       }
       // A stream that ended without Done or Failure broke the contract.
@@ -297,6 +302,9 @@ class AIRepositoryImpl implements AIRepository {
     List<AIMessage> history = const [],
     String? system,
     AIResponseFormat format = AIResponseFormat.text,
+    List<AIToolSpec> tools = const [],
+    AIToolChoice toolChoice = AIToolChoice.auto,
+    List<AITurn> continuation = const [],
     AICancelToken? cancel,
   }) async {
     final configRow = await (_db.select(_db.aiProviderConfigs)
@@ -315,6 +323,9 @@ class AIRepositoryImpl implements AIRepository {
         history: history,
         system: system,
         format: format,
+        tools: tools,
+        toolChoice: toolChoice,
+        continuation: continuation,
       ),
       cancel: cancel,
     );
@@ -363,6 +374,51 @@ class AIRepositoryImpl implements AIRepository {
     }
     return collect(await _events(activeRow.providerId,
         prompt: prompt, system: system, format: format));
+  }
+
+  @override
+  Future<AIToolTurnResult> completeWithTools({
+    required String prompt,
+    required List<AIToolSpec> tools,
+    String? system,
+    List<AITurn> continuation = const [],
+    AIToolChoice toolChoice = AIToolChoice.auto,
+    AICancelToken? cancel,
+  }) async {
+    await _seedFuture;
+    final activeRow = await (_db.select(_db.aiProviderConfigs)
+          ..where((p) => p.isActive.equals(true)))
+        .getSingleOrNull();
+    if (activeRow == null) {
+      return const AIToolTurnFailed(AIFailure(AIFailureKind.noActiveProvider));
+    }
+    final id = activeRow.providerId;
+    final native = await collectToolTurn(await _events(id,
+        prompt: prompt,
+        system: system,
+        tools: tools,
+        toolChoice: toolChoice,
+        continuation: continuation,
+        cancel: cancel));
+    if (native is! AIToolTurnFailed ||
+        native.failure.kind != AIFailureKind.toolsUnsupported) {
+      return native;
+    }
+    // The model can't take tools: ask for the same actions as a JSON
+    // plan (docs/05 §8.2). The plan's calls are as untrusted as native
+    // ones (R16); the orchestrator validates both the same way.
+    final plan = await collect(await _events(id,
+        prompt: prompt + jsonPlanContinuation(continuation),
+        system: [system, jsonPlanInstructions(tools)]
+            .whereType<String>()
+            .join('\n\n'),
+        format: AIResponseFormat.json,
+        cancel: cancel));
+    return switch (plan) {
+      AIError(:final failure) => AIToolTurnFailed(failure),
+      AIText(:final text) => parseJsonPlan(text) ??
+          const AIToolTurnFailed(AIFailure(AIFailureKind.emptyResponse)),
+    };
   }
 
   AIProviderConfig _mapProvider(AiProviderConfigRow row) {

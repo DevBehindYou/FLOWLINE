@@ -54,4 +54,17 @@ abstract interface class AIRepository {
     String? system,
     AIResponseFormat format = AIResponseFormat.text,
   });
+
+  /// One round of a request with tools, against the active provider, with
+  /// nothing persisted (the orchestrator keeps its own ledger). When the
+  /// model or server refuses tools, it retries once asking for a JSON plan
+  /// and returns the plan's actions as calls (docs/05 §8.2).
+  Future<AIToolTurnResult> completeWithTools({
+    required String prompt,
+    required List<AIToolSpec> tools,
+    String? system,
+    List<AITurn> continuation = const [],
+    AIToolChoice toolChoice = AIToolChoice.auto,
+    AICancelToken? cancel,
+  });
 }

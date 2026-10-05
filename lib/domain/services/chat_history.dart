@@ -29,3 +29,29 @@ List<AIMessage> buildChatHistory(List<AIMessage> messages) {
   }
   return history;
 }
+
+/// The most recent completed exchanges that fit both limits (K10): at
+/// most [maxMessages] messages and [maxChars] characters of content
+/// (about 4 characters per token). Exchanges stay whole and in order;
+/// older ones are dropped first. Without a window the whole conversation
+/// went to the vendor with every message.
+List<AIMessage> windowHistory(
+  List<AIMessage> history, {
+  int maxMessages = defaultHistoryMessages,
+  int maxChars = defaultHistoryChars,
+}) {
+  final kept = <AIMessage>[];
+  var chars = 0;
+  // Walk back one exchange (user + assistant) at a time.
+  for (var i = history.length - 2; i >= 0; i -= 2) {
+    final size = history[i].content.length + history[i + 1].content.length;
+    if (kept.length + 2 > maxMessages || chars + size > maxChars) break;
+    kept.insertAll(0, [history[i], history[i + 1]]);
+    chars += size;
+  }
+  return kept;
+}
+
+/// Ten exchanges, or about 6,000 tokens of history, whichever is smaller.
+const defaultHistoryMessages = 20;
+const defaultHistoryChars = 24000;

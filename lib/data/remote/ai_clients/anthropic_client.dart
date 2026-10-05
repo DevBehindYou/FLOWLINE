@@ -33,28 +33,96 @@ class AnthropicClient extends HttpAIClient {
         'max_tokens': request.maxOutputTokens,
         'stream': true,
         if (system != null) 'system': system,
-        'messages': chatTurns(request.history, request.prompt),
+        'messages': [
+          ...chatTurns(request.history, request.prompt),
+          ..._continuation(request.continuation),
+        ],
+        if (request.tools.isNotEmpty) ...{
+          'tools': [
+            for (final t in request.tools)
+              {
+                'name': t.name,
+                'description': t.description,
+                'input_schema': t.parameters,
+              },
+          ],
+          'tool_choice': {
+            'type': switch (request.toolChoice) {
+              AIToolChoice.auto => 'auto',
+              AIToolChoice.none => 'none',
+              AIToolChoice.required => 'any',
+            },
+          },
+        },
       },
     );
   }
 
+  // The model's round as content blocks; all of a round's results go back
+  // in one user message (the Messages API requires that).
+  List<Map<String, Object?>> _continuation(List<AITurn> turns) => [
+        for (final t in groupToolResults(turns))
+          if (t is AIAssistantTurn)
+            {
+              'role': 'assistant',
+              'content': [
+                if (t.text.isNotEmpty) {'type': 'text', 'text': t.text},
+                for (final c in t.toolCalls)
+                  {
+                    'type': 'tool_use',
+                    'id': c.id,
+                    'name': c.name,
+                    'input': jsonObjectOf(c.argumentsJson),
+                  },
+              ],
+            }
+          else if (t is List<AIToolResultTurn>)
+            {
+              'role': 'user',
+              'content': [
+                for (final r in t)
+                  {
+                    'type': 'tool_result',
+                    'tool_use_id': r.callId,
+                    'content': r.json,
+                    if (r.isError) 'is_error': true,
+                  },
+              ],
+            },
+      ];
+
   // Events (each data line carries its own "type"): message_start (input
-  // tokens), content_block_delta (text), message_delta (stop reason,
-  // output tokens), message_stop, ping, and error.
+  // tokens), content_block_start (a tool_use block: id and name),
+  // content_block_delta (text, or input_json_delta fragments of a call's
+  // arguments), message_delta (stop reason, output tokens), message_stop,
+  // ping, and error.
   @override
   String? readChunk(Map<String, Object?> chunk, StreamState state) {
     switch (jsonString(chunk['type'])) {
       case 'message_start':
         state.inputTokens = jsonInt(
             jsonMap(jsonMap(chunk['message'])?['usage'])?['input_tokens']);
+      case 'content_block_start':
+        final block = jsonMap(chunk['content_block']);
+        if (block?['type'] == 'tool_use') {
+          state.startToolCall(jsonInt(chunk['index']) ?? -1,
+              id: jsonString(block?['id']), name: jsonString(block?['name']));
+        }
       case 'content_block_delta':
         final delta = jsonMap(chunk['delta']);
-        if (delta?['type'] == 'text_delta') return jsonString(delta?['text']);
+        switch (delta?['type']) {
+          case 'text_delta':
+            return jsonString(delta?['text']);
+          case 'input_json_delta':
+            state.appendToolArguments(jsonInt(chunk['index']) ?? -1,
+                jsonString(delta?['partial_json']) ?? '');
+        }
       case 'message_delta':
         state.stopReason =
             switch (jsonString(jsonMap(chunk['delta'])?['stop_reason'])) {
           'end_turn' || 'stop_sequence' => AIStopReason.complete,
           'max_tokens' => AIStopReason.maxTokens,
+          'tool_use' => AIStopReason.toolUse,
           _ => AIStopReason.other,
         };
         state.outputTokens = jsonInt(jsonMap(chunk['usage'])?['output_tokens']);
