@@ -5,12 +5,10 @@ import 'package:flutter_test/flutter_test.dart';
 /// Atomic design rules (docs/05 §35). Everything visual comes from
 /// lib/design/; features compose its tokens and components.
 ///
-/// A ratchet until the screen migration (docs/05 Phase C) is done: each
-/// rule records how many offending lines exist today. More fails (no new
-/// violations); fewer also fails, asking for the baseline to be lowered,
-/// so progress is locked in. Phase C ends with every baseline at 0.
-///
-/// A line that is a deliberate exception carries `// design-ok: <why>`.
+/// Strict since the end of Phase C: every rule allows 0 offending lines.
+/// (During the migration this was a ratchet; the map below kept the
+/// counts and only ever went down.) A line that is a deliberate exception
+/// carries `// design-ok: <why>`.
 class _Rule {
   const _Rule(this.name, this.pattern, this.fix);
   final String name;
@@ -20,14 +18,14 @@ class _Rule {
   int get baseline => _baselines[name]!;
 }
 
-/// Offending lines allowed today, per rule. Only ever lowered.
+/// Offending lines allowed, per rule: none.
 const _baselines = {
   'no colour literals': 0,
-  'no radius literals': 1,
-  'no spacing literals': 29,
-  'no raw Material buttons': 8,
-  'no spinners on content': 5,
-  'icons come from AtomicIcons': 25,
+  'no radius literals': 0,
+  'no spacing literals': 0,
+  'no raw Material buttons': 0,
+  'no spinners on content': 0,
+  'icons come from AtomicIcons': 0,
   'no raw durations': 0,
   'no bouncy motion': 0,
   'no font names outside the tokens': 0,

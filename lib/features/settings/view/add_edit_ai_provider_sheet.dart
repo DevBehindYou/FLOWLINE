@@ -163,141 +163,137 @@ class _AddEditAiProviderSheetState
         ref.watch(providerHasKeyProvider(widget.config.id)).value ?? false;
     final models = ref.watch(providerModelsProvider)[widget.config.id];
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-      ),
-      child: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(widget.config.displayName,
-                  style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 16),
-              if (_requiresKey)
-                TextFormField(
-                  controller: _apiKeyController,
-                  obscureText: _obscureKey,
-                  autocorrect: false,
-                  enableSuggestions: false,
-                  validator: (value) => _message(l10n,
-                      validateApiKey(value ?? '', hasSavedKey: hasSavedKey)),
-                  decoration: InputDecoration(
-                    labelText: l10n.apiKey,
-                    helperText: hasSavedKey
-                        ? l10n.apiKeySavedHint
-                        : l10n.apiKeyStorageHint,
-                    suffixIcon: IconButton(
-                      tooltip: _obscureKey ? l10n.showKey : l10n.hideKey,
-                      icon: Icon(
-                        _obscureKey
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                      ),
-                      onPressed: () =>
-                          setState(() => _obscureKey = !_obscureKey),
-                    ),
-                  ),
-                )
-              else
-                TextFormField(
-                  controller: _baseUrlController,
-                  keyboardType: TextInputType.url,
-                  autocorrect: false,
-                  validator: (value) =>
-                      _message(l10n, validateOllamaBaseUrl(value ?? '')),
-                  decoration: InputDecoration(
-                    labelText: l10n.serverUrl,
-                    hintText: 'http://localhost:11434', // l10n-ignore: a URL
-                    helperText: l10n.serverUrlHint,
-                    helperMaxLines: 2,
+    final p = context.atomic.palette;
+    const gap = SizedBox(height: AtomicSpace.s);
+    return AtomicSheetFrame(
+      label: widget.config.displayName,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (_requiresKey)
+              TextFormField(
+                controller: _apiKeyController,
+                obscureText: _obscureKey,
+                autocorrect: false,
+                enableSuggestions: false,
+                validator: (value) => _message(l10n,
+                    validateApiKey(value ?? '', hasSavedKey: hasSavedKey)),
+                decoration: InputDecoration(
+                  labelText: l10n.apiKey,
+                  helperText: hasSavedKey
+                      ? l10n.apiKeySavedHint
+                      : l10n.apiKeyStorageHint,
+                  suffixIcon: AtomicIconButton(
+                    semanticLabel: _obscureKey ? l10n.showKey : l10n.hideKey,
+                    icon:
+                        _obscureKey ? AtomicIcons.visible : AtomicIcons.hidden,
+                    onPressed: () => setState(() => _obscureKey = !_obscureKey),
                   ),
                 ),
-              const SizedBox(height: 12),
+              )
+            else
               TextFormField(
-                controller: _modelController,
+                controller: _baseUrlController,
+                keyboardType: TextInputType.url,
                 autocorrect: false,
-                onChanged: (_) => setState(() {}),
                 validator: (value) =>
-                    _message(l10n, validateModelName(value ?? '')),
+                    _message(l10n, validateOllamaBaseUrl(value ?? '')),
                 decoration: InputDecoration(
-                  labelText: l10n.model,
-                  helperText: models != null &&
-                          _modelController.text.trim().isNotEmpty &&
-                          !models
-                              .any((m) => m.id == _modelController.text.trim())
-                      ? l10n.modelNotListed(widget.config.displayName)
-                      : null,
+                  labelText: l10n.serverUrl,
+                  hintText: 'http://localhost:11434', // l10n-ignore: a URL
+                  helperText: l10n.serverUrlHint,
                   helperMaxLines: 2,
-                  suffixIcon: models == null
-                      ? null
-                      : IconButton(
-                          tooltip: l10n.chooseModel,
-                          icon: const Icon(Icons.arrow_drop_down),
-                          onPressed: () => _chooseModel(models),
-                        ),
                 ),
               ),
-              const SizedBox(height: 12),
+            gap,
+            TextFormField(
+              controller: _modelController,
+              autocorrect: false,
+              onChanged: (_) => setState(() {}),
+              validator: (value) =>
+                  _message(l10n, validateModelName(value ?? '')),
+              decoration: InputDecoration(
+                labelText: l10n.model,
+                helperText: models != null &&
+                        _modelController.text.trim().isNotEmpty &&
+                        !models.any((m) => m.id == _modelController.text.trim())
+                    ? l10n.modelNotListed(widget.config.displayName)
+                    : null,
+                helperMaxLines: 2,
+                suffixIcon: models == null
+                    ? null
+                    : AtomicIconButton(
+                        semanticLabel: l10n.chooseModel,
+                        icon: AtomicIcons.expandMore,
+                        onPressed: () => _chooseModel(models),
+                      ),
+              ),
+            ),
+            gap,
+            Align(
+              alignment: Alignment.centerLeft,
+              child: AtomicButton(
+                label: l10n.testConnection,
+                busyLabel: l10n.testingConnection,
+                busy: _testing,
+                icon: AtomicIcons.connection,
+                variant: AtomicButtonVariant.ghost,
+                onPressed: _saving ? null : _testConnection,
+              ),
+            ),
+            if (_tested) ...[
+              const SizedBox(height: AtomicSpace.xs),
+              // Success in words with the real number and a Signal
+              // check; failure in danger text (system §9.9).
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  OutlinedButton.icon(
-                    onPressed: _testing || _saving ? null : _testConnection,
-                    icon: _testing
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Icon(Icons.wifi_tethering),
-                    label: Text(l10n.testConnection),
+                  Icon(
+                      _testFailure == null
+                          ? AtomicIcons.check
+                          : AtomicIcons.error,
+                      size: AtomicSize.iconTiny,
+                      color: _testFailure == null ? p.accentText : p.danger),
+                  const SizedBox(width: AtomicSpace.iconLabelGap),
+                  Expanded(
+                    child: AtomicText.body(
+                      _testFailure == null
+                          ? l10n.connectionOk(models?.length ?? 0)
+                          : l10n.aiFailure(_testFailure!, widget.config),
+                      style: _testFailure == null
+                          ? null
+                          : AtomicType.body.copyWith(color: p.danger),
+                    ),
                   ),
                 ],
               ),
-              if (_tested) ...[
-                const SizedBox(height: 8),
-                Text(
-                  _testFailure == null
-                      ? l10n.connectionOk(models?.length ?? 0)
-                      : l10n.aiFailure(_testFailure!, widget.config),
-                  style: TextStyle(
-                    color: _testFailure == null
-                        ? context.atomic.palette.accentText
-                        : Theme.of(context).colorScheme.error,
-                  ),
-                ),
-              ],
-              if (_error != null) ...[
-                const SizedBox(height: 12),
-                Text(
-                  _error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-              ],
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _saving ? null : _save,
-                child: _saving
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(l10n.save),
-              ),
-              const SizedBox(height: 8),
-              if (_requiresKey && hasSavedKey)
-                TextButton(
-                  onPressed: _saving ? null : _remove,
-                  child: Text(l10n.removeKey),
-                ),
             ],
-          ),
+            if (_error != null) ...[
+              gap,
+              AtomicText.body(_error!,
+                  style: AtomicType.body.copyWith(color: p.danger)),
+            ],
+            const SizedBox(height: AtomicSpace.xl),
+            AtomicButton(
+              label: l10n.save,
+              busyLabel: l10n.saving,
+              busy: _saving,
+              expand: true,
+              onPressed: _save,
+            ),
+            if (_requiresKey && hasSavedKey) ...[
+              gap,
+              AtomicButton(
+                label: l10n.removeKey,
+                variant: AtomicButtonVariant.destructive,
+                expand: true,
+                onPressed: _saving ? null : _remove,
+              ),
+            ],
+          ],
         ),
       ),
     );

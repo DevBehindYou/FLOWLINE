@@ -17,6 +17,7 @@ abstract final class AtomicIcons {
 
   // Actions.
   static const add = Icons.add;
+  static const remove = Icons.remove;
   static const edit = Icons.edit_outlined;
   static const delete = Icons.delete_outline;
   static const close = Icons.close;

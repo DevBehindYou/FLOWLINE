@@ -34,8 +34,11 @@ void main() {
     app.main();
 
     // First launch opens onboarding.
-    await pumpUntil(tester, find.text('Skip'));
-    await tap(tester, find.text('Skip'));
+    // Mono labels draw capitals and keep the words for screen readers.
+    final skip = find.byWidgetPredicate(
+        (w) => w is Text && (w.data == 'Skip' || w.semanticsLabel == 'Skip'));
+    await pumpUntil(tester, skip);
+    await tap(tester, skip);
     await pumpUntil(tester, find.text('No tasks yet'));
 
     // Session alerts off, so Android 13+ never shows its permission

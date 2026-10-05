@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../design/atomic.dart';
 import '../../../domain/entities/ai_provider_config.dart';
 import '../../../shared_widgets/error_view.dart';
 import '../../ai_assistant/viewmodel/assistant_view_model.dart';
@@ -20,7 +21,7 @@ class AiProvidersScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.settingsAiProviders)),
       body: providersAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => AtomicLoading(label: context.l10n.loadingProviders),
         error: (error, _) => ErrorView(
           error: error,
           onRetry: () => ref.invalidate(aiProvidersProvider),
@@ -33,9 +34,9 @@ class AiProvidersScreen extends ConsumerWidget {
                 ref.read(aiProvidersViewModelProvider.notifier).setActive(id));
           },
           child: ListView.separated(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AtomicSpace.screenMargin),
             itemCount: providers.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (_, __) => const SizedBox(height: AtomicSpace.s),
             itemBuilder: (context, index) =>
                 _ProviderCard(config: providers[index]),
           ),
@@ -70,33 +71,35 @@ class _ProviderCard extends ConsumerWidget {
       );
     }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Row(
-          children: [
-            Radio<AIProviderId>(value: config.id, enabled: canActivate),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(config.displayName,
-                      style: Theme.of(context).textTheme.titleMedium),
-                  Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
-                ],
-              ),
+    // The active provider is the selected card (2 dp Signal border).
+    final isActive = config.isActive;
+    return AtomicCard(
+      kind: isActive ? AtomicCardKind.selected : AtomicCardKind.content,
+      padding: const EdgeInsets.symmetric(
+          horizontal: AtomicSpace.xxs, vertical: AtomicSpace.xxs),
+      child: Row(
+        children: [
+          Radio<AIProviderId>(value: config.id, enabled: canActivate),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AtomicText.display(config.displayName,
+                    style: AtomicType.rowTitle),
+                AtomicText.mono(subtitle, style: AtomicType.caption),
+              ],
             ),
-            IconButton(
-              icon: const Icon(Icons.edit_outlined),
-              tooltip: context.l10n.edit,
-              onPressed: () => showModalBottomSheet<void>(
-                context: context,
-                isScrollControlled: true,
-                builder: (_) => AddEditAiProviderSheet(config: config),
-              ),
+          ),
+          AtomicIconButton(
+            icon: AtomicIcons.edit,
+            semanticLabel: context.l10n.edit,
+            onPressed: () => showModalBottomSheet<void>(
+              context: context,
+              isScrollControlled: true,
+              builder: (_) => AddEditAiProviderSheet(config: config),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

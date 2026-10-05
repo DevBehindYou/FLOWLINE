@@ -68,7 +68,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final step = switch (_step) {
       0 => _Step(
           key: const ValueKey(0),
-          icon: Icons.view_timeline_outlined,
+          icon: AtomicIcons.block,
           title: l10n.onboardingWelcomeTitle,
           body: l10n.onboardingWelcomeBody,
           primaryLabel: l10n.onboardingNext,
@@ -76,7 +76,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         ),
       1 => _Step(
           key: const ValueKey(1),
-          icon: Icons.notifications_active_outlined,
+          icon: AtomicIcons.notificationsOn,
           title: l10n.onboardingNotificationsTitle,
           body: l10n.onboardingNotificationsBody,
           primaryLabel: l10n.onboardingAllowNotifications,
@@ -86,7 +86,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         ),
       _ => _Step(
           key: const ValueKey(2),
-          icon: Icons.smart_toy_outlined,
+          icon: AtomicIcons.ai,
           title: l10n.onboardingAiTitle,
           body: l10n.onboardingAiBody,
           primaryLabel: l10n.onboardingConnectProvider,
@@ -99,16 +99,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Semantics(
-          label: l10n.onboardingStep(_step + 1, _stepCount),
-          child: ExcludeSemantics(child: _StepDots(current: _step)),
-        ),
+        // "STEP 1 OF 3" in mono (system §10.4 numbered steps); screen
+        // readers hear the words.
+        title: AtomicText.mono(l10n.onboardingStep(_step + 1, _stepCount),
+            style: AtomicType.label
+                .copyWith(color: context.atomic.palette.accentText)),
         actions: [
           if (_step < _stepCount - 1)
-            TextButton(
+            AtomicButton(
+              label: l10n.onboardingSkip,
+              variant: AtomicButtonVariant.text,
               onPressed: _busy ? null : () => _finish(connectAi: false),
-              child: Text(l10n.onboardingSkip),
             ),
+          const SizedBox(width: AtomicSpace.xs),
         ],
       ),
       body: SafeArea(
@@ -120,31 +123,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _StepDots extends StatelessWidget {
-  const _StepDots({required this.current});
-  final int current;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (var i = 0; i < _OnboardingScreenState._stepCount; i++)
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 3),
-            width: i == current ? 20 : 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: i == current ? scheme.primary : scheme.outlineVariant,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-      ],
     );
   }
 }
@@ -171,12 +149,13 @@ class _Step extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final p = context.atomic.palette;
     return LayoutBuilder(
       builder: (context, constraints) => SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AtomicSpace.xl),
         child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: constraints.maxHeight - 48),
+          constraints: BoxConstraints(
+              minHeight: constraints.maxHeight - 2 * AtomicSpace.xl),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -184,26 +163,34 @@ class _Step extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 24),
-                  Icon(icon, size: 56, color: theme.colorScheme.primary),
-                  const SizedBox(height: 24),
-                  Text(title, style: theme.textTheme.headlineSmall),
-                  const SizedBox(height: 12),
-                  Text(body, style: theme.textTheme.bodyLarge),
+                  const SizedBox(height: AtomicSpace.xl),
+                  Icon(icon, size: AtomicSize.heroMark, color: p.accentText),
+                  const SizedBox(height: AtomicSpace.xl),
+                  Semantics(
+                    header: true,
+                    child: AtomicText.display(title,
+                        style: AtomicType.pushedTitle),
+                  ),
+                  const SizedBox(height: AtomicSpace.s),
+                  AtomicText.body(body, style: AtomicType.bodyLarge),
                 ],
               ),
               Padding(
-                padding: const EdgeInsets.only(top: 32),
+                padding: const EdgeInsets.only(top: AtomicSpace.xxl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    FilledButton(
-                        onPressed: onPrimary, child: Text(primaryLabel)),
+                    AtomicButton(
+                        label: primaryLabel,
+                        expand: true,
+                        onPressed: onPrimary),
                     if (secondaryLabel != null) ...[
-                      const SizedBox(height: 8),
-                      TextButton(
+                      const SizedBox(height: AtomicSpace.s),
+                      AtomicButton(
+                        label: secondaryLabel!,
+                        variant: AtomicButtonVariant.ghost,
+                        expand: true,
                         onPressed: onSecondary,
-                        child: Text(secondaryLabel!),
                       ),
                     ],
                   ],

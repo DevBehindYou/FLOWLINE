@@ -706,6 +706,42 @@ abstract class AppLocalizations {
   /// **'Jump to today'**
   String get jumpToToday;
 
+  /// Mono caps line while an export is being built.
+  ///
+  /// In en, this message translates to:
+  /// **'Exporting…'**
+  String get exporting;
+
+  /// Mono caps loading line on AI Providers.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading providers…'**
+  String get loadingProviders;
+
+  /// Busy label on Test connection.
+  ///
+  /// In en, this message translates to:
+  /// **'Testing…'**
+  String get testingConnection;
+
+  /// Section label above destructive settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Danger zone'**
+  String get dangerZone;
+
+  /// Warning sentence above the Clear all data button.
+  ///
+  /// In en, this message translates to:
+  /// **'This deletes every task, block and focus session on this phone. It can\'t be undone.'**
+  String get clearAllDataWarning;
+
+  /// Busy label while all data is being cleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Clearing…'**
+  String get clearingData;
+
   /// Mono caps loading line on Insights.
   ///
   /// In en, this message translates to:

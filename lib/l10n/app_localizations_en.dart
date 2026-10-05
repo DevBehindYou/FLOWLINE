@@ -358,6 +358,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get jumpToToday => 'Jump to today';
 
   @override
+  String get exporting => 'Exporting…';
+
+  @override
+  String get loadingProviders => 'Loading providers…';
+
+  @override
+  String get testingConnection => 'Testing…';
+
+  @override
+  String get dangerZone => 'Danger zone';
+
+  @override
+  String get clearAllDataWarning =>
+      'This deletes every task, block and focus session on this phone. It can\'t be undone.';
+
+  @override
+  String get clearingData => 'Clearing…';
+
+  @override
   String get loadingInsights => 'Loading your week…';
 
   @override

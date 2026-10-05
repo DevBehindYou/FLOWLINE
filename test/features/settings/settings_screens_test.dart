@@ -13,6 +13,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../support/finders.dart';
+
 import '../../support/pump_app.dart';
 import '../../support/test_database.dart';
 
@@ -44,11 +46,11 @@ void main() {
   testWidgets('Focus timer steppers change and persist lengths',
       (tester) async {
     await pumpScreen(tester, db: db, child: const FocusTimerSettingsScreen());
-    expect(find.text('25 min'), findsOneWidget);
+    expect(findLabel('25 min'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Increase Focus'));
     await tester.pumpAndSettle();
-    expect(find.text('30 min'), findsOneWidget);
+    expect(findLabel('30 min'), findsOneWidget);
     expect((await stored(tester)).focusMinutes, 30);
 
     await tester.tap(find.byTooltip('Decrease Short break'));
@@ -94,6 +96,8 @@ void main() {
           secureKeyStoreProvider.overrideWith((ref) => _FakeKeyStore()),
         ]);
 
+    await tester.ensureVisible(find.text('Clear all data'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Clear all data'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Cancel'));
@@ -101,6 +105,8 @@ void main() {
     expect(
         await tester.runAsync(() => db.select(db.tasks).get()), hasLength(1));
 
+    await tester.ensureVisible(find.text('Clear all data'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Clear all data'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Clear everything'));

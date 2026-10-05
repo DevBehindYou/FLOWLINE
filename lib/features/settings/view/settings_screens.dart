@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/async/run_action.dart';
 import '../../../core/providers.dart';
+import '../../../design/atomic.dart';
 import '../../../domain/entities/app_settings.dart';
 import '../../../shared_widgets/confirm_dialog.dart';
 import '../viewmodel/settings_view_model.dart';
@@ -29,33 +30,33 @@ class AppearanceScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.settingsAppearance)),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AtomicSpace.screenMargin),
         children: [
-          Text(context.l10n.appearanceTheme,
-              style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 12),
+          AtomicSectionLabel(context.l10n.appearanceTheme),
+          const SizedBox(height: AtomicSpace.m),
           SegmentedButton<AppThemeMode>(
             segments: [
               ButtonSegment(
                   value: AppThemeMode.system,
-                  icon: const Icon(Icons.brightness_auto_outlined),
+                  icon: const Icon(AtomicIcons.systemMode),
                   label: Text(context.l10n.appearanceSystem)),
               ButtonSegment(
                   value: AppThemeMode.light,
-                  icon: const Icon(Icons.light_mode_outlined),
+                  icon: const Icon(AtomicIcons.lightMode),
                   label: Text(context.l10n.appearanceLight)),
               ButtonSegment(
                   value: AppThemeMode.dark,
-                  icon: const Icon(Icons.dark_mode_outlined),
+                  icon: const Icon(AtomicIcons.darkMode),
                   label: Text(context.l10n.appearanceDark)),
             ],
             selected: {mode},
             onSelectionChanged: (s) =>
                 _update(context, ref, (c) => c.copyWith(themeMode: s.first)),
           ),
-          const SizedBox(height: 8),
-          Text(context.l10n.appearanceSystemHint,
-              style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: AtomicSpace.xs),
+          AtomicText.body(context.l10n.appearanceSystemHint,
+              style: AtomicType.bodySmall
+                  .copyWith(color: context.atomic.palette.textMuted)),
         ],
       ),
     );
@@ -104,10 +105,11 @@ class FocusTimerSettingsScreen extends ConsumerWidget {
                 : null,
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
+            padding: const EdgeInsets.all(AtomicSpace.screenMargin),
+            child: AtomicText.body(
               context.l10n.focusSettingsHint,
-              style: Theme.of(context).textTheme.bodySmall,
+              style: AtomicType.bodySmall
+                  .copyWith(color: context.atomic.palette.textMuted),
             ),
           ),
         ],
@@ -160,20 +162,29 @@ class _StepperTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(label),
-      subtitle: Text(valueText),
+    // A stepper (system §9.5): the value in mono between two square
+    // buttons, each with its own name for screen readers.
+    return AtomicSettingsRow(
+      title: label,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            tooltip: context.l10n.decreaseSetting(label),
-            icon: const Icon(Icons.remove_circle_outline),
+          AtomicIconButton(
+            icon: AtomicIcons.remove,
+            semanticLabel: context.l10n.decreaseSetting(label),
+            style: AtomicIconButtonStyle.ink,
             onPressed: onMinus,
           ),
-          IconButton(
-            tooltip: context.l10n.increaseSetting(label),
-            icon: const Icon(Icons.add_circle_outline),
+          ConstrainedBox(
+            constraints:
+                const BoxConstraints(minWidth: AtomicSize.controlSecondary),
+            child: AtomicText.mono(valueText,
+                style: AtomicType.counter, textAlign: TextAlign.center),
+          ),
+          AtomicIconButton(
+            icon: AtomicIcons.add,
+            semanticLabel: context.l10n.increaseSetting(label),
+            style: AtomicIconButtonStyle.ink,
             onPressed: onPlus,
           ),
         ],
@@ -244,37 +255,41 @@ class _DataPrivacyScreenState extends ConsumerState<DataPrivacyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
+    final l10n = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.settingsDataPrivacy)),
+      appBar: AppBar(title: Text(l10n.settingsDataPrivacy)),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AtomicSpace.screenMargin),
         children: [
-          Text(context.l10n.dataWhereTitle, style: text.titleMedium),
-          const SizedBox(height: 8),
-          Text(context.l10n.dataWhereBody),
-          const SizedBox(height: 32),
-          OutlinedButton.icon(
-            onPressed: _clearing ? null : _clearAll,
-            style: OutlinedButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.error),
-            icon: _clearing
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2))
-                : const Icon(Icons.delete_forever_outlined),
-            label: Text(context.l10n.clearAllData),
-          ),
-          const SizedBox(height: 16),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.article_outlined),
-            title: Text(context.l10n.openSourceLicences),
+          AtomicSectionLabel(l10n.dataWhereTitle),
+          const SizedBox(height: AtomicSpace.s),
+          AtomicText.body(l10n.dataWhereBody),
+          const SizedBox(height: AtomicSpace.xxl),
+          AtomicSettingsRow(
+            leading: AtomicIcons.document,
+            title: l10n.openSourceLicences,
             onTap: () => showLicensePage(
               context: context,
-              applicationName: context.l10n.appTitle,
+              applicationName: l10n.appTitle,
             ),
+          ),
+          const SizedBox(height: AtomicSpace.xxl),
+          // Two-key danger (system §10.4): a warning sentence, then a
+          // confirmation that states what goes.
+          AtomicDangerZone(
+            label: l10n.dangerZone,
+            warning: l10n.clearAllDataWarning,
+            children: [
+              AtomicButton(
+                label: l10n.clearAllData,
+                icon: AtomicIcons.delete,
+                variant: AtomicButtonVariant.destructive,
+                expand: true,
+                busy: _clearing,
+                busyLabel: l10n.clearingData,
+                onPressed: _clearAll,
+              ),
+            ],
           ),
         ],
       ),

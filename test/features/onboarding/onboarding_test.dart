@@ -9,6 +9,8 @@ import 'package:atomic_assist/features/onboarding/onboarding_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../support/finders.dart';
+
 import '../../support/pump_app.dart';
 import '../../support/test_database.dart';
 
@@ -82,7 +84,7 @@ void main() {
     expect(notifications.permissionRequests, 1);
     expect(find.text('Connect an AI assistant (optional)'), findsOneWidget);
     // The last step has its own skip; the app-bar one is gone.
-    expect(find.text('Skip'), findsNothing);
+    expect(findLabel('Skip'), findsNothing);
 
     await tester.tap(find.text('Skip for now'));
     await tester.pumpAndSettle();
@@ -119,7 +121,7 @@ void main() {
   testWidgets('Skip on the first step finishes onboarding', (tester) async {
     final finished = await pumpOnboarding(tester, _FakeNotificationService());
 
-    await tester.tap(find.text('Skip'));
+    await tester.tap(findLabel('Skip'));
     await tester.pumpAndSettle();
 
     expect(finished, [false]);

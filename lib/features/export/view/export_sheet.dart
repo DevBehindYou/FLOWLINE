@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/entities/export_format.dart';
 import '../../../core/async/run_action.dart';
+import '../../../design/atomic.dart';
 import '../viewmodel/export_view_model.dart';
 import '../../../l10n/l10n.dart';
 
@@ -27,66 +28,36 @@ class ExportSheet extends ConsumerWidget {
       if (done == true && context.mounted) Navigator.of(context).pop();
     }
 
-    return Padding(
-      padding: const EdgeInsets.all(20),
+    return AtomicSheetFrame(
+      label: context.l10n.exportThisWeek,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(context.l10n.exportThisWeek,
-              style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 4),
-          Text(
-            context.l10n.exportDescription,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 20),
+          AtomicText.body(context.l10n.exportDescription),
+          const SizedBox(height: AtomicSpace.m),
           if (isExporting)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: CircularProgressIndicator(),
-              ),
-            )
+            AtomicLoading(label: context.l10n.exporting, compact: true)
           else ...[
-            _ExportOption(
-              icon: Icons.picture_as_pdf_outlined,
-              label: context.l10n.exportPdf,
+            AtomicSettingsRow(
+              leading: AtomicIcons.pdf,
+              title: context.l10n.exportPdf,
               onTap: () => handle(ExportFormat.pdf),
             ),
-            _ExportOption(
-              icon: Icons.table_chart_outlined,
-              label: context.l10n.exportCsv,
+            AtomicSettingsRow(
+              leading: AtomicIcons.table,
+              title: context.l10n.exportCsv,
               onTap: () => handle(ExportFormat.csv),
             ),
-            _ExportOption(
-              icon: Icons.code,
-              label: context.l10n.exportJson,
+            AtomicSettingsRow(
+              leading: AtomicIcons.code,
+              title: context.l10n.exportJson,
+              divider: false,
               onTap: () => handle(ExportFormat.json),
             ),
           ],
         ],
       ),
-    );
-  }
-}
-
-class _ExportOption extends StatelessWidget {
-  const _ExportOption(
-      {required this.icon, required this.label, required this.onTap});
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(icon),
-      title: Text(label),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: onTap,
     );
   }
 }

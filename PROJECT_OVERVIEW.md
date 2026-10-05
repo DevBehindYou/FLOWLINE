@@ -1040,7 +1040,7 @@ For each screen: purpose, what it shows, actions, and its state model.
 
 The app is themed by the **Atomic Design System**
 (`docs/design-system/atomic-design-system.md`); the Flowline token files
-in `docs/design-tokens/` no longer apply. Everything visual comes from
+in `docs/history/design-tokens/` no longer apply. Everything visual comes from
 `lib/design/tokens/`:
 
 | Token file | Contents |
@@ -1088,12 +1088,20 @@ System / Light / Dark, chosen in Settings → Appearance and stored in
 
 | Screen | Empty | Loading | Error | Success |
 |---|---|---|---|---|
-| Today | "No tasks yet" + Add Task | spinner | raw error text | timeline |
-| Task Detail | "No subtasks yet." | spinner | raw error text | detail |
-| Focus | idle view (always ready) | spinner | raw error text | idle / running / paused |
-| Assistant | "Connect an AI provider" / "Ask me anything" | spinner; progress bar while sending | error **bubble** in the thread | thread |
-| Insights | "Complete a session to see stats" | spinner | raw error text | stat cards + chart |
-| AI Providers | (all four always listed) | spinner | raw error text | cards |
+Since Phase C every state uses the Atomic components: loading is a mono
+line naming what loads plus a 2 dp ink bar (no spinners), empty is a
+surface module with one sentence and a next step, errors are plain words
+with Retry (`ErrorView` → `AtomicErrorState`, K9/R14), destructive actions
+confirm in a sheet that states the effect.
+
+| Screen | Empty | Loading | Error | Success |
+|---|---|---|---|---|
+| Today | "No tasks yet" module + Add Task | "LOADING THE DAY…" | plain message + Retry | timeline |
+| Task Detail | "No subtasks yet." / "No focus sessions yet." | "LOADING THE TASK…" | plain message + Retry | detail |
+| Focus | idle view with the atom mark | "LOADING THE TIMER…" | plain message + Retry | idle / running / paused |
+| Assistant | "Connect an AI provider" / "Ask me anything" | "LOADING THE CONVERSATION…"; ink bar while sending | warning card in the thread | thread |
+| Insights | "Complete a session to see stats" | "LOADING YOUR WEEK…" | plain message + Retry | stat panels + chart |
+| AI Providers | (all four always listed) | "LOADING PROVIDERS…" | plain message + Retry | cards; the active one selected |
 
 ### 14.7 Accessibility status
 
@@ -1230,7 +1238,7 @@ assessment of each.
 | D5 | Spec: Settings icon on every tab | On every tab's app bar | Done (Phase 3c) | — |
 | D6 | Spec: onboarding, splash, Session Summary, Conversation History, Notifications, Appearance, Data & Privacy screens | All but Conversation History built (Phase 3) | Mostly done | Conversation History in Phase 4 |
 | D7 | Spec: theme mode System / Light / Dark setting | Appearance screen, stored in `app_settings` | Done (Phase 3e) | — |
-| D8 | Tokens: dark `primary` `#C0C1FF`, `surface-container-high` `#1F2430`, light `surface-border` `#E2E8F0`; Space Grotesk + Inter | Dark primary `#C0C1FF`; every container token mapped; Space Grotesk + Inter bundled | Done (Phase 3) | Decisions in `docs/design-tokens/DECISIONS.md` |
+| D8 | Tokens: dark `primary` `#C0C1FF`, `surface-container-high` `#1F2430`, light `surface-border` `#E2E8F0`; Space Grotesk + Inter | Dark primary `#C0C1FF`; every container token mapped; Space Grotesk + Inter bundled | Done (Phase 3) | Superseded by the Atomic system (docs/05 Phase A); record in `docs/history/design-tokens/DECISIONS.md` |
 | D9 | `03` §7 model matrix: Claude 3.5 Sonnet, GPT-4o mini, Gemini 1.5 | Same seeded defaults | Likely stale today | Verify live, then update openly |
 | D10 | `03` §8 packages: `drift_flutter`, `freezed`, `json_serializable`, `csv`, `workmanager`, `mocktail` | None used | Intentional — not needed yet | Keep |
 | D11 | README: notification plugin "merges its own manifest requirements" | False since plugin v16; app must declare receivers | Bug (fixed) | README updated in `1f5d597` |
