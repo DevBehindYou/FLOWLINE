@@ -7,6 +7,7 @@ import 'package:atomic_assist/data/repositories/focus_session_repository_impl.da
 import 'package:atomic_assist/domain/entities/focus_session.dart';
 import 'package:atomic_assist/features/focus_timer/view/focus_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:atomic_assist/design/atomic.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/pump_app.dart';
@@ -91,7 +92,7 @@ void main() {
       expect(
         find.ancestor(
           of: find.text('Start'),
-          matching: find.bySubtype<FilledButton>(),
+          matching: find.byType(AtomicButton),
         ),
         findsOneWidget,
       );

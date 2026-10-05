@@ -80,6 +80,13 @@ abstract final class AtomicSize {
 
   /// Inline icons beside a mono label (a due date, a lock).
   static const iconTiny = 16.0;
+
+  /// The brand mark when it stands for an idle state (Focus, empty).
+  static const heroMark = 64.0;
+
+  /// Focus controls: the primary square and the secondary ones.
+  static const controlPrimary = 64.0;
+  static const controlSecondary = 52.0;
   static const unreadDot = 8.0;
   static const progressBar = 8.0;
   static const loadingBar = 2.0;

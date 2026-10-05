@@ -358,6 +358,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get jumpToToday => 'Jump to today';
 
   @override
+  String get loadingFocus => 'Loading the timer…';
+
+  @override
   String get loadingTask => 'Loading the task…';
 
   @override
@@ -614,7 +617,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get start => 'Start';
 
   @override
-  String get timerPaused => 'PAUSED';
+  String get timerPaused => 'Paused';
 
   @override
   String get end => 'End';
@@ -632,13 +635,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addFiveMinutes => '+5 min';
 
   @override
-  String get timerLabelFocus => 'FOCUS';
+  String get timerLabelFocus => 'Focus';
 
   @override
-  String get timerLabelShortBreak => 'SHORT BREAK';
+  String get timerLabelShortBreak => 'Short break';
 
   @override
-  String get timerLabelLongBreak => 'LONG BREAK';
+  String get timerLabelLongBreak => 'Long break';
 
   @override
   String selectorFocus(int minutes) {

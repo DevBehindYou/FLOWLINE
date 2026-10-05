@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../../design/atomic.dart';
+
 import '../../../l10n/l10n.dart';
 
 class TimerRing extends StatelessWidget {
@@ -56,44 +58,41 @@ class TimerRing extends StatelessWidget {
       math.min(availableWidth * 0.72, screenHeight * 0.42).clamp(160.0, 360.0);
 
   Widget _ring(BuildContext context, double progress, double d) {
-    final stroke = d / 24;
+    final p = context.atomic.palette;
     return Stack(
       alignment: Alignment.center,
       children: [
         SizedBox.expand(
-          child: CircularProgressIndicator(
-            value: 1,
-            strokeWidth: stroke,
-            color: Theme.of(context).colorScheme.surfaceContainerHigh,
-          ),
-        ),
-        SizedBox.expand(
-          child: CircularProgressIndicator(
-            value: progress,
-            strokeWidth: stroke,
-            color: color,
-            strokeCap: StrokeCap.round,
+          child: CustomPaint(
+            painter: _RingPainter(
+              progress: progress,
+              stroke: d / _strokeRatio,
+              track: p.track,
+              arc: color,
+            ),
           ),
         ),
         // Scales down inside the ring instead of overflowing it at large
         // system font sizes (spec: survive 200% text scale).
         Padding(
-          padding: EdgeInsets.all(d * 0.12),
+          padding: EdgeInsets.all(d * _digitInset),
           child: FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
               _format(remainingSec),
-              // Tabular figures: digits keep one width, so the
-              // countdown doesn't shift sideways every second.
-              style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                fontFeatures: const [FontFeature.tabularFigures()],
-              ),
+              // Monospace digits keep one width, so the countdown doesn't
+              // shift sideways every second (system §4.4: numbers that
+              // change are mono).
+              style: AtomicType.timer.copyWith(color: p.text),
             ),
           ),
         ),
       ],
     );
   }
+
+  static const _strokeRatio = 24;
+  static const _digitInset = 0.12;
 
   String _spoken(AppLocalizations l10n, int totalSeconds) {
     final safe = totalSeconds < 0 ? 0 : totalSeconds;
@@ -108,4 +107,41 @@ class TimerRing extends StatelessWidget {
     final seconds = (safeSeconds % 60).toString().padLeft(2, '0');
     return '$minutes:$seconds';
   }
+}
+
+/// The track and the remaining-time arc, from 12 o'clock clockwise. Square
+/// caps: Atomic edges are hard (system §1.3).
+class _RingPainter extends CustomPainter {
+  const _RingPainter({
+    required this.progress,
+    required this.stroke,
+    required this.track,
+    required this.arc,
+  });
+
+  final double progress;
+  final double stroke;
+  final Color track;
+  final Color arc;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = (Offset.zero & size).deflate(stroke / 2);
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = stroke
+      ..strokeCap = StrokeCap.butt;
+    canvas.drawArc(rect, 0, 2 * math.pi, false, paint..color = track);
+    if (progress > 0) {
+      canvas.drawArc(rect, -math.pi / 2, 2 * math.pi * progress.clamp(0, 1),
+          false, paint..color = arc);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_RingPainter old) =>
+      old.progress != progress ||
+      old.stroke != stroke ||
+      old.track != track ||
+      old.arc != arc;
 }

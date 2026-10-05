@@ -23,11 +23,11 @@ class _Rule {
 /// Offending lines allowed today, per rule. Only ever lowered.
 const _baselines = {
   'no colour literals': 0,
-  'no radius literals': 5,
-  'no spacing literals': 65,
-  'no raw Material buttons': 15,
-  'no spinners on content': 13,
-  'icons come from AtomicIcons': 47,
+  'no radius literals': 4,
+  'no spacing literals': 46,
+  'no raw Material buttons': 8,
+  'no spinners on content': 10,
+  'icons come from AtomicIcons': 35,
   'no raw durations': 0,
   'no bouncy motion': 0,
   'no font names outside the tokens': 0,
@@ -35,7 +35,7 @@ const _baselines = {
 };
 
 final _rules = [
-  _Rule('no colour literals', RegExp(r'Color\(0x|Colors\.(?!transparent)'),
+  _Rule('no colour literals', RegExp(r'Color\(0x|\bColors\.(?!transparent)'),
       'Use a palette role: context.atomic.palette.*'),
   _Rule('no radius literals', RegExp(r'circular\(\s*\d'), 'Use AtomicRadius.*'),
   _Rule(

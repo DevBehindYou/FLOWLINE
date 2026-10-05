@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/async/run_action.dart';
 import '../../../core/providers.dart';
+import '../../../design/atomic.dart';
 import '../../../domain/entities/app_settings.dart';
 import '../../../domain/entities/focus_session.dart';
 import '../../task_detail/viewmodel/task_detail_view_model.dart';
@@ -50,7 +51,6 @@ class _SessionSummarySheetState extends ConsumerState<SessionSummarySheet> {
   @override
   Widget build(BuildContext context) {
     final outcome = widget.outcome;
-    final text = Theme.of(context).textTheme;
     final settings =
         ref.watch(appSettingsProvider).value ?? const AppSettings();
     final wasFocus = outcome.session.sessionType == FocusSessionType.focus;
@@ -65,61 +65,67 @@ class _SessionSummarySheetState extends ConsumerState<SessionSummarySheet> {
         ? (wasFocus ? l10n.summaryEndedEarly : l10n.summaryBreakSkipped)
         : (wasFocus ? l10n.summaryFocusComplete : l10n.summaryBreakOver);
 
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  outcome.endedEarly
-                      ? Icons.stop_circle_outlined
-                      : Icons.check_circle,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Expanded(child: Text(title, style: text.titleLarge)),
-              ],
-            ),
-            const SizedBox(height: 12),
-            if (wasFocus)
-              Text(
-                outcome.endedEarly
-                    ? l10n.summaryLoggedEarly(minutes)
-                    : l10n.summaryLogged(minutes),
-                style: text.bodyLarge,
+    final p = context.atomic.palette;
+    return AtomicSheetFrame(
+      label: l10n.navFocus,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(
+                outcome.endedEarly ? AtomicIcons.endSession : AtomicIcons.done,
+                color: p.accentText,
               ),
-            if (taskTitle != null) ...[
-              const SizedBox(height: 4),
-              Text(l10n.summaryOnTask(taskTitle), style: text.bodyMedium),
+              const SizedBox(width: AtomicSpace.xs),
+              Expanded(
+                child: Semantics(
+                  header: true,
+                  child: AtomicText.display(title, style: AtomicType.cardTitle),
+                ),
+              ),
             ],
-            const SizedBox(height: 4),
-            Text(
-              l10n.summarySessionsToday(outcome.focusSessionsToday),
-              style: text.bodySmall,
+          ),
+          const SizedBox(height: AtomicSpace.s),
+          if (wasFocus)
+            AtomicText.body(
+              outcome.endedEarly
+                  ? l10n.summaryLoggedEarly(minutes)
+                  : l10n.summaryLogged(minutes),
+              style: AtomicType.bodyLarge,
             ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: _starting ? null : _startNext,
-              icon: const Icon(Icons.play_arrow),
-              label: Text(_startLabel(
-                  l10n, outcome.next, settings.minutesFor(outcome.next))),
-            ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: _starting
-                  ? null
-                  : () {
-                      Navigator.of(context).pop();
-                      context.go('/today');
-                    },
-              child: Text(l10n.backToToday),
-            ),
+          if (taskTitle != null) ...[
+            const SizedBox(height: AtomicSpace.xxs),
+            AtomicText.body(l10n.summaryOnTask(taskTitle)),
           ],
-        ),
+          const SizedBox(height: AtomicSpace.xxs),
+          AtomicText.mono(
+            l10n.summarySessionsToday(outcome.focusSessionsToday),
+            style: AtomicType.caption,
+          ),
+          const SizedBox(height: AtomicSpace.l),
+          AtomicButton(
+            label: _startLabel(
+                l10n, outcome.next, settings.minutesFor(outcome.next)),
+            icon: AtomicIcons.play,
+            expand: true,
+            busy: _starting,
+            onPressed: _startNext,
+          ),
+          const SizedBox(height: AtomicSpace.s),
+          AtomicButton(
+            label: l10n.backToToday,
+            variant: AtomicButtonVariant.ghost,
+            expand: true,
+            onPressed: _starting
+                ? null
+                : () {
+                    Navigator.of(context).pop();
+                    context.go('/today');
+                  },
+          ),
+        ],
       ),
     );
   }

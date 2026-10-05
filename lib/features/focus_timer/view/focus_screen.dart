@@ -68,7 +68,7 @@ class _FocusScreenState extends ConsumerState<FocusScreen> {
         actions: const [SettingsAction()],
       ),
       body: sessionAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => AtomicLoading(label: context.l10n.loadingFocus),
         error: (error, _) => ErrorView(
           error: error,
           onRetry: () => ref.invalidate(activeFocusSessionProvider),
@@ -121,11 +121,11 @@ class _IdleViewState extends ConsumerState<_IdleView>
       children: [
         if (pendingLink != null)
           Padding(
-            padding: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.only(bottom: AtomicSpace.m),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Chip(
-                avatar: const Icon(Icons.link, size: 16),
+                avatar: const Icon(AtomicIcons.link, size: AtomicSize.iconTiny),
                 label: Text(pendingLink.label, overflow: TextOverflow.ellipsis),
                 deleteButtonTooltipMessage: context.l10n.unlinkTask,
                 onDeleted: () =>
@@ -139,10 +139,11 @@ class _IdleViewState extends ConsumerState<_IdleView>
               ref.read(selectedSessionTypeProvider.notifier).set(type),
         ),
         const Spacer(),
-        Icon(Icons.hourglass_empty,
-            size: 64, color: Theme.of(context).colorScheme.outline),
-        const SizedBox(height: 24),
-        FilledButton.icon(
+        const AtomMark(size: AtomicSize.heroMark),
+        const SizedBox(height: AtomicSpace.xl),
+        AtomicButton(
+          label: context.l10n.start,
+          icon: AtomicIcons.play,
           onPressed: _busy
               ? null
               : () => guard(() => viewModel.startSession(
@@ -150,8 +151,6 @@ class _IdleViewState extends ConsumerState<_IdleView>
                     taskId: pendingLink?.taskId,
                     subtaskId: pendingLink?.subtaskId,
                   )),
-          icon: const Icon(Icons.play_arrow),
-          label: Text(context.l10n.start),
         ),
         const Spacer(),
         const _TodaysFocusFooter(),
@@ -185,30 +184,28 @@ class _RunningViewState extends ConsumerState<_RunningView>
     return _ScrollSafeColumn(
       children: [
         if (session.taskId != null) _LinkedTaskChip(taskId: session.taskId!),
-        const SizedBox(height: 24),
+        const SizedBox(height: AtomicSpace.xl),
         _Countdown(session: session, color: color),
-        const SizedBox(height: 8),
-        Text(
+        const SizedBox(height: AtomicSpace.xs),
+        AtomicText.mono(
           session.isPaused
               ? context.l10n.timerPaused
               : _typeLabel(context.l10n, session.sessionType),
-          style: Theme.of(context)
-              .textTheme
-              .labelLarge
-              ?.copyWith(color: color, fontWeight: FontWeight.w600),
+          style: AtomicType.label
+              .copyWith(color: color, fontWeight: FontWeight.w700),
         ),
         const Spacer(),
         // Wraps onto two lines instead of overflowing at large text.
         Wrap(
           alignment: WrapAlignment.center,
-          spacing: 24,
-          runSpacing: 16,
+          spacing: AtomicSpace.xl,
+          runSpacing: AtomicSpace.m,
           children: [
             _ControlButton(
               // A break is skipped rather than "ended" (spec §5.7).
               icon: session.sessionType == FocusSessionType.focus
-                  ? Icons.stop
-                  : Icons.skip_next,
+                  ? AtomicIcons.endSession
+                  : AtomicIcons.skip,
               label: session.sessionType == FocusSessionType.focus
                   ? context.l10n.end
                   : context.l10n.skip,
@@ -218,7 +215,7 @@ class _RunningViewState extends ConsumerState<_RunningView>
                       () => viewModel.complete(session, endedEarly: true)),
             ),
             _ControlButton(
-              icon: session.isPaused ? Icons.play_arrow : Icons.pause,
+              icon: session.isPaused ? AtomicIcons.play : AtomicIcons.pause,
               label:
                   session.isPaused ? context.l10n.resume : context.l10n.pause,
               filled: true,
@@ -229,14 +226,14 @@ class _RunningViewState extends ConsumerState<_RunningView>
                       : viewModel.pause(session)),
             ),
             _ControlButton(
-              icon: Icons.add,
+              icon: AtomicIcons.add,
               label: context.l10n.addFiveMinutes,
               onPressed:
                   _busy ? null : () => guard(() => viewModel.extend(session)),
             ),
           ],
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: AtomicSpace.xxl),
         const _TodaysFocusFooter(),
       ],
     );
@@ -342,10 +339,11 @@ class _ScrollSafeColumn extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) => SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AtomicSpace.xl),
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            minHeight: (constraints.maxHeight - 48).clamp(0, double.infinity),
+            minHeight: (constraints.maxHeight - 2 * AtomicSpace.xl)
+                .clamp(0, double.infinity),
           ),
           child: IntrinsicHeight(child: Column(children: children)),
         ),
@@ -383,12 +381,11 @@ class _SessionTypeSelector extends ConsumerWidget {
     if (largeText) {
       return Wrap(
         alignment: WrapAlignment.center,
-        spacing: 8,
-        runSpacing: 8,
+        spacing: AtomicSpace.chipGap,
         children: [
           for (final entry in labels.entries)
-            ChoiceChip(
-              label: Text(entry.value),
+            AtomicChip(
+              label: entry.value,
               selected: entry.key == selected,
               onSelected: (_) => onChanged(entry.key),
             ),
@@ -420,7 +417,7 @@ class _LinkedTaskChip extends ConsumerWidget {
           : Align(
               alignment: Alignment.centerLeft,
               child: Chip(
-                avatar: const Icon(Icons.link, size: 16),
+                avatar: const Icon(AtomicIcons.link, size: AtomicSize.iconTiny),
                 label: Text(task.title, overflow: TextOverflow.ellipsis),
               ),
             ),
@@ -429,6 +426,10 @@ class _LinkedTaskChip extends ConsumerWidget {
   }
 }
 
+/// A square timer control (system: rectangles are nearly square). The
+/// filled one is the Signal primary with a hard shadow; the others are
+/// 2 dp ink outlines. The label under it is visual only: the button
+/// carries its own name and a long-press tooltip.
 class _ControlButton extends StatelessWidget {
   const _ControlButton({
     required this.icon,
@@ -444,33 +445,45 @@ class _ControlButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = context.atomic.palette;
+    final enabled = onPressed != null;
+    final side =
+        filled ? AtomicSize.controlPrimary : AtomicSize.controlSecondary;
     return Column(
       children: [
-        // The label under the button isn't part of it, so the button
-        // carries its own accessible name (and a long-press tooltip).
         Tooltip(
           message: label,
-          child: filled
-              ? FilledButton(
-                  onPressed: onPressed,
-                  style: FilledButton.styleFrom(
-                    shape: const CircleBorder(),
-                    padding: const EdgeInsets.all(20),
+          excludeFromSemantics: true,
+          child: Semantics(
+            button: true,
+            enabled: enabled,
+            label: label,
+            onTap: onPressed,
+            excludeSemantics: true,
+            child: Opacity(
+              opacity: enabled ? 1 : atomicDisabledOpacity,
+              child: AtomicPressable(
+                onTap: onPressed,
+                shadowLevel: filled && enabled ? 2 : 0,
+                child: Container(
+                  width: side,
+                  height: side,
+                  decoration: BoxDecoration(
+                    color: filled ? p.accent : null,
+                    borderRadius: BorderRadius.circular(AtomicRadius.sm),
+                    border: Border.all(
+                        color: filled ? AtomicColors.ink : p.rule,
+                        width: AtomicStroke.control),
                   ),
-                  child: Icon(icon),
-                )
-              : OutlinedButton(
-                  onPressed: onPressed,
-                  style: OutlinedButton.styleFrom(
-                    shape: const CircleBorder(),
-                    padding: const EdgeInsets.all(16),
-                  ),
-                  child: Icon(icon),
+                  child: Icon(icon, color: filled ? p.onAccent : p.text),
                 ),
+              ),
+            ),
+          ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: AtomicSpace.xxs),
         ExcludeSemantics(
-          child: Text(label, style: Theme.of(context).textTheme.labelSmall),
+          child: AtomicText.mono(label, style: AtomicType.caption),
         ),
       ],
     );
@@ -491,31 +504,31 @@ class _TodaysFocusFooter extends ConsumerWidget {
         final label = hours > 0
             ? l10n.durationHoursMinutes(hours, minutes)
             : l10n.durationMinutes(minutes);
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHigh,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 12,
-            runSpacing: 4,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.bolt,
-                      size: 18, color: Theme.of(context).colorScheme.primary),
-                  const SizedBox(width: 8),
-                  Flexible(child: Text(l10n.todaysFocus)),
-                ],
-              ),
-              Text(
-                l10n.focusFooterSummary(label, summary.sessionCount),
-              ),
-            ],
+        final p = context.atomic.palette;
+        return SizedBox(
+          width: double.infinity,
+          child: AtomicCard(
+            kind: AtomicCardKind.panel,
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: AtomicSpace.s,
+              runSpacing: AtomicSpace.xxs,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(AtomicIcons.energy,
+                        size: AtomicSize.iconTiny, color: p.accentText),
+                    const SizedBox(width: AtomicSpace.xs),
+                    Flexible(child: AtomicText.body(l10n.todaysFocus)),
+                  ],
+                ),
+                AtomicText.body(
+                  l10n.focusFooterSummary(label, summary.sessionCount),
+                ),
+              ],
+            ),
           ),
         );
       },

@@ -706,6 +706,12 @@ abstract class AppLocalizations {
   /// **'Jump to today'**
   String get jumpToToday;
 
+  /// Mono caps loading line on Focus.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading the timer…'**
+  String get loadingFocus;
+
   /// Mono caps loading line on Task Detail.
   ///
   /// In en, this message translates to:
@@ -1141,7 +1147,7 @@ abstract class AppLocalizations {
   /// No description provided for @timerPaused.
   ///
   /// In en, this message translates to:
-  /// **'PAUSED'**
+  /// **'Paused'**
   String get timerPaused;
 
   /// No description provided for @end.
@@ -1177,19 +1183,19 @@ abstract class AppLocalizations {
   /// No description provided for @timerLabelFocus.
   ///
   /// In en, this message translates to:
-  /// **'FOCUS'**
+  /// **'Focus'**
   String get timerLabelFocus;
 
   /// No description provided for @timerLabelShortBreak.
   ///
   /// In en, this message translates to:
-  /// **'SHORT BREAK'**
+  /// **'Short break'**
   String get timerLabelShortBreak;
 
   /// No description provided for @timerLabelLongBreak.
   ///
   /// In en, this message translates to:
-  /// **'LONG BREAK'**
+  /// **'Long break'**
   String get timerLabelLongBreak;
 
   /// No description provided for @selectorFocus.
