@@ -201,6 +201,18 @@ class FocusTimerViewModel extends _$FocusTimerViewModel {
     await complete(session, endedEarly: false);
   }
 
+  /// The end-of-session alert for a session started outside this screen
+  /// (by the assistant), and its cancellation when that start is undone.
+  Future<void> alertForStartedSession(int sessionId) async {
+    final session =
+        await ref.read(focusSessionRepositoryProvider).getSession(sessionId);
+    if (session == null || !session.isRunning) return;
+    await _scheduleNotification(session.sessionType, session.remainingSec);
+  }
+
+  Future<void> cancelAlert() =>
+      _notify((service) => service.cancelSessionNotification());
+
   Future<void> _scheduleNotification(
       FocusSessionType type, int inSeconds) async {
     final settings = await ref.read(appSettingsRepositoryProvider).get();

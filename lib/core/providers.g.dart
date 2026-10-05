@@ -50,6 +50,50 @@ final class AppDatabaseProvider
 
 String _$appDatabaseHash() => r'59cce38d45eeaba199eddd097d8e149d66f9f3e1';
 
+@ProviderFor(assistantRepository)
+final assistantRepositoryProvider = AssistantRepositoryProvider._();
+
+final class AssistantRepositoryProvider extends $FunctionalProvider<
+    AssistantRepository,
+    AssistantRepository,
+    AssistantRepository> with $Provider<AssistantRepository> {
+  AssistantRepositoryProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'assistantRepositoryProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$assistantRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<AssistantRepository> $createElement(
+          $ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  AssistantRepository create(Ref ref) {
+    return assistantRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AssistantRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AssistantRepository>(value),
+    );
+  }
+}
+
+String _$assistantRepositoryHash() =>
+    r'd8c397ff510087879055f60c61087f234f49f65d';
+
 @ProviderFor(taskRepository)
 final taskRepositoryProvider = TaskRepositoryProvider._();
 

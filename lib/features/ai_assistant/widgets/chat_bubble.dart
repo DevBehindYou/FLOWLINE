@@ -71,11 +71,24 @@ class ChatBubble extends StatelessWidget {
                       ],
                     ),
                   )
-                : Text(
-                    message.failure == null
-                        ? message.content
-                        : context.l10n.aiFailure(message.failure!, provider),
-                    style: style),
+                : message.wasCutOff
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(message.content, style: style),
+                          const SizedBox(height: AtomicSpace.xs),
+                          Text(context.l10n.assistantCutOff,
+                              style: AtomicType.caption
+                                  .copyWith(color: p.textMuted)),
+                        ],
+                      )
+                    : Text(
+                        message.failure == null
+                            ? message.content
+                            : context.l10n
+                                .aiFailure(message.failure!, provider),
+                        style: style),
       ),
     );
   }

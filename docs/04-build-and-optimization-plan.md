@@ -490,7 +490,7 @@ Tick these in the PR that closes each item.
 - [ ] Conversation history + in-chat switcher
 - [ ] Task Breakdown Engine
 - [ ] Add to Today's Timeline
-- [ ] Configurable output tokens, cut-off detection (B18) — `maxOutputTokens` and the max-tokens stop are read; showing "cut off" needs a stored stop reason (docs/05 Phase E, schema v8)
+- [x] Configurable output tokens, cut-off detection (B18) — `maxOutputTokens` and the max-tokens stop are read; the stop reason is stored (schema v9) and a cut-off reply says so
 
 **Phase 5 — Insights & intelligence v2**
 - [ ] Monthly view + heatmap + adherence

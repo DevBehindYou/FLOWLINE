@@ -1066,6 +1066,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiStopped => 'Stopped.';
 
   @override
+  String get assistantCutOff => 'Cut off: the reply reached its length limit.';
+
+  @override
   String get aiErrorInterrupted =>
       'No reply — Atomic Assist was closed before it arrived. Send your message again.';
 

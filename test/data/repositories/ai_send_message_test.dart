@@ -91,6 +91,23 @@ void main() {
     expect(after.last.failure, isNull);
   });
 
+  test('a reply stopped at the length limit is marked cut off (B18)', () async {
+    client.replies.add((_) => Stream.fromIterable([
+          const AITextDelta('The first half of a long'),
+          const AIDone(stopReason: AIStopReason.maxTokens),
+        ]));
+    await repo.sendMessage(conversationId: conversationId, prompt: 'long');
+    final cut = (await messages()).last;
+    expect(cut.stopReason, AIStopReason.maxTokens);
+    expect(cut.wasCutOff, isTrue);
+
+    client.reply('short and complete');
+    await repo.sendMessage(conversationId: conversationId, prompt: 'short');
+    final whole = (await messages()).last;
+    expect(whole.stopReason, AIStopReason.complete);
+    expect(whole.wasCutOff, isFalse);
+  });
+
   test('streamed text shows up in the pending reply as it arrives', () async {
     final events = StreamController<AIEvent>();
     client.replies.add((_) => events.stream);

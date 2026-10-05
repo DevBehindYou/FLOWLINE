@@ -27,4 +27,8 @@ class AiMessages extends Table {
   // English text in `content` and have no kind.
   IntColumn get errorKind => intEnum<AIFailureKind>().nullable()();
   IntColumn get errorStatus => integer().nullable()();
+
+  // Since schema v9: why a finished reply ended, so a reply cut off at
+  // the length limit can say so (B18). Null for older rows and errors.
+  IntColumn get stopReason => intEnum<AIStopReason>().nullable()();
 }

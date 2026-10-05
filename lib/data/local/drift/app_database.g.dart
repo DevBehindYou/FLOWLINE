@@ -3025,6 +3025,11 @@ class $AiMessagesTable extends AiMessages
       'error_status', aliasedName, true,
       type: DriftSqlType.int, requiredDuringInsert: false);
   @override
+  late final GeneratedColumnWithTypeConverter<AIStopReason?, int> stopReason =
+      GeneratedColumn<int>('stop_reason', aliasedName, true,
+              type: DriftSqlType.int, requiredDuringInsert: false)
+          .withConverter<AIStopReason?>($AiMessagesTable.$converterstopReasonn);
+  @override
   List<GeneratedColumn> get $columns => [
         id,
         conversationId,
@@ -3034,7 +3039,8 @@ class $AiMessagesTable extends AiMessages
         isPending,
         sentAt,
         errorKind,
-        errorStatus
+        errorStatus,
+        stopReason
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3109,6 +3115,9 @@ class $AiMessagesTable extends AiMessages
           .read(DriftSqlType.int, data['${effectivePrefix}error_kind'])),
       errorStatus: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}error_status']),
+      stopReason: $AiMessagesTable.$converterstopReasonn.fromSql(
+          attachedDatabase.typeMapping
+              .read(DriftSqlType.int, data['${effectivePrefix}stop_reason'])),
     );
   }
 
@@ -3123,6 +3132,10 @@ class $AiMessagesTable extends AiMessages
       const EnumIndexConverter<AIFailureKind>(AIFailureKind.values);
   static JsonTypeConverter2<AIFailureKind?, int?, int?> $convertererrorKindn =
       JsonTypeConverter2.asNullable($convertererrorKind);
+  static JsonTypeConverter2<AIStopReason, int, int> $converterstopReason =
+      const EnumIndexConverter<AIStopReason>(AIStopReason.values);
+  static JsonTypeConverter2<AIStopReason?, int?, int?> $converterstopReasonn =
+      JsonTypeConverter2.asNullable($converterstopReason);
 }
 
 class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
@@ -3135,6 +3148,7 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
   final DateTime sentAt;
   final AIFailureKind? errorKind;
   final int? errorStatus;
+  final AIStopReason? stopReason;
   const AiMessageRow(
       {required this.id,
       required this.conversationId,
@@ -3144,7 +3158,8 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
       required this.isPending,
       required this.sentAt,
       this.errorKind,
-      this.errorStatus});
+      this.errorStatus,
+      this.stopReason});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -3164,6 +3179,10 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
     if (!nullToAbsent || errorStatus != null) {
       map['error_status'] = Variable<int>(errorStatus);
     }
+    if (!nullToAbsent || stopReason != null) {
+      map['stop_reason'] = Variable<int>(
+          $AiMessagesTable.$converterstopReasonn.toSql(stopReason));
+    }
     return map;
   }
 
@@ -3182,6 +3201,9 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
       errorStatus: errorStatus == null && nullToAbsent
           ? const Value.absent()
           : Value(errorStatus),
+      stopReason: stopReason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(stopReason),
     );
   }
 
@@ -3200,6 +3222,8 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
       errorKind: $AiMessagesTable.$convertererrorKindn
           .fromJson(serializer.fromJson<int?>(json['errorKind'])),
       errorStatus: serializer.fromJson<int?>(json['errorStatus']),
+      stopReason: $AiMessagesTable.$converterstopReasonn
+          .fromJson(serializer.fromJson<int?>(json['stopReason'])),
     );
   }
   @override
@@ -3217,6 +3241,8 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
       'errorKind': serializer.toJson<int?>(
           $AiMessagesTable.$convertererrorKindn.toJson(errorKind)),
       'errorStatus': serializer.toJson<int?>(errorStatus),
+      'stopReason': serializer.toJson<int?>(
+          $AiMessagesTable.$converterstopReasonn.toJson(stopReason)),
     };
   }
 
@@ -3229,7 +3255,8 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
           bool? isPending,
           DateTime? sentAt,
           Value<AIFailureKind?> errorKind = const Value.absent(),
-          Value<int?> errorStatus = const Value.absent()}) =>
+          Value<int?> errorStatus = const Value.absent(),
+          Value<AIStopReason?> stopReason = const Value.absent()}) =>
       AiMessageRow(
         id: id ?? this.id,
         conversationId: conversationId ?? this.conversationId,
@@ -3240,6 +3267,7 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
         sentAt: sentAt ?? this.sentAt,
         errorKind: errorKind.present ? errorKind.value : this.errorKind,
         errorStatus: errorStatus.present ? errorStatus.value : this.errorStatus,
+        stopReason: stopReason.present ? stopReason.value : this.stopReason,
       );
   AiMessageRow copyWithCompanion(AiMessagesCompanion data) {
     return AiMessageRow(
@@ -3255,6 +3283,8 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
       errorKind: data.errorKind.present ? data.errorKind.value : this.errorKind,
       errorStatus:
           data.errorStatus.present ? data.errorStatus.value : this.errorStatus,
+      stopReason:
+          data.stopReason.present ? data.stopReason.value : this.stopReason,
     );
   }
 
@@ -3269,14 +3299,15 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
           ..write('isPending: $isPending, ')
           ..write('sentAt: $sentAt, ')
           ..write('errorKind: $errorKind, ')
-          ..write('errorStatus: $errorStatus')
+          ..write('errorStatus: $errorStatus, ')
+          ..write('stopReason: $stopReason')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(id, conversationId, role, content, isError,
-      isPending, sentAt, errorKind, errorStatus);
+      isPending, sentAt, errorKind, errorStatus, stopReason);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3289,7 +3320,8 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
           other.isPending == this.isPending &&
           other.sentAt == this.sentAt &&
           other.errorKind == this.errorKind &&
-          other.errorStatus == this.errorStatus);
+          other.errorStatus == this.errorStatus &&
+          other.stopReason == this.stopReason);
 }
 
 class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
@@ -3302,6 +3334,7 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
   final Value<DateTime> sentAt;
   final Value<AIFailureKind?> errorKind;
   final Value<int?> errorStatus;
+  final Value<AIStopReason?> stopReason;
   const AiMessagesCompanion({
     this.id = const Value.absent(),
     this.conversationId = const Value.absent(),
@@ -3312,6 +3345,7 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
     this.sentAt = const Value.absent(),
     this.errorKind = const Value.absent(),
     this.errorStatus = const Value.absent(),
+    this.stopReason = const Value.absent(),
   });
   AiMessagesCompanion.insert({
     this.id = const Value.absent(),
@@ -3323,6 +3357,7 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
     this.sentAt = const Value.absent(),
     this.errorKind = const Value.absent(),
     this.errorStatus = const Value.absent(),
+    this.stopReason = const Value.absent(),
   })  : conversationId = Value(conversationId),
         role = Value(role),
         content = Value(content);
@@ -3336,6 +3371,7 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
     Expression<DateTime>? sentAt,
     Expression<int>? errorKind,
     Expression<int>? errorStatus,
+    Expression<int>? stopReason,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -3347,6 +3383,7 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
       if (sentAt != null) 'sent_at': sentAt,
       if (errorKind != null) 'error_kind': errorKind,
       if (errorStatus != null) 'error_status': errorStatus,
+      if (stopReason != null) 'stop_reason': stopReason,
     });
   }
 
@@ -3359,7 +3396,8 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
       Value<bool>? isPending,
       Value<DateTime>? sentAt,
       Value<AIFailureKind?>? errorKind,
-      Value<int?>? errorStatus}) {
+      Value<int?>? errorStatus,
+      Value<AIStopReason?>? stopReason}) {
     return AiMessagesCompanion(
       id: id ?? this.id,
       conversationId: conversationId ?? this.conversationId,
@@ -3370,6 +3408,7 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
       sentAt: sentAt ?? this.sentAt,
       errorKind: errorKind ?? this.errorKind,
       errorStatus: errorStatus ?? this.errorStatus,
+      stopReason: stopReason ?? this.stopReason,
     );
   }
 
@@ -3405,6 +3444,10 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
     if (errorStatus.present) {
       map['error_status'] = Variable<int>(errorStatus.value);
     }
+    if (stopReason.present) {
+      map['stop_reason'] = Variable<int>(
+          $AiMessagesTable.$converterstopReasonn.toSql(stopReason.value));
+    }
     return map;
   }
 
@@ -3419,7 +3462,8 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
           ..write('isPending: $isPending, ')
           ..write('sentAt: $sentAt, ')
           ..write('errorKind: $errorKind, ')
-          ..write('errorStatus: $errorStatus')
+          ..write('errorStatus: $errorStatus, ')
+          ..write('stopReason: $stopReason')
           ..write(')'))
         .toString();
   }
@@ -7582,6 +7626,7 @@ typedef $$AiMessagesTableCreateCompanionBuilder = AiMessagesCompanion Function({
   Value<DateTime> sentAt,
   Value<AIFailureKind?> errorKind,
   Value<int?> errorStatus,
+  Value<AIStopReason?> stopReason,
 });
 typedef $$AiMessagesTableUpdateCompanionBuilder = AiMessagesCompanion Function({
   Value<int> id,
@@ -7593,6 +7638,7 @@ typedef $$AiMessagesTableUpdateCompanionBuilder = AiMessagesCompanion Function({
   Value<DateTime> sentAt,
   Value<AIFailureKind?> errorKind,
   Value<int?> errorStatus,
+  Value<AIStopReason?> stopReason,
 });
 
 final class $$AiMessagesTableReferences
@@ -7653,6 +7699,11 @@ class $$AiMessagesTableFilterComposer
   ColumnFilters<int> get errorStatus => $composableBuilder(
       column: $table.errorStatus, builder: (column) => ColumnFilters(column));
 
+  ColumnWithTypeConverterFilters<AIStopReason?, AIStopReason, int>
+      get stopReason => $composableBuilder(
+          column: $table.stopReason,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
   $$AiConversationsTableFilterComposer get conversationId {
     final $$AiConversationsTableFilterComposer composer = $composerBuilder(
         composer: this,
@@ -7706,6 +7757,9 @@ class $$AiMessagesTableOrderingComposer
 
   ColumnOrderings<int> get errorStatus => $composableBuilder(
       column: $table.errorStatus, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get stopReason => $composableBuilder(
+      column: $table.stopReason, builder: (column) => ColumnOrderings(column));
 
   $$AiConversationsTableOrderingComposer get conversationId {
     final $$AiConversationsTableOrderingComposer composer = $composerBuilder(
@@ -7761,6 +7815,10 @@ class $$AiMessagesTableAnnotationComposer
   GeneratedColumn<int> get errorStatus => $composableBuilder(
       column: $table.errorStatus, builder: (column) => column);
 
+  GeneratedColumnWithTypeConverter<AIStopReason?, int> get stopReason =>
+      $composableBuilder(
+          column: $table.stopReason, builder: (column) => column);
+
   $$AiConversationsTableAnnotationComposer get conversationId {
     final $$AiConversationsTableAnnotationComposer composer = $composerBuilder(
         composer: this,
@@ -7814,6 +7872,7 @@ class $$AiMessagesTableTableManager extends RootTableManager<
             Value<DateTime> sentAt = const Value.absent(),
             Value<AIFailureKind?> errorKind = const Value.absent(),
             Value<int?> errorStatus = const Value.absent(),
+            Value<AIStopReason?> stopReason = const Value.absent(),
           }) =>
               AiMessagesCompanion(
             id: id,
@@ -7825,6 +7884,7 @@ class $$AiMessagesTableTableManager extends RootTableManager<
             sentAt: sentAt,
             errorKind: errorKind,
             errorStatus: errorStatus,
+            stopReason: stopReason,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -7836,6 +7896,7 @@ class $$AiMessagesTableTableManager extends RootTableManager<
             Value<DateTime> sentAt = const Value.absent(),
             Value<AIFailureKind?> errorKind = const Value.absent(),
             Value<int?> errorStatus = const Value.absent(),
+            Value<AIStopReason?> stopReason = const Value.absent(),
           }) =>
               AiMessagesCompanion.insert(
             id: id,
@@ -7847,6 +7908,7 @@ class $$AiMessagesTableTableManager extends RootTableManager<
             sentAt: sentAt,
             errorKind: errorKind,
             errorStatus: errorStatus,
+            stopReason: stopReason,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (

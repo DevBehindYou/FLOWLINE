@@ -626,8 +626,8 @@ erDiagram
 
 ### 7.3 Migrations
 
-`AppDatabase.schemaVersion = 8`. Snapshots of v3 (what every APK
-before Phase 3 shipped) to v8 live in `drift_schemas/`; `test/drift/`
+`AppDatabase.schemaVersion = 9`. Snapshots of v3 (what every APK
+before Phase 3 shipped) to v9 live in `drift_schemas/`; `test/drift/`
 verifies the upgrade schema and data. Upgrades run **step by step**
 through the generated `app_database.steps.dart`, so each step sees its
 own version's tables. Run `dart run drift_dev make-migrations` after each
@@ -642,9 +642,10 @@ bump, then add the new `fromNToM` step.
 | 5 → 6 | `schedule_blocks` rebuilt with `recurrence`, `recurrence_until`, `series_id` (FK, cascade), `occurrence_date` and two CHECKs; `createTable(schedule_block_exceptions)`; unique index on `(series_id, occurrence_date)` (Phase 3) |
 | 6 → 7 | `ai_messages.error_kind`, `ai_messages.error_status` (typed AI errors, Phase 4) |
 | 7 → 8 | `createTable(utterances, assistant_actions, proposals)` and their indexes, including the partial unique `proposals_open_key` (one open proposal per dedupe key). New tables only (docs/05 Phase E.2) |
+| 8 → 9 | `ai_messages.stop_reason` (why a reply ended; B18: a reply that hit the length limit shows "Cut off") |
 
-**Assistant tables (v8), not yet written by any code path** — the
-orchestrator and tools that fill them are later Phase E slices:
+**Assistant tables (v8).** Written by the assistant core (§9.4–§9.5),
+which no screen calls yet (E.5):
 
 | Table | Holds | Invariants in SQL |
 |---|---|---|
@@ -823,6 +824,48 @@ swallowed. A tool that throws rolls back and leaves a `failed` row.
 first; if any step finds the user changed the data since, nothing is
 undone (`changedSince`). `StoredRows` does the raw row access and only
 ever builds SQL from schema-known table and column names.
+
+### 9.5 Orchestrator and proposals (docs/05 Phase E.4)
+
+**Wired as keepAlive providers (`lib/assistant/assistant_providers.dart`),
+not yet called by a screen** (E.5).
+
+`AssistantOrchestrator.handle(utterance)` records the utterance, then:
+
+1. **Local grammar first.** If `quickParse` produces a call to a
+   registered tool, it is validated, decided and run with no model call.
+   If the grammar's call is rejected (an ambiguous title), the model gets
+   a go; if no model is reachable, the rejection is the answer.
+2. **Model rounds** via `AIRepository.completeWithTools` with every tool
+   spec and a bounded system prompt (`AssistantContextBuilder`: rules,
+   now with weekday and UTC offset, today's and tomorrow's blocks and up
+   to 20 open tasks, all with ids, titles redacted for phone numbers,
+   emails and card numbers). At most 4 rounds, 8 calls per turn (a reply
+   with more runs none of them) and 30 s per round (the request is
+   cancelled). Unknown tools, bad arguments and invalid targets go back
+   to the model as error results; results are capped at 4,000 chars.
+3. **Policy per call** (`decide`, origin `said`, the user's autonomy
+   preset from Settings, default `balanced`): reads and hand-offs run;
+   reversible actions run with undo, or ask first under `careful`;
+   destructive ones always stop the turn with a `PendingConfirmation`
+   (typed preview) and nothing after them runs. `confirm()` re-checks the
+   state and runs it as `confirm` in the same group, so one UNDO still
+   reverses the turn.
+
+The result is `TurnAnswered` (model text, or empty for the grammar),
+`TurnNeedsConfirmation`, `TurnFailed(AIFailureKind)` or
+`TurnStopped(rounds|calls|timeout)`, each with the `ActedCall`s.
+
+`ProposalService.accept` re-validates a proposal against the state now
+and runs it as `said` (a tap is consent); a gone target or an expired
+proposal becomes `noLongerPossible` and is closed as expired; a second tap
+does nothing. `AssistantRepository.createProposal` refuses a second open
+proposal with the same dedupe key. Nothing creates proposals yet: the
+scanners and commitment detector are Phase H.
+
+A session started by `start_focus` gets the normal end-of-session alert
+(`FocusTimerViewModel.alertForStartedSession`), and undoing it cancels
+the alert.
 
 ---
 

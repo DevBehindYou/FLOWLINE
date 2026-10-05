@@ -1,3 +1,4 @@
+import 'package:atomic_assist/domain/assistant/autonomy.dart';
 import 'package:atomic_assist/domain/entities/app_settings.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -11,6 +12,7 @@ void main() {
       longBreakEvery: 3,
       sessionAlerts: false,
       onboardingDone: true,
+      autonomy: AutonomyPreset.careful,
     );
     expect(AppSettings.fromStorage(settings.toStorage()), settings);
   });
@@ -27,6 +29,7 @@ void main() {
       'long_break_minutes': '999',
       'long_break_every': '-4',
       'session_alerts': 'maybe',
+      'autonomy_preset': 'yolo',
     });
     expect(s.themeMode, AppThemeMode.system);
     expect(s.focusMinutes, AppSettings.defaultFocusMinutes);
@@ -34,6 +37,7 @@ void main() {
     expect(s.longBreakMinutes, AppSettings.maxMinutes);
     expect(s.longBreakEvery, 2);
     expect(s.sessionAlerts, isTrue);
+    expect(s.autonomy, AutonomyPreset.balanced);
   });
 
   test('copyWith clamps too', () {

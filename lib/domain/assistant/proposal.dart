@@ -61,3 +61,26 @@ final class Proposal {
   final String dedupeKey;
   final ProposalStatus status;
 }
+
+/// A proposal about to be stored.
+final class ProposalDraft {
+  const ProposalDraft({
+    required this.toolName,
+    required this.argsJson,
+    required this.origin,
+    required this.reason,
+    required this.dedupeKey,
+    this.reasonJson = '{}',
+    this.sourceText,
+    this.expiresAt,
+  });
+
+  final String toolName;
+  final String argsJson;
+  final ActionOrigin origin;
+  final ProposalReason reason;
+  final String reasonJson;
+  final String? sourceText;
+  final String dedupeKey;
+  final DateTime? expiresAt;
+}

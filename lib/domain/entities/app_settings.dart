@@ -1,3 +1,4 @@
+import '../assistant/autonomy.dart';
 import 'focus_session.dart';
 
 /// User preferences, stored as key/value text rows (see
@@ -15,6 +16,7 @@ class AppSettings {
     this.longBreakEvery = defaultLongBreakEvery,
     this.sessionAlerts = true,
     this.onboardingDone = false,
+    this.autonomy = AutonomyPreset.balanced,
   });
 
   static const defaultFocusMinutes = 25;
@@ -39,6 +41,9 @@ class AppSettings {
 
   final bool onboardingDone;
 
+  /// "How much can AA do on its own?" (docs/05 §6.2).
+  final AutonomyPreset autonomy;
+
   int minutesFor(FocusSessionType type) => switch (type) {
         FocusSessionType.focus => focusMinutes,
         FocusSessionType.shortBreak => shortBreakMinutes,
@@ -53,6 +58,7 @@ class AppSettings {
     int? longBreakEvery,
     bool? sessionAlerts,
     bool? onboardingDone,
+    AutonomyPreset? autonomy,
   }) {
     return AppSettings(
       themeMode: themeMode ?? this.themeMode,
@@ -64,6 +70,7 @@ class AppSettings {
       longBreakEvery: (longBreakEvery ?? this.longBreakEvery).clamp(2, 12),
       sessionAlerts: sessionAlerts ?? this.sessionAlerts,
       onboardingDone: onboardingDone ?? this.onboardingDone,
+      autonomy: autonomy ?? this.autonomy,
     );
   }
 
@@ -76,6 +83,7 @@ class AppSettings {
   static const _kLongEvery = 'long_break_every';
   static const _kAlerts = 'session_alerts';
   static const _kOnboarding = 'onboarding_done';
+  static const _kAutonomy = 'autonomy_preset';
 
   Map<String, String> toStorage() => {
         _kThemeMode: themeMode.name,
@@ -85,6 +93,7 @@ class AppSettings {
         _kLongEvery: '$longBreakEvery',
         _kAlerts: '$sessionAlerts',
         _kOnboarding: '$onboardingDone',
+        _kAutonomy: autonomy.name,
       };
 
   factory AppSettings.fromStorage(Map<String, String> values) {
@@ -113,6 +122,10 @@ class AppSettings {
               .clamp(2, 12),
       sessionAlerts: flag(_kAlerts, defaults.sessionAlerts),
       onboardingDone: flag(_kOnboarding, defaults.onboardingDone),
+      autonomy: AutonomyPreset.values
+              .where((a) => a.name == values[_kAutonomy])
+              .firstOrNull ??
+          defaults.autonomy,
     );
   }
 
@@ -127,9 +140,17 @@ class AppSettings {
       other.longBreakMinutes == longBreakMinutes &&
       other.longBreakEvery == longBreakEvery &&
       other.sessionAlerts == sessionAlerts &&
-      other.onboardingDone == onboardingDone;
+      other.onboardingDone == onboardingDone &&
+      other.autonomy == autonomy;
 
   @override
-  int get hashCode => Object.hash(themeMode, focusMinutes, shortBreakMinutes,
-      longBreakMinutes, longBreakEvery, sessionAlerts, onboardingDone);
+  int get hashCode => Object.hash(
+      themeMode,
+      focusMinutes,
+      shortBreakMinutes,
+      longBreakMinutes,
+      longBreakEvery,
+      sessionAlerts,
+      onboardingDone,
+      autonomy);
 }

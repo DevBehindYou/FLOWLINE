@@ -61,7 +61,7 @@ class AppDatabase extends _$AppDatabase {
   // Every bump: add a step below, then `dart run drift_dev make-migrations`
   // and commit drift_schemas/ and test/drift/ (rule R2).
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -131,6 +131,11 @@ class AppDatabase extends _$AppDatabase {
               await m.create(schema.assistantActionsGroup);
               await m.create(schema.proposalsOpenKey);
               await m.create(schema.proposalsStatus);
+            },
+            // Why a reply ended (B18): "cut off" for the length limit.
+            from8To9: (m, schema) async {
+              await m.addColumn(
+                  schema.aiMessages, schema.aiMessages.stopReason);
             },
           )(m, from, to);
           await _assertForeignKeysIntact();

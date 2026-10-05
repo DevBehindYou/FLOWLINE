@@ -1822,6 +1822,12 @@ abstract class AppLocalizations {
   /// **'Stopped.'**
   String get aiStopped;
 
+  /// Under an AI reply that stopped at the maximum length (B18).
+  ///
+  /// In en, this message translates to:
+  /// **'Cut off: the reply reached its length limit.'**
+  String get assistantCutOff;
+
   /// No description provided for @aiErrorInterrupted.
   ///
   /// In en, this message translates to:

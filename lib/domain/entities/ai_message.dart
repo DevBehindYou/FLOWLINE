@@ -12,6 +12,7 @@ class AIMessage {
     this.isPending = false,
     required this.sentAt,
     this.failure,
+    this.stopReason,
   });
 
   final int id;
@@ -34,4 +35,11 @@ class AIMessage {
   /// For an error reply written since schema v7: what went wrong, for the
   /// UI to word. Null for older error rows, whose [content] is the text.
   final AIFailure? failure;
+
+  /// Why a finished reply ended (since schema v9; null before).
+  final AIStopReason? stopReason;
+
+  /// The reply hit its length limit and is incomplete (B18).
+  bool get wasCutOff =>
+      !isError && !isPending && stopReason == AIStopReason.maxTokens;
 }

@@ -345,6 +345,7 @@ class AIRepositoryImpl implements AIRepository {
       content: Value(text),
       isError: const Value(false),
       isPending: const Value(false),
+      stopReason: Value(stop),
     ));
   }
 
@@ -452,6 +453,7 @@ class AIRepositoryImpl implements AIRepository {
       failure: row.errorKind == null
           ? null
           : AIFailure(row.errorKind!, status: row.errorStatus),
+      stopReason: row.stopReason,
     );
   }
 }

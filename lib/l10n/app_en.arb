@@ -758,6 +758,10 @@
   },
   "aiErrorNoProvider": "No AI provider is active — connect one in Settings.",
   "aiStopped": "Stopped.",
+  "assistantCutOff": "Cut off: the reply reached its length limit.",
+  "@assistantCutOff": {
+    "description": "Under an AI reply that stopped at the maximum length (B18)."
+  },
   "aiErrorInterrupted": "No reply — Atomic Assist was closed before it arrived. Send your message again.",
   "aiErrorUnknown": "Something went wrong talking to {vendor}. Please try again.",
   "@aiErrorUnknown": {
