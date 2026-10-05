@@ -66,6 +66,56 @@ class TaskRepositoryImpl implements TaskRepository {
   }
 
   @override
+  Future<Task?> getTask(int id) async {
+    final row = await (_db.select(_db.tasks)..where((t) => t.id.equals(id)))
+        .getSingleOrNull();
+    return row == null ? null : _mapTask(row);
+  }
+
+  @override
+  Future<List<Subtask>> getSubtasks(int taskId) async {
+    final rows = await (_db.select(_db.subtasks)
+          ..where((s) => s.taskId.equals(taskId))
+          ..orderBy([
+            (s) => OrderingTerm.asc(s.orderIndex),
+            (s) => OrderingTerm.asc(s.id),
+          ]))
+        .get();
+    return rows.map(_mapSubtask).toList();
+  }
+
+  @override
+  Future<List<Task>> getTasksForBlock(int scheduleBlockId) async {
+    final rows = await (_db.select(_db.tasks)
+          ..where((t) => t.scheduleBlockId.equals(scheduleBlockId))
+          ..orderBy([(t) => OrderingTerm.asc(t.id)]))
+        .get();
+    return rows.map(_mapTask).toList();
+  }
+
+  @override
+  Future<List<Task>> findTasks(String query,
+      {bool includeDone = false, int limit = 20}) async {
+    // instr(lower(...)) rather than LIKE, so % and _ in the query are
+    // plain characters, not wildcards.
+    final needle = query.trim().toLowerCase();
+    final rows = await (_db.select(_db.tasks)
+          ..where((t) {
+            final notDone = t.status.equalsValue(TaskStatus.done).not();
+            final matches = needle.isEmpty
+                ? const Constant(true)
+                : FunctionCallExpression<int>(
+                        'instr', [t.title.lower(), Variable(needle)])
+                    .isBiggerThanValue(0);
+            return includeDone ? matches : matches & notDone;
+          })
+          ..orderBy([(t) => OrderingTerm.asc(t.id)])
+          ..limit(limit))
+        .get();
+    return rows.map(_mapTask).toList();
+  }
+
+  @override
   Future<int> createTask({
     required String title,
     String notes = '',

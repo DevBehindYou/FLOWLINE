@@ -25,7 +25,13 @@ enum LedgerStatus {
 /// The tables an undo recipe may touch. Recipes store the *name* (JSON),
 /// so this enum may grow in any order, but keep it append-only anyway:
 /// the ledger outlives any one version of the app.
-enum UndoTable { tasks, subtasks, scheduleBlocks, scheduleBlockExceptions }
+enum UndoTable {
+  tasks,
+  subtasks,
+  scheduleBlocks,
+  scheduleBlockExceptions,
+  focusSessions,
+}
 
 /// How to reverse one action. Stored as JSON in the ledger row
 /// ([encodeUndoRecipe] / [decodeUndoRecipe]). Row values are plain JSON
@@ -64,7 +70,16 @@ final class RestoreFields extends UndoRecipe {
   final Map<String, Object?> after;
 }
 
-/// Several steps; undone in reverse order, all or nothing.
+/// Undo a started focus session: remove it if it ran under a minute
+/// (no history for a slip), otherwise end it early so the time spent
+/// still counts. Refuses once the session has ended on its own.
+final class StopFocus extends UndoRecipe {
+  const StopFocus(this.sessionId);
+  final int sessionId;
+}
+
+/// Several steps, listed in the order the action did them; undone in
+/// reverse order, all or nothing.
 final class UndoAll extends UndoRecipe {
   const UndoAll(this.steps);
   final List<UndoRecipe> steps;
@@ -137,6 +152,10 @@ Map<String, Object?> _toJson(UndoRecipe recipe) => switch (recipe) {
           'before': before,
           'after': after,
         },
+      StopFocus(:final sessionId) => {
+          'op': 'stopFocus',
+          'id': sessionId,
+        },
       UndoAll(:final steps) => {
           'op': 'all',
           'steps': [for (final s in steps) _toJson(s)],
@@ -154,6 +173,7 @@ UndoRecipe _fromJson(Object? json) {
     }
     return UndoAll([for (final s in steps) _fromJson(s)]);
   }
+  if (op == 'stopFocus') return StopFocus(_id(json['id']));
   final table = _table(json['table']);
   return switch (op) {
     'delete' => DeleteRows(table, _ids(json['ids'])),

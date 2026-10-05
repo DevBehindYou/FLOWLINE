@@ -52,6 +52,10 @@ void main() {
       expect((inner.steps.single as RestoreFields).id, 2);
     });
 
+    test('StopFocus round-trips', () {
+      expect((roundTrip(const StopFocus(12)) as StopFocus).sessionId, 12);
+    });
+
     test('every table name survives the trip', () {
       for (final t in UndoTable.values) {
         expect((roundTrip(DeleteRows(t, const [1])) as DeleteRows).table, t);
@@ -82,6 +86,7 @@ void main() {
       'fields with empty before': '{"op": "fields", "table": "tasks", '
           '"id": 1, "before": {}, "after": {"a": 1}}',
       'empty steps': '{"op": "all", "steps": []}',
+      'stopFocus without id': '{"op": "stopFocus"}',
       'one bad step': '{"op": "all", "steps": ['
           '{"op": "delete", "table": "tasks", "ids": [1]}, {"op": "?"}]}',
     };

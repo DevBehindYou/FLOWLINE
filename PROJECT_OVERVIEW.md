@@ -777,6 +777,53 @@ retired; see [§20](#20-known-issues-and-gaps).
 | `ExportService` | `sharePdf` (via `Printing.sharePdf`), `shareCsv` / `shareJson` (temp file + `Share.shareXFiles`). File names: `flowline-focus-YYYYMMDD-YYYYMMDD.<ext>`. |
 | `WeeklyPdfExporter` | One A4 page: stat row, daily breakdown table, focus-session log (`pw.TableHelper.fromTextArray`). |
 
+### 9.4 Assistant tools, executor and undo (docs/05 Phase E.3)
+
+**Not wired to any screen or provider yet** — the orchestrator that calls
+them is E.4. Everything below is exercised by tests only.
+
+A tool (`lib/domain/assistant/tool.dart`) has a name, a model-facing
+description, a JSON Schema in the portable subset, a risk class, and four
+steps: `parse` (shape; throws `ToolArgumentError`), `validate` (against
+the current state, read fresh; returns `Valid` or `Invalid(reason,
+detail)`), `preview` (a typed `ActionPreview` the UI words with l10n) and
+`run` (returns the result JSON for the model, an `UndoRecipe`, and
+after-commit effects). `ToolRegistry.prepare` turns a name plus raw JSON
+into a `PreparedCall` and never throws: an unknown name is `UnknownTool`,
+so "pay" or "send" simply don't exist.
+
+The 14 tools (`lib/assistant/tools/`):
+
+| Tool | Risk | Undo |
+|---|---|---|
+| `get_agenda`, `find_free_time`, `search_tasks`, `get_task` | read | — (no ledger row) |
+| `create_task` | reversible | delete the row |
+| `update_task`, `complete_task` | reversible | restore the changed columns, only if unchanged since |
+| `schedule_task` | reversible | restore the task's block, delete the new block |
+| `break_down_task` | reversible | delete the new subtasks |
+| `create_block` | reversible | delete the row |
+| `move_block` | reversible | restore the times; for a computed occurrence of a series, delete the stored copy so the computed one returns |
+| `start_focus` | reversible | under a minute: delete the session; longer: end it early; already ended: refuse |
+| `delete_task` | destructive | restore the task, its subtasks and the focus-session links |
+| `delete_block` | destructive | restore the block and its tasks' links (one-off blocks only) |
+
+Tasks can be named by `task_id` or by `task` (title), because the local
+grammar only has titles: an exact case-insensitive match wins, then a
+unique partial match; otherwise `notFound` or `ambiguous` with the
+candidates, for the model to resolve. Block tools refuse locked blocks
+and series templates; every new time range is checked for order, the
+past (one minute's grace), length (≤ 24 h) and overlap, locked blocks
+included.
+
+`ToolExecutor` (`lib/data/assistant/`) validates again and runs the tool
+inside one transaction together with its `assistant_actions` row, then
+runs after-commit effects (a started session's alert), whose failures are
+swallowed. A tool that throws rolls back and leaves a `failed` row.
+`UndoService.undoGroup` reverses a whole turn in one transaction, newest
+first; if any step finds the user changed the data since, nothing is
+undone (`changedSince`). `StoredRows` does the raw row access and only
+ever builds SQL from schema-known table and column names.
+
 ---
 
 ## 10. State management: provider catalog

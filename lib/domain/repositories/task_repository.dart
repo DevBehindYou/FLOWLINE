@@ -20,6 +20,17 @@ abstract interface class TaskRepository {
   Stream<Task?> watchTask(int id);
   Stream<List<Subtask>> watchSubtasks(int taskId);
 
+  // One-shot reads (the assistant's tools validate against these; a watch
+  // stream's `.first` never completes under the widget tester's clock).
+  Future<Task?> getTask(int id);
+  Future<List<Subtask>> getSubtasks(int taskId);
+  Future<List<Task>> getTasksForBlock(int scheduleBlockId);
+
+  /// Tasks whose title contains [query] (case-insensitive; every task when
+  /// empty), not done unless [includeDone], at most [limit], oldest first.
+  Future<List<Task>> findTasks(String query,
+      {bool includeDone = false, int limit = 20});
+
   Future<int> createTask({
     required String title,
     String notes = '',

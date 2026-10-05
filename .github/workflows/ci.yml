@@ -74,7 +74,7 @@ jobs:
         timeout-minutes: 5
         env:
           TZ: America/New_York
-        run: flutter test test/domain test/core test/data/repositories
+        run: flutter test test/domain test/core test/data/repositories test/assistant
 
       - name: Upload coverage
         if: ${{ !cancelled() && steps.test.outcome != 'skipped' }}
