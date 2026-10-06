@@ -30,7 +30,9 @@ final class ReminderSync {
 
   /// How far ahead notifications are scheduled; the rest are topped up
   /// on start and resume (OEM limits, and the plugin's own).
-  static const horizon = Duration(days: 14);
+  // An exact span, not calendar days (R7): a few hours either way at a
+  // DST change doesn't matter for a top-up window.
+  static const horizon = Duration(hours: 14 * 24);
   static const maxScheduled = 64;
 
   /// After a reminder changed: schedule, move or cancel its alert.
