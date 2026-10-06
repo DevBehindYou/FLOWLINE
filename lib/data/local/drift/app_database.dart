@@ -18,6 +18,7 @@ import '../../../domain/assistant/utterance.dart';
 import '../../../domain/entities/ai_message.dart';
 import '../../../domain/entities/ai_provider_config.dart';
 import '../../../domain/entities/focus_session.dart';
+import '../../../domain/entities/reminder.dart';
 import '../../../domain/entities/schedule_block.dart';
 import '../../../domain/entities/subtask.dart';
 import '../../../domain/entities/task.dart';
@@ -28,6 +29,7 @@ import 'tables/ai_provider_configs_table.dart';
 import 'tables/assistant_actions_table.dart';
 import 'tables/focus_sessions_table.dart';
 import 'tables/proposals_table.dart';
+import 'tables/reminders_table.dart';
 import 'tables/schedule_blocks_table.dart';
 import 'tables/subtasks_table.dart';
 import 'tables/tasks_table.dart';
@@ -49,6 +51,7 @@ part 'app_database.g.dart';
   Utterances,
   AssistantActions,
   Proposals,
+  Reminders,
 ])
 class AppDatabase extends _$AppDatabase {
   /// [executor] is for tests and migration verification; the app always
@@ -61,7 +64,7 @@ class AppDatabase extends _$AppDatabase {
   // Every bump: add a step below, then `dart run drift_dev make-migrations`
   // and commit drift_schemas/ and test/drift/ (rule R2).
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -145,6 +148,11 @@ class AppDatabase extends _$AppDatabase {
               await m.addColumn(
                   schema.aiMessages, schema.aiMessages.turnGroupId);
             },
+            // Reminders (docs/05 Phase F.1).
+            from10To11: (m, schema) async {
+              await m.createTable(schema.reminders);
+              await m.create(schema.remindersStatusFireAt);
+            },
           )(m, from, to);
           await _assertForeignKeysIntact();
         },
@@ -161,6 +169,7 @@ class AppDatabase extends _$AppDatabase {
   Future<void> wipeAllData() {
     return transaction(() async {
       for (final TableInfo<Table, Object?> table in [
+        reminders,
         assistantActions,
         proposals,
         utterances,

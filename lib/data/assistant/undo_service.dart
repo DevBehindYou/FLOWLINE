@@ -97,6 +97,7 @@ final class UndoService {
     switch (recipe) {
       case DeleteRows(:final table, :final ids):
         await _rows.deleteIds(table, ids);
+        _touched(table, ids, effects);
       case RestoreRows(:final table, :final rows):
         for (final row in rows) {
           final id = row['id'];
@@ -109,6 +110,7 @@ final class UndoService {
             // A constraint fails: what it pointed at is gone since.
             throw const _ChangedSince();
           }
+          if (id is int) _touched(table, [id], effects);
         }
       case RestoreFields(:final table, :final id, :final before, :final after):
         _rows.checkColumns(table, [...before.keys, ...after.keys]);
@@ -118,6 +120,7 @@ final class UndoService {
           if (!_same(current[key], value)) throw const _ChangedSince();
         }
         await _rows.update(table, id, before);
+        _touched(table, [id], effects);
       case StopFocus(:final sessionId):
         final session = await _focus.getSession(sessionId);
         if (session == null || session.completedAt != null) {
@@ -134,6 +137,15 @@ final class UndoService {
         for (final step in steps.reversed) {
           await _apply(step, effects);
         }
+    }
+  }
+
+  /// A reminder changed by undo needs its notification brought in line.
+  static void _touched(
+      UndoTable table, List<int> ids, List<AfterCommit> effects) {
+    if (table != UndoTable.reminders) return;
+    for (final id in ids) {
+      effects.add(ReminderTouched(id));
     }
   }
 

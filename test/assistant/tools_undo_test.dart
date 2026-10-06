@@ -8,6 +8,7 @@ import 'package:atomic_assist/data/assistant/undo_service.dart';
 import 'package:atomic_assist/data/local/drift/app_database.dart';
 import 'package:atomic_assist/data/repositories/app_settings_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/focus_session_repository_impl.dart';
+import 'package:atomic_assist/data/repositories/reminder_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/schedule_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/task_repository_impl.dart';
 import 'package:atomic_assist/domain/assistant/autonomy.dart';
@@ -40,7 +41,7 @@ void main() {
   final roundTripped = <String>{};
 
   // Seed: what a real day looks like.
-  late int report, bank, inBlock, deepWork, gymSeries, sub1;
+  late int report, bank, inBlock, deepWork, gymSeries, sub1, callMum;
 
   setUp(() async {
     db = createTestDatabase();
@@ -57,6 +58,7 @@ void main() {
         tasks: tasks,
         schedule: schedule,
         focus: focus,
+        reminders: ReminderRepositoryImpl(db),
         settings: AppSettingsRepositoryImpl(db),
         rows: rows,
         now: clock.now(),
@@ -96,6 +98,8 @@ void main() {
           taskId: report,
           subtaskId: sub1);
       await focus.completeSession(s, endedEarly: true);
+      callMum = await ReminderRepositoryImpl(db)
+          .create(title: 'Call Mum', fireAt: DateTime(2026, 10, 5, 19));
     });
   });
   tearDown(() => db.close());
@@ -215,6 +219,26 @@ void main() {
     test('delete_task restores the task, its subtasks and session links',
         () async {
       await roundTrip('delete_task', {'task_id': report});
+    });
+
+    test('create_reminder (linked to a task by title)', () async {
+      final r = await roundTrip('create_reminder', {
+        'title': 'Send the report',
+        'at': '2026-10-06T09:30',
+        'task': 'Write report',
+      });
+      expect(effects.whereType<ReminderTouched>().map((e) => e.reminderId),
+          [r.outcome.result['reminder_id'], r.outcome.result['reminder_id']],
+          reason: 'synced after the create and after its undo');
+    });
+
+    test('snooze_reminder', () async {
+      await roundTrip('snooze_reminder',
+          {'reminder_id': callMum, 'until': '2026-10-05T21:00'});
+    });
+
+    test('complete_reminder', () async {
+      await roundTrip('complete_reminder', {'reminder_id': callMum});
     });
 
     test('delete_block restores the block and re-schedules its tasks',

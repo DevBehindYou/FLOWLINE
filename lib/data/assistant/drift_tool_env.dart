@@ -4,6 +4,7 @@ import '../../domain/assistant/ledger.dart';
 import '../../domain/assistant/tool.dart';
 import '../../domain/repositories/app_settings_repository.dart';
 import '../../domain/repositories/focus_session_repository.dart';
+import '../../domain/repositories/reminder_repository.dart';
 import '../../domain/repositories/schedule_repository.dart';
 import '../../domain/repositories/task_repository.dart';
 import 'stored_rows.dart';
@@ -16,6 +17,7 @@ final class DriftToolEnv implements ToolEnv {
     required this.tasks,
     required this.schedule,
     required this.focus,
+    required this.reminders,
     required AppSettingsRepository settings,
     required StoredRows rows,
     DateTime? now,
@@ -31,6 +33,8 @@ final class DriftToolEnv implements ToolEnv {
   final ScheduleRepository schedule;
   @override
   final FocusSessionRepository focus;
+  @override
+  final ReminderRepository reminders;
   final AppSettingsRepository _settings;
   final StoredRows _rows;
 

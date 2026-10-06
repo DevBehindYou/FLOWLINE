@@ -93,6 +93,23 @@ final class BreakDownTaskPreview extends ActionPreview {
   final List<String> steps;
 }
 
+final class CreateReminderPreview extends ActionPreview {
+  const CreateReminderPreview({required this.title, required this.at});
+  final String title;
+  final DateTime at;
+}
+
+final class SnoozeReminderPreview extends ActionPreview {
+  const SnoozeReminderPreview({required this.title, required this.until});
+  final String title;
+  final DateTime until;
+}
+
+final class CompleteReminderPreview extends ActionPreview {
+  const CompleteReminderPreview(this.title);
+  final String title;
+}
+
 enum DeleteKind { task, block }
 
 /// States exactly what goes (design system §9.9): the confirm sheet lists
@@ -177,6 +194,20 @@ Map<String, Object?> previewToJson(ActionPreview p) {
         'title': title,
         'steps': steps,
       },
+    CreateReminderPreview(:final title, :final at) => {
+        'k': 'createReminder',
+        'title': title,
+        'at': ms(at),
+      },
+    SnoozeReminderPreview(:final title, :final until) => {
+        'k': 'snoozeReminder',
+        'title': title,
+        'until': ms(until),
+      },
+    CompleteReminderPreview(:final title) => {
+        'k': 'completeReminder',
+        'title': title,
+      },
     DeletePreview(
       :final kind,
       :final titles,
@@ -251,6 +282,11 @@ ActionPreview _decode(Map<Object?, Object?> j) {
         taskTitle: j['task'] == null ? null : str('task')),
     'breakDown' =>
       BreakDownTaskPreview(title: str('title'), steps: strings('steps')),
+    'createReminder' =>
+      CreateReminderPreview(title: str('title'), at: time('at')),
+    'snoozeReminder' =>
+      SnoozeReminderPreview(title: str('title'), until: time('until')),
+    'completeReminder' => CompleteReminderPreview(str('title')),
     'delete' => DeletePreview(
         kind: byName(DeleteKind.values, 'kind'),
         titles: strings('titles'),

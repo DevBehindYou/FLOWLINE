@@ -33,6 +33,25 @@ import '../support/test_database.dart';
 /// and look at the changed images before committing them. CI uploads the
 /// diffs of a failing run (artifact "golden-failures").
 class _QuietNotifications implements NotificationService {
+  // Reminder alerts (unused by these tests).
+  @override
+  Stream<({String action, int reminderId})> get reminderActions =>
+      const Stream.empty();
+
+  @override
+  Future<void> scheduleReminder({
+    required int notificationId,
+    required int reminderId,
+    required DateTime fireAt,
+    required String title,
+    required String channelName,
+    required String channelDescription,
+    required List<({String id, String label})> actions,
+  }) async {}
+
+  @override
+  Future<void> cancel(int notificationId) async {}
+
   @override
   Future<void> init() async {}
   @override

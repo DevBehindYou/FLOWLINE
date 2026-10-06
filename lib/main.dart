@@ -4,11 +4,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app.dart';
+import 'assistant/reminder_sync.dart';
+import 'core/notifications/notification_service.dart';
 import 'core/riverpod_config.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   LicenseRegistry.addLicense(_fontLicenses);
+  // Reminder buttons pressed while the app is closed (docs/05 §13).
+  NotificationService.backgroundResponseHandler = reminderActionInBackground;
   runApp(
       const ProviderScope(retry: noAutomaticRetry, child: AtomicAssistApp()));
 }

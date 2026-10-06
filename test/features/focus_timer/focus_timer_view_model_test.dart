@@ -15,6 +15,25 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../support/test_database.dart';
 
 class _FakeNotificationService implements NotificationService {
+  // Reminder alerts (unused by these tests).
+  @override
+  Stream<({String action, int reminderId})> get reminderActions =>
+      const Stream.empty();
+
+  @override
+  Future<void> scheduleReminder({
+    required int notificationId,
+    required int reminderId,
+    required DateTime fireAt,
+    required String title,
+    required String channelName,
+    required String channelDescription,
+    required List<({String id, String label})> actions,
+  }) async {}
+
+  @override
+  Future<void> cancel(int notificationId) async {}
+
   int cancels = 0;
   int schedules = 0;
   DateTime? lastFireAt;

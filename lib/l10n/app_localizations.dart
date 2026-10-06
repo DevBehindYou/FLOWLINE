@@ -2235,6 +2235,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your focus over the week'**
   String get libraryReviewHint;
+
+  /// No description provided for @actionCreateReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder set'**
+  String get actionCreateReminder;
+
+  /// No description provided for @actionSnoozeReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Snoozed'**
+  String get actionSnoozeReminder;
+
+  /// No description provided for @actionCompleteReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder done'**
+  String get actionCompleteReminder;
+
+  /// No description provided for @remindersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get remindersTitle;
+
+  /// No description provided for @remindersHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What AA will remind you about'**
+  String get remindersHint;
+
+  /// No description provided for @remindersEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No reminders'**
+  String get remindersEmptyTitle;
+
+  /// No description provided for @remindersEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Say \"remind me to call Mum at 7\" in Assist.'**
+  String get remindersEmptyMessage;
+
+  /// No description provided for @loadingReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading reminders…'**
+  String get loadingReminders;
+
+  /// No description provided for @reminderDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get reminderDone;
+
+  /// No description provided for @reminderSnooze10.
+  ///
+  /// In en, this message translates to:
+  /// **'Snooze 10 min'**
+  String get reminderSnooze10;
+
+  /// No description provided for @reminderTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get reminderTomorrow;
+
+  /// No description provided for @reminderOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed'**
+  String get reminderOverdue;
+
+  /// No description provided for @reminderNotificationChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get reminderNotificationChannel;
+
+  /// No description provided for @reminderNotificationChannelDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders you asked Atomic Assist for'**
+  String get reminderNotificationChannelDescription;
 }
 
 class _AppLocalizationsDelegate

@@ -15,6 +15,25 @@ import '../../support/pump_app.dart';
 import '../../support/test_database.dart';
 
 class _FakeNotificationService implements NotificationService {
+  // Reminder alerts (unused by these tests).
+  @override
+  Stream<({String action, int reminderId})> get reminderActions =>
+      const Stream.empty();
+
+  @override
+  Future<void> scheduleReminder({
+    required int notificationId,
+    required int reminderId,
+    required DateTime fireAt,
+    required String title,
+    required String channelName,
+    required String channelDescription,
+    required List<({String id, String label})> actions,
+  }) async {}
+
+  @override
+  Future<void> cancel(int notificationId) async {}
+
   _FakeNotificationService({this.denied = false});
   final bool denied;
   int permissionRequests = 0;
