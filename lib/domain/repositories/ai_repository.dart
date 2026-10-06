@@ -55,6 +55,24 @@ abstract interface class AIRepository {
     AIResponseFormat format = AIResponseFormat.text,
   });
 
+  /// Completed exchanges of [conversationId], windowed (K10): the history
+  /// an assistant turn sends with its request.
+  Future<List<AIMessage>> chatHistory(int conversationId);
+
+  /// Writes the user's message and a pending reply for an assistant turn
+  /// (ledger group [groupId]) in one transaction; returns the reply id.
+  /// The pending row turns into an error if the app dies first (B23).
+  Future<int> beginTurnReply({
+    required int conversationId,
+    required String prompt,
+    required String groupId,
+  });
+
+  /// Fills the pending reply: [text] (may be empty when the turn's actions
+  /// say it all), or [failure].
+  Future<void> finishTurnReply(int replyId,
+      {String text = '', AIFailure? failure});
+
   /// One round of a request with tools, against the active provider, with
   /// nothing persisted (the orchestrator keeps its own ledger). When the
   /// model or server refuses tools, it retries once asking for a JSON plan
@@ -63,6 +81,7 @@ abstract interface class AIRepository {
     required String prompt,
     required List<AIToolSpec> tools,
     String? system,
+    List<AIMessage> history = const [],
     List<AITurn> continuation = const [],
     AIToolChoice toolChoice = AIToolChoice.auto,
     AICancelToken? cancel,

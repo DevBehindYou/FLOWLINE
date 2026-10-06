@@ -1101,4 +1101,103 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get stop => 'Stop';
+
+  @override
+  String get actionCreateTask => 'Created task';
+
+  @override
+  String get actionUpdateTask => 'Changed task';
+
+  @override
+  String get actionCompleteTask => 'Marked done';
+
+  @override
+  String get actionScheduleTask => 'Scheduled';
+
+  @override
+  String get actionCreateBlock => 'Added block';
+
+  @override
+  String get actionMoveBlock => 'Moved block';
+
+  @override
+  String get actionStartFocus => 'Started focus';
+
+  @override
+  String get actionBreakDown => 'Added steps';
+
+  @override
+  String get actionDeleteTask => 'Deleted task';
+
+  @override
+  String get actionDeleteBlock => 'Deleted block';
+
+  @override
+  String get actionRead => 'Looked it up';
+
+  @override
+  String get actionUndone => 'Undone';
+
+  @override
+  String get actionFailed => 'Failed';
+
+  @override
+  String get actionChangedSince => 'Changed since. Not undone.';
+
+  @override
+  String get actionNothingToUndo => 'Nothing left to undo.';
+
+  @override
+  String actionFocusMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String get turnNothingDone => 'Nothing to do. Try saying it another way.';
+
+  @override
+  String get turnStoppedRounds =>
+      'Stopped: that took too many steps. Try a smaller request.';
+
+  @override
+  String get turnStoppedCalls =>
+      'Stopped: that was too many changes at once. Nothing more was done.';
+
+  @override
+  String get turnStoppedTimeout => 'Stopped: no answer in time.';
+
+  @override
+  String get confirmActionTitle => 'Do this?';
+
+  @override
+  String confirmActionMessage(String action, String detail) {
+    return '$action: $detail';
+  }
+
+  @override
+  String confirmDeleteTaskMessage(int count, String title) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '\"$title\" and its $count subtasks will be deleted.',
+      one: '\"$title\" and its subtask will be deleted.',
+      zero: '\"$title\" will be deleted.',
+    );
+    return '$_temp0 You can undo this.';
+  }
+
+  @override
+  String confirmDeleteBlockMessage(int count, String title) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '\"$title\" will be deleted. Its $count tasks stay, unscheduled.',
+      one: '\"$title\" will be deleted. Its task stays, unscheduled.',
+      zero: '\"$title\" will be deleted.',
+    );
+    return '$_temp0 You can undo this.';
+  }
+
+  @override
+  String get confirmDo => 'Do it';
 }

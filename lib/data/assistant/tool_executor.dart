@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
+import '../../domain/assistant/action_preview.dart';
 import '../../domain/assistant/autonomy.dart';
 import '../../domain/assistant/ledger.dart';
 import '../../domain/assistant/tool.dart';
@@ -65,6 +68,7 @@ final class ToolExecutor {
     required ActionOrigin origin,
     required Decision decision,
     int? utteranceId,
+    ActionPreview? preview,
   }) async {
     final env = _env();
     AssistantActionsCompanion row(LedgerStatus status, String? undo) =>
@@ -78,6 +82,8 @@ final class ToolExecutor {
           status: status,
           undoJson: Value(undo),
           utteranceId: Value(utteranceId),
+          previewJson: Value(
+              preview == null ? null : jsonEncode(previewToJson(preview))),
         );
     final records = call.risk != ActionRisk.read;
 

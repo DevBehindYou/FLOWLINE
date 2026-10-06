@@ -9,7 +9,9 @@ import '../../../shared_widgets/empty_state.dart';
 import '../../../shared_widgets/error_view.dart';
 import '../../../shared_widgets/settings_action.dart';
 import '../viewmodel/assistant_view_model.dart';
+import '../../../assistant/orchestrator.dart';
 import '../widgets/chat_bubble.dart';
+import '../widgets/turn_actions.dart';
 import '../../../l10n/l10n.dart';
 
 class AssistantScreen extends ConsumerWidget {
@@ -95,8 +97,38 @@ class _ChatBodyState extends ConsumerState<_ChatBody> {
     }
   }
 
+  Future<void> _onNotice(AssistNotice? notice) async {
+    if (notice == null) return;
+    ref.read(assistNoticesProvider.notifier).clear();
+    final l10n = context.l10n;
+    switch (notice) {
+      case AssistStopped(:final limit):
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
+            content: Text(switch (limit) {
+          TurnLimit.rounds => l10n.turnStoppedRounds,
+          TurnLimit.calls => l10n.turnStoppedCalls,
+          TurnLimit.timeout => l10n.turnStoppedTimeout,
+        })));
+      case AssistConfirm(:final pending):
+        final yes = await showAtomicConfirm(
+          context: context,
+          label: l10n.confirmSheetLabel,
+          title: l10n.confirmActionTitle,
+          message: l10n.confirmMessage(pending.preview),
+          confirmLabel: l10n.confirmDo,
+          cancelLabel: l10n.cancel,
+        );
+        if (!yes || !mounted) return;
+        await runAction(
+            context,
+            () =>
+                ref.read(assistantViewModelProvider.notifier).confirm(pending));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    ref.listen(assistNoticesProvider, (_, next) => _onNotice(next));
     final conversationAsync =
         ref.watch(latestConversationForProviderProvider(widget.provider.id));
     final isSending = ref.watch(assistantViewModelProvider);
@@ -214,7 +246,19 @@ class _MessageList extends ConsumerWidget {
           itemCount: messages.length,
           itemBuilder: (context, index) {
             final message = messages[messages.length - 1 - index];
-            return ChatBubble(message: message, provider: provider);
+            final group = message.turnGroupId;
+            if (group == null || message.isPending || message.isError) {
+              return ChatBubble(message: message, provider: provider);
+            }
+            // An assistant turn: its text (if any), then what it did.
+            final empty = message.content.trim().isEmpty;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (!empty) ChatBubble(message: message, provider: provider),
+                TurnActions(groupId: group, replyIsEmpty: empty),
+              ],
+            );
           },
         );
       },

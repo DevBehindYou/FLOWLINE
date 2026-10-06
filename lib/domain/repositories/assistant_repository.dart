@@ -14,6 +14,9 @@ abstract interface class AssistantRepository {
 
   Future<List<LedgerEntry>> getGroup(String groupId);
 
+  /// One turn's entries, oldest first, live (an UNDO shows at once).
+  Stream<List<LedgerEntry>> watchGroup(String groupId);
+
   /// Stores [draft], or returns null when an open proposal with the same
   /// dedupe key exists (the database enforces it).
   Future<int?> createProposal(ProposalDraft draft, {required DateTime at});

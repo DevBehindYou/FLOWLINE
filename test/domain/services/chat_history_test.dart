@@ -30,6 +30,14 @@ void main() {
     );
   });
 
+  test('drops an assistant turn with no text (vendors reject empty turns)', () {
+    expect(
+      texts(buildChatHistory(
+          [_user('add a task milk'), _reply(''), _user('b'), _reply('B')])),
+      ['b', 'B'],
+    );
+  });
+
   test('drops an error reply together with its prompt (B31)', () {
     final history = buildChatHistory([
       _user('a'),

@@ -3029,6 +3029,12 @@ class $AiMessagesTable extends AiMessages
       GeneratedColumn<int>('stop_reason', aliasedName, true,
               type: DriftSqlType.int, requiredDuringInsert: false)
           .withConverter<AIStopReason?>($AiMessagesTable.$converterstopReasonn);
+  static const VerificationMeta _turnGroupIdMeta =
+      const VerificationMeta('turnGroupId');
+  @override
+  late final GeneratedColumn<String> turnGroupId = GeneratedColumn<String>(
+      'turn_group_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -3040,7 +3046,8 @@ class $AiMessagesTable extends AiMessages
         sentAt,
         errorKind,
         errorStatus,
-        stopReason
+        stopReason,
+        turnGroupId
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3087,6 +3094,12 @@ class $AiMessagesTable extends AiMessages
           errorStatus.isAcceptableOrUnknown(
               data['error_status']!, _errorStatusMeta));
     }
+    if (data.containsKey('turn_group_id')) {
+      context.handle(
+          _turnGroupIdMeta,
+          turnGroupId.isAcceptableOrUnknown(
+              data['turn_group_id']!, _turnGroupIdMeta));
+    }
     return context;
   }
 
@@ -3118,6 +3131,8 @@ class $AiMessagesTable extends AiMessages
       stopReason: $AiMessagesTable.$converterstopReasonn.fromSql(
           attachedDatabase.typeMapping
               .read(DriftSqlType.int, data['${effectivePrefix}stop_reason'])),
+      turnGroupId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}turn_group_id']),
     );
   }
 
@@ -3149,6 +3164,7 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
   final AIFailureKind? errorKind;
   final int? errorStatus;
   final AIStopReason? stopReason;
+  final String? turnGroupId;
   const AiMessageRow(
       {required this.id,
       required this.conversationId,
@@ -3159,7 +3175,8 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
       required this.sentAt,
       this.errorKind,
       this.errorStatus,
-      this.stopReason});
+      this.stopReason,
+      this.turnGroupId});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -3183,6 +3200,9 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
       map['stop_reason'] = Variable<int>(
           $AiMessagesTable.$converterstopReasonn.toSql(stopReason));
     }
+    if (!nullToAbsent || turnGroupId != null) {
+      map['turn_group_id'] = Variable<String>(turnGroupId);
+    }
     return map;
   }
 
@@ -3204,6 +3224,9 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
       stopReason: stopReason == null && nullToAbsent
           ? const Value.absent()
           : Value(stopReason),
+      turnGroupId: turnGroupId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(turnGroupId),
     );
   }
 
@@ -3224,6 +3247,7 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
       errorStatus: serializer.fromJson<int?>(json['errorStatus']),
       stopReason: $AiMessagesTable.$converterstopReasonn
           .fromJson(serializer.fromJson<int?>(json['stopReason'])),
+      turnGroupId: serializer.fromJson<String?>(json['turnGroupId']),
     );
   }
   @override
@@ -3243,6 +3267,7 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
       'errorStatus': serializer.toJson<int?>(errorStatus),
       'stopReason': serializer.toJson<int?>(
           $AiMessagesTable.$converterstopReasonn.toJson(stopReason)),
+      'turnGroupId': serializer.toJson<String?>(turnGroupId),
     };
   }
 
@@ -3256,7 +3281,8 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
           DateTime? sentAt,
           Value<AIFailureKind?> errorKind = const Value.absent(),
           Value<int?> errorStatus = const Value.absent(),
-          Value<AIStopReason?> stopReason = const Value.absent()}) =>
+          Value<AIStopReason?> stopReason = const Value.absent(),
+          Value<String?> turnGroupId = const Value.absent()}) =>
       AiMessageRow(
         id: id ?? this.id,
         conversationId: conversationId ?? this.conversationId,
@@ -3268,6 +3294,7 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
         errorKind: errorKind.present ? errorKind.value : this.errorKind,
         errorStatus: errorStatus.present ? errorStatus.value : this.errorStatus,
         stopReason: stopReason.present ? stopReason.value : this.stopReason,
+        turnGroupId: turnGroupId.present ? turnGroupId.value : this.turnGroupId,
       );
   AiMessageRow copyWithCompanion(AiMessagesCompanion data) {
     return AiMessageRow(
@@ -3285,6 +3312,8 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
           data.errorStatus.present ? data.errorStatus.value : this.errorStatus,
       stopReason:
           data.stopReason.present ? data.stopReason.value : this.stopReason,
+      turnGroupId:
+          data.turnGroupId.present ? data.turnGroupId.value : this.turnGroupId,
     );
   }
 
@@ -3300,14 +3329,15 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
           ..write('sentAt: $sentAt, ')
           ..write('errorKind: $errorKind, ')
           ..write('errorStatus: $errorStatus, ')
-          ..write('stopReason: $stopReason')
+          ..write('stopReason: $stopReason, ')
+          ..write('turnGroupId: $turnGroupId')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(id, conversationId, role, content, isError,
-      isPending, sentAt, errorKind, errorStatus, stopReason);
+      isPending, sentAt, errorKind, errorStatus, stopReason, turnGroupId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3321,7 +3351,8 @@ class AiMessageRow extends DataClass implements Insertable<AiMessageRow> {
           other.sentAt == this.sentAt &&
           other.errorKind == this.errorKind &&
           other.errorStatus == this.errorStatus &&
-          other.stopReason == this.stopReason);
+          other.stopReason == this.stopReason &&
+          other.turnGroupId == this.turnGroupId);
 }
 
 class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
@@ -3335,6 +3366,7 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
   final Value<AIFailureKind?> errorKind;
   final Value<int?> errorStatus;
   final Value<AIStopReason?> stopReason;
+  final Value<String?> turnGroupId;
   const AiMessagesCompanion({
     this.id = const Value.absent(),
     this.conversationId = const Value.absent(),
@@ -3346,6 +3378,7 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
     this.errorKind = const Value.absent(),
     this.errorStatus = const Value.absent(),
     this.stopReason = const Value.absent(),
+    this.turnGroupId = const Value.absent(),
   });
   AiMessagesCompanion.insert({
     this.id = const Value.absent(),
@@ -3358,6 +3391,7 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
     this.errorKind = const Value.absent(),
     this.errorStatus = const Value.absent(),
     this.stopReason = const Value.absent(),
+    this.turnGroupId = const Value.absent(),
   })  : conversationId = Value(conversationId),
         role = Value(role),
         content = Value(content);
@@ -3372,6 +3406,7 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
     Expression<int>? errorKind,
     Expression<int>? errorStatus,
     Expression<int>? stopReason,
+    Expression<String>? turnGroupId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -3384,6 +3419,7 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
       if (errorKind != null) 'error_kind': errorKind,
       if (errorStatus != null) 'error_status': errorStatus,
       if (stopReason != null) 'stop_reason': stopReason,
+      if (turnGroupId != null) 'turn_group_id': turnGroupId,
     });
   }
 
@@ -3397,7 +3433,8 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
       Value<DateTime>? sentAt,
       Value<AIFailureKind?>? errorKind,
       Value<int?>? errorStatus,
-      Value<AIStopReason?>? stopReason}) {
+      Value<AIStopReason?>? stopReason,
+      Value<String?>? turnGroupId}) {
     return AiMessagesCompanion(
       id: id ?? this.id,
       conversationId: conversationId ?? this.conversationId,
@@ -3409,6 +3446,7 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
       errorKind: errorKind ?? this.errorKind,
       errorStatus: errorStatus ?? this.errorStatus,
       stopReason: stopReason ?? this.stopReason,
+      turnGroupId: turnGroupId ?? this.turnGroupId,
     );
   }
 
@@ -3448,6 +3486,9 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
       map['stop_reason'] = Variable<int>(
           $AiMessagesTable.$converterstopReasonn.toSql(stopReason.value));
     }
+    if (turnGroupId.present) {
+      map['turn_group_id'] = Variable<String>(turnGroupId.value);
+    }
     return map;
   }
 
@@ -3463,7 +3504,8 @@ class AiMessagesCompanion extends UpdateCompanion<AiMessageRow> {
           ..write('sentAt: $sentAt, ')
           ..write('errorKind: $errorKind, ')
           ..write('errorStatus: $errorStatus, ')
-          ..write('stopReason: $stopReason')
+          ..write('stopReason: $stopReason, ')
+          ..write('turnGroupId: $turnGroupId')
           ..write(')'))
         .toString();
   }
@@ -3877,6 +3919,12 @@ class $AssistantActionsTable extends AssistantActions
   late final GeneratedColumn<String> undoJson = GeneratedColumn<String>(
       'undo_json', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _previewJsonMeta =
+      const VerificationMeta('previewJson');
+  @override
+  late final GeneratedColumn<String> previewJson = GeneratedColumn<String>(
+      'preview_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _utteranceIdMeta =
       const VerificationMeta('utteranceId');
   @override
@@ -3897,6 +3945,7 @@ class $AssistantActionsTable extends AssistantActions
         decision,
         status,
         undoJson,
+        previewJson,
         utteranceId
       ];
   @override
@@ -3939,6 +3988,12 @@ class $AssistantActionsTable extends AssistantActions
       context.handle(_undoJsonMeta,
           undoJson.isAcceptableOrUnknown(data['undo_json']!, _undoJsonMeta));
     }
+    if (data.containsKey('preview_json')) {
+      context.handle(
+          _previewJsonMeta,
+          previewJson.isAcceptableOrUnknown(
+              data['preview_json']!, _previewJsonMeta));
+    }
     if (data.containsKey('utterance_id')) {
       context.handle(
           _utteranceIdMeta,
@@ -3975,6 +4030,8 @@ class $AssistantActionsTable extends AssistantActions
           .read(DriftSqlType.int, data['${effectivePrefix}status'])!),
       undoJson: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}undo_json']),
+      previewJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}preview_json']),
       utteranceId: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}utterance_id']),
     );
@@ -4006,6 +4063,10 @@ class AssistantActionRow extends DataClass
 
   /// `encodeUndoRecipe` output; null when the action has no undo.
   final String? undoJson;
+
+  /// Since schema v10: `previewToJson` of what the action did, so the
+  /// chat and Activity can word it later (the target may be gone).
+  final String? previewJson;
   final int? utteranceId;
   const AssistantActionRow(
       {required this.id,
@@ -4017,6 +4078,7 @@ class AssistantActionRow extends DataClass
       required this.decision,
       required this.status,
       this.undoJson,
+      this.previewJson,
       this.utteranceId});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -4041,6 +4103,9 @@ class AssistantActionRow extends DataClass
     if (!nullToAbsent || undoJson != null) {
       map['undo_json'] = Variable<String>(undoJson);
     }
+    if (!nullToAbsent || previewJson != null) {
+      map['preview_json'] = Variable<String>(previewJson);
+    }
     if (!nullToAbsent || utteranceId != null) {
       map['utterance_id'] = Variable<int>(utteranceId);
     }
@@ -4060,6 +4125,9 @@ class AssistantActionRow extends DataClass
       undoJson: undoJson == null && nullToAbsent
           ? const Value.absent()
           : Value(undoJson),
+      previewJson: previewJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(previewJson),
       utteranceId: utteranceId == null && nullToAbsent
           ? const Value.absent()
           : Value(utteranceId),
@@ -4082,6 +4150,7 @@ class AssistantActionRow extends DataClass
       status: $AssistantActionsTable.$converterstatus
           .fromJson(serializer.fromJson<int>(json['status'])),
       undoJson: serializer.fromJson<String?>(json['undoJson']),
+      previewJson: serializer.fromJson<String?>(json['previewJson']),
       utteranceId: serializer.fromJson<int?>(json['utteranceId']),
     );
   }
@@ -4101,6 +4170,7 @@ class AssistantActionRow extends DataClass
       'status': serializer
           .toJson<int>($AssistantActionsTable.$converterstatus.toJson(status)),
       'undoJson': serializer.toJson<String?>(undoJson),
+      'previewJson': serializer.toJson<String?>(previewJson),
       'utteranceId': serializer.toJson<int?>(utteranceId),
     };
   }
@@ -4115,6 +4185,7 @@ class AssistantActionRow extends DataClass
           Decision? decision,
           LedgerStatus? status,
           Value<String?> undoJson = const Value.absent(),
+          Value<String?> previewJson = const Value.absent(),
           Value<int?> utteranceId = const Value.absent()}) =>
       AssistantActionRow(
         id: id ?? this.id,
@@ -4126,6 +4197,7 @@ class AssistantActionRow extends DataClass
         decision: decision ?? this.decision,
         status: status ?? this.status,
         undoJson: undoJson.present ? undoJson.value : this.undoJson,
+        previewJson: previewJson.present ? previewJson.value : this.previewJson,
         utteranceId: utteranceId.present ? utteranceId.value : this.utteranceId,
       );
   AssistantActionRow copyWithCompanion(AssistantActionsCompanion data) {
@@ -4139,6 +4211,8 @@ class AssistantActionRow extends DataClass
       decision: data.decision.present ? data.decision.value : this.decision,
       status: data.status.present ? data.status.value : this.status,
       undoJson: data.undoJson.present ? data.undoJson.value : this.undoJson,
+      previewJson:
+          data.previewJson.present ? data.previewJson.value : this.previewJson,
       utteranceId:
           data.utteranceId.present ? data.utteranceId.value : this.utteranceId,
     );
@@ -4156,6 +4230,7 @@ class AssistantActionRow extends DataClass
           ..write('decision: $decision, ')
           ..write('status: $status, ')
           ..write('undoJson: $undoJson, ')
+          ..write('previewJson: $previewJson, ')
           ..write('utteranceId: $utteranceId')
           ..write(')'))
         .toString();
@@ -4163,7 +4238,7 @@ class AssistantActionRow extends DataClass
 
   @override
   int get hashCode => Object.hash(id, at, groupId, toolName, argsJson, origin,
-      decision, status, undoJson, utteranceId);
+      decision, status, undoJson, previewJson, utteranceId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4177,6 +4252,7 @@ class AssistantActionRow extends DataClass
           other.decision == this.decision &&
           other.status == this.status &&
           other.undoJson == this.undoJson &&
+          other.previewJson == this.previewJson &&
           other.utteranceId == this.utteranceId);
 }
 
@@ -4190,6 +4266,7 @@ class AssistantActionsCompanion extends UpdateCompanion<AssistantActionRow> {
   final Value<Decision> decision;
   final Value<LedgerStatus> status;
   final Value<String?> undoJson;
+  final Value<String?> previewJson;
   final Value<int?> utteranceId;
   const AssistantActionsCompanion({
     this.id = const Value.absent(),
@@ -4201,6 +4278,7 @@ class AssistantActionsCompanion extends UpdateCompanion<AssistantActionRow> {
     this.decision = const Value.absent(),
     this.status = const Value.absent(),
     this.undoJson = const Value.absent(),
+    this.previewJson = const Value.absent(),
     this.utteranceId = const Value.absent(),
   });
   AssistantActionsCompanion.insert({
@@ -4213,6 +4291,7 @@ class AssistantActionsCompanion extends UpdateCompanion<AssistantActionRow> {
     required Decision decision,
     required LedgerStatus status,
     this.undoJson = const Value.absent(),
+    this.previewJson = const Value.absent(),
     this.utteranceId = const Value.absent(),
   })  : at = Value(at),
         groupId = Value(groupId),
@@ -4231,6 +4310,7 @@ class AssistantActionsCompanion extends UpdateCompanion<AssistantActionRow> {
     Expression<int>? decision,
     Expression<int>? status,
     Expression<String>? undoJson,
+    Expression<String>? previewJson,
     Expression<int>? utteranceId,
   }) {
     return RawValuesInsertable({
@@ -4243,6 +4323,7 @@ class AssistantActionsCompanion extends UpdateCompanion<AssistantActionRow> {
       if (decision != null) 'decision': decision,
       if (status != null) 'status': status,
       if (undoJson != null) 'undo_json': undoJson,
+      if (previewJson != null) 'preview_json': previewJson,
       if (utteranceId != null) 'utterance_id': utteranceId,
     });
   }
@@ -4257,6 +4338,7 @@ class AssistantActionsCompanion extends UpdateCompanion<AssistantActionRow> {
       Value<Decision>? decision,
       Value<LedgerStatus>? status,
       Value<String?>? undoJson,
+      Value<String?>? previewJson,
       Value<int?>? utteranceId}) {
     return AssistantActionsCompanion(
       id: id ?? this.id,
@@ -4268,6 +4350,7 @@ class AssistantActionsCompanion extends UpdateCompanion<AssistantActionRow> {
       decision: decision ?? this.decision,
       status: status ?? this.status,
       undoJson: undoJson ?? this.undoJson,
+      previewJson: previewJson ?? this.previewJson,
       utteranceId: utteranceId ?? this.utteranceId,
     );
   }
@@ -4305,6 +4388,9 @@ class AssistantActionsCompanion extends UpdateCompanion<AssistantActionRow> {
     if (undoJson.present) {
       map['undo_json'] = Variable<String>(undoJson.value);
     }
+    if (previewJson.present) {
+      map['preview_json'] = Variable<String>(previewJson.value);
+    }
     if (utteranceId.present) {
       map['utterance_id'] = Variable<int>(utteranceId.value);
     }
@@ -4323,6 +4409,7 @@ class AssistantActionsCompanion extends UpdateCompanion<AssistantActionRow> {
           ..write('decision: $decision, ')
           ..write('status: $status, ')
           ..write('undoJson: $undoJson, ')
+          ..write('previewJson: $previewJson, ')
           ..write('utteranceId: $utteranceId')
           ..write(')'))
         .toString();
@@ -7627,6 +7714,7 @@ typedef $$AiMessagesTableCreateCompanionBuilder = AiMessagesCompanion Function({
   Value<AIFailureKind?> errorKind,
   Value<int?> errorStatus,
   Value<AIStopReason?> stopReason,
+  Value<String?> turnGroupId,
 });
 typedef $$AiMessagesTableUpdateCompanionBuilder = AiMessagesCompanion Function({
   Value<int> id,
@@ -7639,6 +7727,7 @@ typedef $$AiMessagesTableUpdateCompanionBuilder = AiMessagesCompanion Function({
   Value<AIFailureKind?> errorKind,
   Value<int?> errorStatus,
   Value<AIStopReason?> stopReason,
+  Value<String?> turnGroupId,
 });
 
 final class $$AiMessagesTableReferences
@@ -7704,6 +7793,9 @@ class $$AiMessagesTableFilterComposer
           column: $table.stopReason,
           builder: (column) => ColumnWithTypeConverterFilters(column));
 
+  ColumnFilters<String> get turnGroupId => $composableBuilder(
+      column: $table.turnGroupId, builder: (column) => ColumnFilters(column));
+
   $$AiConversationsTableFilterComposer get conversationId {
     final $$AiConversationsTableFilterComposer composer = $composerBuilder(
         composer: this,
@@ -7760,6 +7852,9 @@ class $$AiMessagesTableOrderingComposer
 
   ColumnOrderings<int> get stopReason => $composableBuilder(
       column: $table.stopReason, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get turnGroupId => $composableBuilder(
+      column: $table.turnGroupId, builder: (column) => ColumnOrderings(column));
 
   $$AiConversationsTableOrderingComposer get conversationId {
     final $$AiConversationsTableOrderingComposer composer = $composerBuilder(
@@ -7819,6 +7914,9 @@ class $$AiMessagesTableAnnotationComposer
       $composableBuilder(
           column: $table.stopReason, builder: (column) => column);
 
+  GeneratedColumn<String> get turnGroupId => $composableBuilder(
+      column: $table.turnGroupId, builder: (column) => column);
+
   $$AiConversationsTableAnnotationComposer get conversationId {
     final $$AiConversationsTableAnnotationComposer composer = $composerBuilder(
         composer: this,
@@ -7873,6 +7971,7 @@ class $$AiMessagesTableTableManager extends RootTableManager<
             Value<AIFailureKind?> errorKind = const Value.absent(),
             Value<int?> errorStatus = const Value.absent(),
             Value<AIStopReason?> stopReason = const Value.absent(),
+            Value<String?> turnGroupId = const Value.absent(),
           }) =>
               AiMessagesCompanion(
             id: id,
@@ -7885,6 +7984,7 @@ class $$AiMessagesTableTableManager extends RootTableManager<
             errorKind: errorKind,
             errorStatus: errorStatus,
             stopReason: stopReason,
+            turnGroupId: turnGroupId,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -7897,6 +7997,7 @@ class $$AiMessagesTableTableManager extends RootTableManager<
             Value<AIFailureKind?> errorKind = const Value.absent(),
             Value<int?> errorStatus = const Value.absent(),
             Value<AIStopReason?> stopReason = const Value.absent(),
+            Value<String?> turnGroupId = const Value.absent(),
           }) =>
               AiMessagesCompanion.insert(
             id: id,
@@ -7909,6 +8010,7 @@ class $$AiMessagesTableTableManager extends RootTableManager<
             errorKind: errorKind,
             errorStatus: errorStatus,
             stopReason: stopReason,
+            turnGroupId: turnGroupId,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
@@ -8244,6 +8346,7 @@ typedef $$AssistantActionsTableCreateCompanionBuilder
   required Decision decision,
   required LedgerStatus status,
   Value<String?> undoJson,
+  Value<String?> previewJson,
   Value<int?> utteranceId,
 });
 typedef $$AssistantActionsTableUpdateCompanionBuilder
@@ -8257,6 +8360,7 @@ typedef $$AssistantActionsTableUpdateCompanionBuilder
   Value<Decision> decision,
   Value<LedgerStatus> status,
   Value<String?> undoJson,
+  Value<String?> previewJson,
   Value<int?> utteranceId,
 });
 
@@ -8322,6 +8426,9 @@ class $$AssistantActionsTableFilterComposer
   ColumnFilters<String> get undoJson => $composableBuilder(
       column: $table.undoJson, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get previewJson => $composableBuilder(
+      column: $table.previewJson, builder: (column) => ColumnFilters(column));
+
   $$UtterancesTableFilterComposer get utteranceId {
     final $$UtterancesTableFilterComposer composer = $composerBuilder(
         composer: this,
@@ -8378,6 +8485,9 @@ class $$AssistantActionsTableOrderingComposer
 
   ColumnOrderings<String> get undoJson => $composableBuilder(
       column: $table.undoJson, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get previewJson => $composableBuilder(
+      column: $table.previewJson, builder: (column) => ColumnOrderings(column));
 
   $$UtterancesTableOrderingComposer get utteranceId {
     final $$UtterancesTableOrderingComposer composer = $composerBuilder(
@@ -8436,6 +8546,9 @@ class $$AssistantActionsTableAnnotationComposer
   GeneratedColumn<String> get undoJson =>
       $composableBuilder(column: $table.undoJson, builder: (column) => column);
 
+  GeneratedColumn<String> get previewJson => $composableBuilder(
+      column: $table.previewJson, builder: (column) => column);
+
   $$UtterancesTableAnnotationComposer get utteranceId {
     final $$UtterancesTableAnnotationComposer composer = $composerBuilder(
         composer: this,
@@ -8490,6 +8603,7 @@ class $$AssistantActionsTableTableManager extends RootTableManager<
             Value<Decision> decision = const Value.absent(),
             Value<LedgerStatus> status = const Value.absent(),
             Value<String?> undoJson = const Value.absent(),
+            Value<String?> previewJson = const Value.absent(),
             Value<int?> utteranceId = const Value.absent(),
           }) =>
               AssistantActionsCompanion(
@@ -8502,6 +8616,7 @@ class $$AssistantActionsTableTableManager extends RootTableManager<
             decision: decision,
             status: status,
             undoJson: undoJson,
+            previewJson: previewJson,
             utteranceId: utteranceId,
           ),
           createCompanionCallback: ({
@@ -8514,6 +8629,7 @@ class $$AssistantActionsTableTableManager extends RootTableManager<
             required Decision decision,
             required LedgerStatus status,
             Value<String?> undoJson = const Value.absent(),
+            Value<String?> previewJson = const Value.absent(),
             Value<int?> utteranceId = const Value.absent(),
           }) =>
               AssistantActionsCompanion.insert(
@@ -8526,6 +8642,7 @@ class $$AssistantActionsTableTableManager extends RootTableManager<
             decision: decision,
             status: status,
             undoJson: undoJson,
+            previewJson: previewJson,
             utteranceId: utteranceId,
           ),
           withReferenceMapper: (p0) => p0

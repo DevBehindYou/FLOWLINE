@@ -1869,6 +1869,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stop'**
   String get stop;
+
+  /// No description provided for @actionCreateTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Created task'**
+  String get actionCreateTask;
+
+  /// No description provided for @actionUpdateTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed task'**
+  String get actionUpdateTask;
+
+  /// No description provided for @actionCompleteTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked done'**
+  String get actionCompleteTask;
+
+  /// No description provided for @actionScheduleTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled'**
+  String get actionScheduleTask;
+
+  /// No description provided for @actionCreateBlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Added block'**
+  String get actionCreateBlock;
+
+  /// No description provided for @actionMoveBlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved block'**
+  String get actionMoveBlock;
+
+  /// No description provided for @actionStartFocus.
+  ///
+  /// In en, this message translates to:
+  /// **'Started focus'**
+  String get actionStartFocus;
+
+  /// No description provided for @actionBreakDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Added steps'**
+  String get actionBreakDown;
+
+  /// No description provided for @actionDeleteTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted task'**
+  String get actionDeleteTask;
+
+  /// No description provided for @actionDeleteBlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted block'**
+  String get actionDeleteBlock;
+
+  /// No description provided for @actionRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Looked it up'**
+  String get actionRead;
+
+  /// No description provided for @actionUndone.
+  ///
+  /// In en, this message translates to:
+  /// **'Undone'**
+  String get actionUndone;
+
+  /// No description provided for @actionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get actionFailed;
+
+  /// No description provided for @actionChangedSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed since. Not undone.'**
+  String get actionChangedSince;
+
+  /// No description provided for @actionNothingToUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing left to undo.'**
+  String get actionNothingToUndo;
+
+  /// No description provided for @actionFocusMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String actionFocusMinutes(int minutes);
+
+  /// No description provided for @turnNothingDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to do. Try saying it another way.'**
+  String get turnNothingDone;
+
+  /// No description provided for @turnStoppedRounds.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped: that took too many steps. Try a smaller request.'**
+  String get turnStoppedRounds;
+
+  /// No description provided for @turnStoppedCalls.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped: that was too many changes at once. Nothing more was done.'**
+  String get turnStoppedCalls;
+
+  /// No description provided for @turnStoppedTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped: no answer in time.'**
+  String get turnStoppedTimeout;
+
+  /// No description provided for @confirmActionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Do this?'**
+  String get confirmActionTitle;
+
+  /// No description provided for @confirmActionMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{action}: {detail}'**
+  String confirmActionMessage(String action, String detail);
+
+  /// No description provided for @confirmDeleteTaskMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{\"{title}\" will be deleted.} =1{\"{title}\" and its subtask will be deleted.} other{\"{title}\" and its {count} subtasks will be deleted.}} You can undo this.'**
+  String confirmDeleteTaskMessage(int count, String title);
+
+  /// No description provided for @confirmDeleteBlockMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{\"{title}\" will be deleted.} =1{\"{title}\" will be deleted. Its task stays, unscheduled.} other{\"{title}\" will be deleted. Its {count} tasks stay, unscheduled.}} You can undo this.'**
+  String confirmDeleteBlockMessage(int count, String title);
+
+  /// No description provided for @confirmDo.
+  ///
+  /// In en, this message translates to:
+  /// **'Do it'**
+  String get confirmDo;
 }
 
 class _AppLocalizationsDelegate

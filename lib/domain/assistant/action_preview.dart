@@ -113,3 +113,149 @@ final class DeletePreview extends ActionPreview {
   /// Tasks a deleted block leaves unscheduled (they are kept).
   final int unscheduledTaskCount;
 }
+
+// ---- Stored form ---------------------------------------------------------
+// Previews are stored with each ledger row (schema v10), so Activity and
+// the chat can word an action after the fact (a deleted task can't be
+// previewed again). Enum *names* and epoch milliseconds, so the form
+// survives enum growth and time zones; decoding never throws.
+
+Map<String, Object?> previewToJson(ActionPreview p) {
+  int ms(DateTime t) => t.millisecondsSinceEpoch;
+  return switch (p) {
+    ReadPreview(:final kind, :final day) => {
+        'k': 'read',
+        'kind': kind.name,
+        if (day != null) 'day': ms(day),
+      },
+    CreateTaskPreview(:final title, :final priority, :final due) => {
+        'k': 'createTask',
+        'title': title,
+        'priority': priority.name,
+        if (due != null) 'due': ms(due),
+      },
+    UpdateTaskPreview(:final title, :final fields) => {
+        'k': 'updateTask',
+        'title': title,
+        'fields': [for (final f in fields) f.name],
+      },
+    CompleteTaskPreview(:final title) => {'k': 'completeTask', 'title': title},
+    ScheduleTaskPreview(:final title, :final start, :final end) => {
+        'k': 'scheduleTask',
+        'title': title,
+        'start': ms(start),
+        'end': ms(end),
+      },
+    CreateBlockPreview(:final title, :final start, :final end) => {
+        'k': 'createBlock',
+        'title': title,
+        'start': ms(start),
+        'end': ms(end),
+      },
+    MoveBlockPreview(
+      :final title,
+      :final fromStart,
+      :final fromEnd,
+      :final toStart,
+      :final toEnd
+    ) =>
+      {
+        'k': 'moveBlock',
+        'title': title,
+        'fromStart': ms(fromStart),
+        'fromEnd': ms(fromEnd),
+        'toStart': ms(toStart),
+        'toEnd': ms(toEnd),
+      },
+    StartFocusPreview(:final minutes, :final taskTitle) => {
+        'k': 'startFocus',
+        'minutes': minutes,
+        if (taskTitle != null) 'task': taskTitle,
+      },
+    BreakDownTaskPreview(:final title, :final steps) => {
+        'k': 'breakDown',
+        'title': title,
+        'steps': steps,
+      },
+    DeletePreview(
+      :final kind,
+      :final titles,
+      :final subtaskCount,
+      :final unscheduledTaskCount
+    ) =>
+      {
+        'k': 'delete',
+        'kind': kind.name,
+        'titles': titles,
+        'subtasks': subtaskCount,
+        'unscheduled': unscheduledTaskCount,
+      },
+  };
+}
+
+/// The preview in [json], or null when it isn't one this version reads.
+ActionPreview? previewFromJson(Object? json) {
+  if (json is! Map) return null;
+  try {
+    return _decode(json);
+  } on FormatException {
+    return null;
+  }
+}
+
+ActionPreview _decode(Map<Object?, Object?> j) {
+  String str(String k) =>
+      j[k] is String ? j[k]! as String : throw FormatException(k);
+  int integer(String k) =>
+      j[k] is int ? j[k]! as int : throw FormatException(k);
+  DateTime time(String k) => DateTime.fromMillisecondsSinceEpoch(integer(k));
+  DateTime? optTime(String k) => j[k] == null ? null : time(k);
+  T byName<T extends Enum>(List<T> values, String k) {
+    final n = str(k);
+    for (final v in values) {
+      if (v.name == n) return v;
+    }
+    throw FormatException('$k $n');
+  }
+
+  List<String> strings(String k) {
+    final v = j[k];
+    if (v is! List || v.any((e) => e is! String)) throw FormatException(k);
+    return v.cast<String>();
+  }
+
+  return switch (j['k']) {
+    'read' => ReadPreview(byName(ReadKind.values, 'kind'), day: optTime('day')),
+    'createTask' => CreateTaskPreview(
+        title: str('title'),
+        priority: byName(TaskPriority.values, 'priority'),
+        due: optTime('due')),
+    'updateTask' => UpdateTaskPreview(title: str('title'), fields: {
+        for (final f in strings('fields'))
+          TaskField.values.firstWhere((v) => v.name == f,
+              orElse: () => throw FormatException('field $f')),
+      }),
+    'completeTask' => CompleteTaskPreview(str('title')),
+    'scheduleTask' => ScheduleTaskPreview(
+        title: str('title'), start: time('start'), end: time('end')),
+    'createBlock' => CreateBlockPreview(
+        title: str('title'), start: time('start'), end: time('end')),
+    'moveBlock' => MoveBlockPreview(
+        title: str('title'),
+        fromStart: time('fromStart'),
+        fromEnd: time('fromEnd'),
+        toStart: time('toStart'),
+        toEnd: time('toEnd')),
+    'startFocus' => StartFocusPreview(
+        minutes: integer('minutes'),
+        taskTitle: j['task'] == null ? null : str('task')),
+    'breakDown' =>
+      BreakDownTaskPreview(title: str('title'), steps: strings('steps')),
+    'delete' => DeletePreview(
+        kind: byName(DeleteKind.values, 'kind'),
+        titles: strings('titles'),
+        subtaskCount: integer('subtasks'),
+        unscheduledTaskCount: integer('unscheduled')),
+    _ => throw FormatException('kind ${j['k']}'),
+  };
+}

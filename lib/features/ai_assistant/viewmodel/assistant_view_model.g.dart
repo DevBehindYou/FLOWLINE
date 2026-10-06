@@ -332,6 +332,142 @@ final class ConversationMessagesFamily extends $Family
   String toString() => r'conversationMessagesProvider';
 }
 
+/// One assistant turn's actions, live: the cards under a chat reply.
+
+@ProviderFor(turnActions)
+final turnActionsProvider = TurnActionsFamily._();
+
+/// One assistant turn's actions, live: the cards under a chat reply.
+
+final class TurnActionsProvider extends $FunctionalProvider<
+        AsyncValue<List<LedgerEntry>>,
+        List<LedgerEntry>,
+        Stream<List<LedgerEntry>>>
+    with
+        $FutureModifier<List<LedgerEntry>>,
+        $StreamProvider<List<LedgerEntry>> {
+  /// One assistant turn's actions, live: the cards under a chat reply.
+  TurnActionsProvider._(
+      {required TurnActionsFamily super.from, required String super.argument})
+      : super(
+          retry: null,
+          name: r'turnActionsProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$turnActionsHash();
+
+  @override
+  String toString() {
+    return r'turnActionsProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<List<LedgerEntry>> $createElement(
+          $ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<LedgerEntry>> create(Ref ref) {
+    final argument = this.argument as String;
+    return turnActions(
+      ref,
+      argument,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TurnActionsProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$turnActionsHash() => r'85cfd0babf39fc813e4afbdd38d83090e0d22273';
+
+/// One assistant turn's actions, live: the cards under a chat reply.
+
+final class TurnActionsFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<List<LedgerEntry>>, String> {
+  TurnActionsFamily._()
+      : super(
+          retry: null,
+          name: r'turnActionsProvider',
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
+        );
+
+  /// One assistant turn's actions, live: the cards under a chat reply.
+
+  TurnActionsProvider call(
+    String groupId,
+  ) =>
+      TurnActionsProvider._(argument: groupId, from: this);
+
+  @override
+  String toString() => r'turnActionsProvider';
+}
+
+@ProviderFor(AssistNotices)
+final assistNoticesProvider = AssistNoticesProvider._();
+
+final class AssistNoticesProvider
+    extends $NotifierProvider<AssistNotices, AssistNotice?> {
+  AssistNoticesProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'assistNoticesProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$assistNoticesHash();
+
+  @$internal
+  @override
+  AssistNotices create() => AssistNotices();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AssistNotice? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AssistNotice?>(value),
+    );
+  }
+}
+
+String _$assistNoticesHash() => r'b97ea7b78b3e18d9eae6baec3938967e2608850f';
+
+abstract class _$AssistNotices extends $Notifier<AssistNotice?> {
+  AssistNotice? build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<AssistNotice?, AssistNotice?>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<AssistNotice?, AssistNotice?>,
+        AssistNotice?,
+        Object?,
+        Object?>;
+    return element.handleCreate(ref, build);
+  }
+}
+
 @ProviderFor(AssistantViewModel)
 final assistantViewModelProvider = AssistantViewModelProvider._();
 
@@ -365,7 +501,7 @@ final class AssistantViewModelProvider
 }
 
 String _$assistantViewModelHash() =>
-    r'368c2299afc32678ee91f86b6d06b0891cb2cd0e';
+    r'3e7c6ec85a3a4a2b246985d8713d9c7be0121265';
 
 abstract class _$AssistantViewModel extends $Notifier<bool> {
   bool build();

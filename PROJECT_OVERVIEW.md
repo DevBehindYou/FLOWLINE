@@ -626,8 +626,8 @@ erDiagram
 
 ### 7.3 Migrations
 
-`AppDatabase.schemaVersion = 9`. Snapshots of v3 (what every APK
-before Phase 3 shipped) to v9 live in `drift_schemas/`; `test/drift/`
+`AppDatabase.schemaVersion = 10`. Snapshots of v3 (what every APK
+before Phase 3 shipped) to v10 live in `drift_schemas/`; `test/drift/`
 verifies the upgrade schema and data. Upgrades run **step by step**
 through the generated `app_database.steps.dart`, so each step sees its
 own version's tables. Run `dart run drift_dev make-migrations` after each
@@ -643,6 +643,7 @@ bump, then add the new `fromNToM` step.
 | 6 → 7 | `ai_messages.error_kind`, `ai_messages.error_status` (typed AI errors, Phase 4) |
 | 7 → 8 | `createTable(utterances, assistant_actions, proposals)` and their indexes, including the partial unique `proposals_open_key` (one open proposal per dedupe key). New tables only (docs/05 Phase E.2) |
 | 8 → 9 | `ai_messages.stop_reason` (why a reply ended; B18: a reply that hit the length limit shows "Cut off") |
+| 9 → 10 | `assistant_actions.preview_json` (what an action did, worded later even if its target is gone) and `ai_messages.turn_group_id` (the assistant turn a chat reply belongs to) |
 
 **Assistant tables (v8).** Written by the assistant core (§9.4–§9.5),
 which no screen calls yet (E.5):
@@ -827,8 +828,22 @@ ever builds SQL from schema-known table and column names.
 
 ### 9.5 Orchestrator and proposals (docs/05 Phase E.4)
 
-**Wired as keepAlive providers (`lib/assistant/assistant_providers.dart`),
-not yet called by a screen** (E.5).
+**Wired as keepAlive providers (`lib/assistant/assistant_providers.dart`).**
+The Assist chat calls it (E.5a, below); Inbox and Activity are next.
+
+**The acting chat (E.5a).** Every message in Assist is one orchestrator
+turn (`AssistChat`): the prompt and a pending reply are written first
+(the reply carries the turn's ledger group), recent completed exchanges
+go along as history, and the reply is filled with the model's text, an
+empty text (the turn's actions say it all), or a typed failure. Under the
+reply, `TurnActions` shows a card per action (the stored preview, worded
+by `lib/l10n/action_text.dart`: "CREATED TASK · buy milk") and one UNDO
+for the whole turn, live from the ledger. A held call (a delete, or
+anything under "careful") opens the confirm sheet, which states exactly
+what goes. In the chat, a read the grammar recognises goes to the model,
+which answers in words. Trade-off: replies in the chat are no longer
+streamed token by token (tool rounds are collected); Stop still cancels
+and keeps what arrived.
 
 `AssistantOrchestrator.handle(utterance)` records the utterance, then:
 

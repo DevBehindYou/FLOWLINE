@@ -378,10 +378,57 @@ class AIRepositoryImpl implements AIRepository {
   }
 
   @override
+  Future<List<AIMessage>> chatHistory(int conversationId) async {
+    await _seedFuture;
+    final rows = await (_db.select(_db.aiMessages)
+          ..where((m) => m.conversationId.equals(conversationId))
+          ..orderBy(_messageOrder))
+        .get();
+    return windowHistory(buildChatHistory(rows.map(_mapMessage).toList()));
+  }
+
+  @override
+  Future<int> beginTurnReply({
+    required int conversationId,
+    required String prompt,
+    required String groupId,
+  }) async {
+    await _seedFuture;
+    return _db.transaction(() async {
+      await _db.into(_db.aiMessages).insert(AiMessagesCompanion.insert(
+            conversationId: conversationId,
+            role: AIMessageRole.user,
+            content: prompt,
+          ));
+      return _db.into(_db.aiMessages).insert(AiMessagesCompanion.insert(
+            conversationId: conversationId,
+            role: AIMessageRole.assistant,
+            content: '',
+            isPending: const Value(true),
+            turnGroupId: Value(groupId),
+          ));
+    });
+  }
+
+  @override
+  Future<void> finishTurnReply(int replyId,
+      {String text = '', AIFailure? failure}) {
+    if (failure != null) return _failReply(replyId, failure);
+    return (_db.update(_db.aiMessages)..where((m) => m.id.equals(replyId)))
+        .write(AiMessagesCompanion(
+      content: Value(text),
+      isError: const Value(false),
+      isPending: const Value(false),
+      stopReason: const Value(AIStopReason.complete),
+    ));
+  }
+
+  @override
   Future<AIToolTurnResult> completeWithTools({
     required String prompt,
     required List<AIToolSpec> tools,
     String? system,
+    List<AIMessage> history = const [],
     List<AITurn> continuation = const [],
     AIToolChoice toolChoice = AIToolChoice.auto,
     AICancelToken? cancel,
@@ -396,6 +443,7 @@ class AIRepositoryImpl implements AIRepository {
     final id = activeRow.providerId;
     final native = await collectToolTurn(await _events(id,
         prompt: prompt,
+        history: history,
         system: system,
         tools: tools,
         toolChoice: toolChoice,
@@ -410,6 +458,7 @@ class AIRepositoryImpl implements AIRepository {
     // ones (R16); the orchestrator validates both the same way.
     final plan = await collect(await _events(id,
         prompt: prompt + jsonPlanContinuation(continuation),
+        history: history,
         system: [system, jsonPlanInstructions(tools)]
             .whereType<String>()
             .join('\n\n'),
@@ -454,6 +503,7 @@ class AIRepositoryImpl implements AIRepository {
           ? null
           : AIFailure(row.errorKind!, status: row.errorStatus),
       stopReason: row.stopReason,
+      turnGroupId: row.turnGroupId,
     );
   }
 }

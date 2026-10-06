@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import '../data/assistant/tool_executor.dart';
 import '../domain/ai/ai_contract.dart';
+import '../domain/entities/ai_message.dart';
 import '../domain/assistant/action_preview.dart';
 import '../domain/assistant/autonomy.dart';
 import '../domain/assistant/quick_parse.dart';
@@ -142,10 +143,24 @@ final class AssistantOrchestrator {
 
   int _turns = 0;
 
-  Future<TurnResult> handle(Utterance utterance) async {
+  /// [history] is the conversation so far (completed exchanges), for
+  /// requests that refer back ("move it to 5"). [cancel] stops the turn
+  /// between and during model rounds; what already ran stays done.
+  ///
+  /// [groupId] lets the caller tie the turn to something it wrote first
+  /// (the chat's reply row). With [localReads] false, a read the grammar
+  /// recognises still goes to the model, which can answer in words (a
+  /// chat bubble has nothing to show for raw agenda data).
+  Future<TurnResult> handle(
+    Utterance utterance, {
+    List<AIMessage> history = const [],
+    AICancelToken? cancel,
+    String? groupId,
+    bool localReads = true,
+  }) async {
     final start = env();
     final utteranceId = await store.recordUtterance(utterance, at: start.now);
-    final groupId =
+    final group = groupId ??
         'turn-$utteranceId-${start.now.microsecondsSinceEpoch}-${_turns++}';
     final preset = await autonomy();
 
@@ -154,16 +169,16 @@ final class AssistantOrchestrator {
     ActedCall? localRejection;
     final localCall =
         local == null ? null : registry.prepareMap(local.tool, local.args);
-    if (localCall case Prepared(:final call)) {
-      final round =
-          await _act([_Call.local(call)], groupId, utteranceId, preset);
+    if (localCall case Prepared(:final call)
+        when localReads || call.risk != ActionRisk.read) {
+      final round = await _act([_Call.local(call)], group, utteranceId, preset);
       if (round.pending != null) {
-        return TurnNeedsConfirmation(groupId, round.acted,
+        return TurnNeedsConfirmation(group, round.acted,
             pending: round.pending!);
       }
       final only = round.acted.single;
       if (only.status != CallStatus.rejected) {
-        return TurnAnswered(groupId, round.acted);
+        return TurnAnswered(group, round.acted);
       }
       // e.g. a title that matches two tasks: the model can look them up.
       localRejection = only;
@@ -172,8 +187,11 @@ final class AssistantOrchestrator {
     // 2. The model, with tools.
     final acted = <ActedCall>[];
     final turns = <AITurn>[];
-    final cancel = AICancelToken();
+    final token = cancel ?? AICancelToken();
     for (var round = 0; round < maxRounds; round++) {
+      if (token.isCancelled) {
+        return TurnFailed(group, acted, AIFailureKind.cancelled);
+      }
       final AIToolTurnResult reply;
       try {
         reply = await ai
@@ -181,36 +199,37 @@ final class AssistantOrchestrator {
               prompt: utterance.text,
               system: await context.systemPrompt(env(), preset),
               tools: registry.specs,
+              history: history,
               continuation: turns,
-              cancel: cancel,
+              cancel: token,
             )
             .timeout(turnTimeout);
       } on TimeoutException {
-        cancel.cancel();
-        return TurnStopped(groupId, acted, TurnLimit.timeout);
+        token.cancel();
+        return TurnStopped(group, acted, TurnLimit.timeout);
       }
       switch (reply) {
         case AIToolTurnFailed(:final failure):
           // Offline or no provider: what the grammar found still counts.
           if (localRejection != null && acted.isEmpty) {
-            return TurnAnswered(groupId, [localRejection]);
+            return TurnAnswered(group, [localRejection]);
           }
-          return TurnFailed(groupId, acted, failure.kind);
+          return TurnFailed(group, acted, failure.kind);
         case AIToolTurnReply(:final text, :final calls):
           if (calls.isEmpty) {
-            return TurnAnswered(groupId, acted, text: text);
+            return TurnAnswered(group, acted, text: text);
           }
           if (acted.length + calls.length > maxCallsPerTurn) {
-            return TurnStopped(groupId, acted, TurnLimit.calls);
+            return TurnStopped(group, acted, TurnLimit.calls);
           }
           final prepared = [
             for (final c in calls)
               _Call.model(c, registry.prepare(c.name, c.argumentsJson)),
           ];
-          final result = await _act(prepared, groupId, utteranceId, preset);
+          final result = await _act(prepared, group, utteranceId, preset);
           acted.addAll(result.acted);
           if (result.pending != null) {
-            return TurnNeedsConfirmation(groupId, acted,
+            return TurnNeedsConfirmation(group, acted,
                 pending: result.pending!, text: text);
           }
           turns
@@ -218,7 +237,7 @@ final class AssistantOrchestrator {
             ..addAll(result.resultTurns);
       }
     }
-    return TurnStopped(groupId, acted, TurnLimit.rounds);
+    return TurnStopped(group, acted, TurnLimit.rounds);
   }
 
   /// Runs a held call after the user said yes. The tap is the consent;
@@ -340,7 +359,8 @@ final class AssistantOrchestrator {
         groupId: groupId,
         origin: ActionOrigin.said,
         decision: decision,
-        utteranceId: utteranceId);
+        utteranceId: utteranceId,
+        preview: preview);
     return switch (result) {
       Executed(:final outcome, :final entryId) => ActedCall(
           toolName: call.toolName,

@@ -20,6 +20,7 @@ import 'package:atomic_assist/domain/assistant/autonomy.dart';
 import 'package:atomic_assist/domain/assistant/proposal.dart';
 import 'package:atomic_assist/domain/assistant/tool.dart';
 import 'package:atomic_assist/domain/assistant/utterance.dart';
+import 'package:atomic_assist/domain/entities/ai_message.dart';
 import 'package:atomic_assist/domain/entities/task.dart';
 import 'package:atomic_assist/domain/repositories/ai_repository.dart';
 import 'package:clock/clock.dart';
@@ -401,6 +402,7 @@ final class _ScriptedAi implements AIRepository {
     required String prompt,
     required List<AIToolSpec> tools,
     String? system,
+    List<AIMessage> history = const [],
     List<AITurn> continuation = const [],
     AIToolChoice toolChoice = AIToolChoice.auto,
     AICancelToken? cancel,

@@ -31,4 +31,8 @@ class AiMessages extends Table {
   // Since schema v9: why a finished reply ended, so a reply cut off at
   // the length limit can say so (B18). Null for older rows and errors.
   IntColumn get stopReason => intEnum<AIStopReason>().nullable()();
+
+  // Since schema v10: the assistant turn this reply belongs to (the ledger
+  // group), so the chat shows that turn's actions under the reply.
+  TextColumn get turnGroupId => text().nullable()();
 }

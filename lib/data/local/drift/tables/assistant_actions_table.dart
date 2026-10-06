@@ -28,6 +28,10 @@ class AssistantActions extends Table {
 
   /// `encodeUndoRecipe` output; null when the action has no undo.
   TextColumn get undoJson => text().nullable()();
+
+  /// Since schema v10: `previewToJson` of what the action did, so the
+  /// chat and Activity can word it later (the target may be gone).
+  TextColumn get previewJson => text().nullable()();
   IntColumn get utteranceId => integer()
       .nullable()
       .references(Utterances, #id, onDelete: KeyAction.setNull)();

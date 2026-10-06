@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'action_preview.dart';
 import 'autonomy.dart';
 
 // The action ledger (docs/05 §6.3, §9.4). Pure Dart. Every action AA
@@ -98,6 +99,7 @@ final class LedgerEntry {
     required this.status,
     this.undo,
     this.utteranceId,
+    this.preview,
   });
 
   final int id;
@@ -115,6 +117,9 @@ final class LedgerEntry {
   /// decodes (an entry is never lost because its recipe is unreadable).
   final UndoRecipe? undo;
   final int? utteranceId;
+
+  /// What it did, for wording; null for rows from before schema v10.
+  final ActionPreview? preview;
 
   bool get canUndo => status == LedgerStatus.done && undo != null;
 }

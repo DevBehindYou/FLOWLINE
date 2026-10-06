@@ -7,6 +7,7 @@ import '../data/assistant/tool_executor.dart';
 import '../data/assistant/undo_service.dart';
 import '../domain/assistant/tool.dart';
 import '../features/focus_timer/viewmodel/focus_timer_view_model.dart';
+import 'assist_chat.dart';
 import 'orchestrator.dart';
 import 'proposal_service.dart';
 import 'tools/tool_registry.dart';
@@ -83,4 +84,10 @@ ProposalService proposalService(Ref ref) => ProposalService(
       executor: ref.watch(toolExecutorProvider),
       store: ref.watch(assistantRepositoryProvider),
       env: ref.watch(toolEnvFactoryProvider),
+    );
+
+@Riverpod(keepAlive: true)
+AssistChat assistChat(Ref ref) => AssistChat(
+      ai: ref.watch(aiRepositoryProvider),
+      orchestrator: ref.watch(assistantOrchestratorProvider),
     );

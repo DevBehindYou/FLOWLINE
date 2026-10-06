@@ -61,7 +61,7 @@ class AppDatabase extends _$AppDatabase {
   // Every bump: add a step below, then `dart run drift_dev make-migrations`
   // and commit drift_schemas/ and test/drift/ (rule R2).
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -136,6 +136,14 @@ class AppDatabase extends _$AppDatabase {
             from8To9: (m, schema) async {
               await m.addColumn(
                   schema.aiMessages, schema.aiMessages.stopReason);
+            },
+            // The chat acts (docs/05 E.5): each action keeps its preview,
+            // each reply the turn it belongs to.
+            from9To10: (m, schema) async {
+              await m.addColumn(
+                  schema.assistantActions, schema.assistantActions.previewJson);
+              await m.addColumn(
+                  schema.aiMessages, schema.aiMessages.turnGroupId);
             },
           )(m, from, to);
           await _assertForeignKeysIntact();

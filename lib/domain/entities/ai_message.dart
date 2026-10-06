@@ -13,6 +13,7 @@ class AIMessage {
     required this.sentAt,
     this.failure,
     this.stopReason,
+    this.turnGroupId,
   });
 
   final int id;
@@ -38,6 +39,10 @@ class AIMessage {
 
   /// Why a finished reply ended (since schema v9; null before).
   final AIStopReason? stopReason;
+
+  /// The assistant turn (ledger group) this reply belongs to; its actions
+  /// show under it. Null for plain chat replies.
+  final String? turnGroupId;
 
   /// The reply hit its length limit and is incomplete (B18).
   bool get wasCutOff =>

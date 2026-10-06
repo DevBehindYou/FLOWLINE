@@ -19,6 +19,9 @@ List<AIMessage> buildChatHistory(List<AIMessage> messages) {
         reply.role == AIMessageRole.assistant &&
         !reply.isError &&
         !reply.isPending &&
+        // An assistant turn whose actions said it all has no text; vendors
+        // reject empty turns, and the context lists the result anyway.
+        reply.content.trim().isNotEmpty &&
         !prompt.isError;
     if (completed) {
       history

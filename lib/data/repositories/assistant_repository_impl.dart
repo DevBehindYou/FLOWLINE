@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
+import '../../domain/assistant/action_preview.dart';
 import '../../domain/assistant/ledger.dart';
 import '../../domain/assistant/proposal.dart';
 import '../../domain/assistant/utterance.dart';
@@ -28,6 +31,14 @@ class AssistantRepositoryImpl implements AssistantRepository {
       ..where(
           (a) => a.at.isBiggerOrEqualValue(from) & a.at.isSmallerThanValue(to))
       ..orderBy([(a) => OrderingTerm.desc(a.id)]);
+    return query.watch().map((rows) => rows.map(_entry).toList());
+  }
+
+  @override
+  Stream<List<LedgerEntry>> watchGroup(String groupId) {
+    final query = _db.select(_db.assistantActions)
+      ..where((a) => a.groupId.equals(groupId))
+      ..orderBy([(a) => OrderingTerm.asc(a.id)]);
     return query.watch().map((rows) => rows.map(_entry).toList());
   }
 
@@ -111,7 +122,17 @@ class AssistantRepositoryImpl implements AssistantRepository {
         status: r.status,
         undo: decodeUndoRecipe(r.undoJson),
         utteranceId: r.utteranceId,
+        preview: _preview(r.previewJson),
       );
+
+  static ActionPreview? _preview(String? json) {
+    if (json == null) return null;
+    try {
+      return previewFromJson(jsonDecode(json));
+    } on FormatException {
+      return null;
+    }
+  }
 
   Proposal _proposal(ProposalRow r) => Proposal(
         id: r.id,

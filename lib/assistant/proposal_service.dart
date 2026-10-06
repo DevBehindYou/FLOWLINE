@@ -56,6 +56,8 @@ final class ProposalService {
         return AcceptResult.noLongerPossible;
       }
       final call = prepared.call;
+      final preview =
+          await call.validate(e) is Valid ? await call.preview(e) : null;
       final result = await executor.execute(
         call,
         groupId: 'proposal-$id',
@@ -66,6 +68,7 @@ final class ProposalService {
                 risk: call.risk,
                 origin: ActionOrigin.said,
                 preset: AutonomyPreset.balanced),
+        preview: preview,
       );
       switch (result) {
         case Executed():

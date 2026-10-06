@@ -307,3 +307,44 @@ final class ProposalServiceProvider extends $FunctionalProvider<ProposalService,
 }
 
 String _$proposalServiceHash() => r'c77037545d524ebaf6ae306b416ea91c10077090';
+
+@ProviderFor(assistChat)
+final assistChatProvider = AssistChatProvider._();
+
+final class AssistChatProvider
+    extends $FunctionalProvider<AssistChat, AssistChat, AssistChat>
+    with $Provider<AssistChat> {
+  AssistChatProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'assistChatProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$assistChatHash();
+
+  @$internal
+  @override
+  $ProviderElement<AssistChat> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  AssistChat create(Ref ref) {
+    return assistChat(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AssistChat value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AssistChat>(value),
+    );
+  }
+}
+
+String _$assistChatHash() => r'a3cedf3c9b4330d6d92e61983050c92c62a91170';

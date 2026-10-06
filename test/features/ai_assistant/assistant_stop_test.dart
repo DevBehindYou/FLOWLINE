@@ -54,6 +54,8 @@ void main() {
       aiRepositoryProvider.overrideWith((ref) => repo),
     ]);
     addTearDown(container.dispose);
+    // The chat runs assistant turns, which use the active provider.
+    await repo.setActiveProvider(AIProviderId.ollama);
     final vm = container.read(assistantViewModelProvider.notifier);
 
     final sending = vm.send(
