@@ -1,3 +1,4 @@
+import '../entities/person.dart';
 import '../entities/task.dart';
 
 // Typed descriptions of what a tool call does (docs/05 §9.1). The single
@@ -9,7 +10,7 @@ sealed class ActionPreview {
   const ActionPreview();
 }
 
-enum ReadKind { agenda, freeTime, searchTasks, task, list }
+enum ReadKind { agenda, freeTime, searchTasks, task, list, person }
 
 /// A read tool: nothing changes.
 final class ReadPreview extends ActionPreview {
@@ -124,6 +125,37 @@ final class CheckListItemPreview extends ActionPreview {
   final bool checked;
 }
 
+final class AddPersonDatePreview extends ActionPreview {
+  const AddPersonDatePreview({
+    required this.person,
+    required this.kind,
+    required this.month,
+    required this.day,
+    this.newPerson = false,
+  });
+  final String person;
+  final PersonDateKind kind;
+  final int month;
+  final int day;
+
+  /// The person isn't known yet and will be added.
+  final bool newPerson;
+}
+
+final class CreateFollowUpPreview extends ActionPreview {
+  const CreateFollowUpPreview(
+      {required this.person, required this.about, required this.waitUntil});
+  final String person;
+  final String about;
+  final DateTime waitUntil;
+}
+
+final class CompleteFollowUpPreview extends ActionPreview {
+  const CompleteFollowUpPreview({required this.person, required this.about});
+  final String person;
+  final String about;
+}
+
 /// [checkedItems]: a list's ticked items (the title is the list, the
 /// count is in `subtaskCount`).
 enum DeleteKind { task, block, checkedItems }
@@ -221,6 +253,32 @@ Map<String, Object?> previewToJson(ActionPreview p) {
         'text': text,
         'checked': checked,
       },
+    AddPersonDatePreview(
+      :final person,
+      :final kind,
+      :final month,
+      :final day,
+      :final newPerson
+    ) =>
+      {
+        'k': 'addPersonDate',
+        'person': person,
+        'kind': kind.name,
+        'month': month,
+        'day': day,
+        'newPerson': newPerson,
+      },
+    CreateFollowUpPreview(:final person, :final about, :final waitUntil) => {
+        'k': 'createFollowUp',
+        'person': person,
+        'about': about,
+        'waitUntil': ms(waitUntil),
+      },
+    CompleteFollowUpPreview(:final person, :final about) => {
+        'k': 'completeFollowUp',
+        'person': person,
+        'about': about,
+      },
     CreateReminderPreview(:final title, :final at) => {
         'k': 'createReminder',
         'title': title,
@@ -317,6 +375,18 @@ ActionPreview _decode(Map<Object?, Object?> j) {
         checked: j['checked'] is bool
             ? j['checked']! as bool
             : throw const FormatException('checked')),
+    'addPersonDate' => AddPersonDatePreview(
+        person: str('person'),
+        kind: byName(PersonDateKind.values, 'kind'),
+        month: integer('month'),
+        day: integer('day'),
+        newPerson: j['newPerson'] == true),
+    'createFollowUp' => CreateFollowUpPreview(
+        person: str('person'),
+        about: str('about'),
+        waitUntil: time('waitUntil')),
+    'completeFollowUp' =>
+      CompleteFollowUpPreview(person: str('person'), about: str('about')),
     'createReminder' =>
       CreateReminderPreview(title: str('title'), at: time('at')),
     'snoozeReminder' =>

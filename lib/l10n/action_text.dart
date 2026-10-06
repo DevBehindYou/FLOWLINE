@@ -1,4 +1,5 @@
 import '../domain/assistant/action_preview.dart';
+import '../domain/entities/person.dart';
 import 'app_localizations.dart';
 import 'formats.dart';
 
@@ -18,6 +19,13 @@ extension L10nActions on AppLocalizations {
         BreakDownTaskPreview() => actionBreakDown,
         CreateReminderPreview() => actionCreateReminder,
         AddListItemsPreview() => actionAddListItems,
+        AddPersonDatePreview(:final kind) => switch (kind) {
+            PersonDateKind.birthday => actionAddBirthday,
+            PersonDateKind.anniversary => actionAddAnniversary,
+            PersonDateKind.other => actionAddPersonDate,
+          },
+        CreateFollowUpPreview() => actionCreateFollowUp,
+        CompleteFollowUpPreview() => actionCompleteFollowUp,
         CheckListItemPreview(:final checked) =>
           checked ? actionCheckListItem : actionUncheckListItem,
         SnoozeReminderPreview() => actionSnoozeReminder,
@@ -53,6 +61,12 @@ extension L10nActions on AppLocalizations {
       SnoozeReminderPreview(:final title, :final until) =>
         join([title, '${dayShort(until)} ${time(until)}']),
       CompleteReminderPreview(:final title) => title,
+      AddPersonDatePreview(:final person, :final month, :final day) =>
+        join([person, monthDay(DateTime(2000, month, day))]),
+      CreateFollowUpPreview(:final person, :final about, :final waitUntil) =>
+        join([person, about, '${dayShort(waitUntil)} ${time(waitUntil)}']),
+      CompleteFollowUpPreview(:final person, :final about) =>
+        join([person, about]),
       AddListItemsPreview(:final list, :final items) =>
         join([list, items.join(', ')]),
       CheckListItemPreview(:final list, :final text) => join([list, text]),

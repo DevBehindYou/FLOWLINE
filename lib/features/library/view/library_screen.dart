@@ -22,6 +22,12 @@ class LibraryScreen extends StatelessWidget {
       body: ListView(
         children: [
           AtomicSettingsRow(
+            leading: AtomicIcons.event,
+            title: l10n.peopleTitle,
+            subtitle: l10n.peopleHint,
+            onTap: () => context.push('/library/people'),
+          ),
+          AtomicSettingsRow(
             leading: AtomicIcons.task,
             title: l10n.listsTitle,
             subtitle: l10n.listsHint,

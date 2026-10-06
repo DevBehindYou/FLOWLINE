@@ -32,6 +32,7 @@ ToolEnv Function() toolEnvFactory(Ref ref) {
         focus: ref.read(focusSessionRepositoryProvider),
         reminders: ref.read(reminderRepositoryProvider),
         lists: ref.read(listRepositoryProvider),
+        people: ref.read(peopleRepositoryProvider),
         settings: ref.read(appSettingsRepositoryProvider),
         rows: rows,
       );

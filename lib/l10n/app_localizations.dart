@@ -2409,6 +2409,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear ticked'**
   String get listClearChecked;
+
+  /// No description provided for @actionAddBirthday.
+  ///
+  /// In en, this message translates to:
+  /// **'Birthday saved'**
+  String get actionAddBirthday;
+
+  /// No description provided for @actionAddAnniversary.
+  ///
+  /// In en, this message translates to:
+  /// **'Anniversary saved'**
+  String get actionAddAnniversary;
+
+  /// No description provided for @actionAddPersonDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date saved'**
+  String get actionAddPersonDate;
+
+  /// No description provided for @actionCreateFollowUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-up set'**
+  String get actionCreateFollowUp;
+
+  /// No description provided for @actionCompleteFollowUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Followed up'**
+  String get actionCompleteFollowUp;
+
+  /// No description provided for @peopleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'People'**
+  String get peopleTitle;
+
+  /// No description provided for @peopleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Birthdays, anniversaries, follow-ups'**
+  String get peopleHint;
+
+  /// No description provided for @peopleEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No one yet'**
+  String get peopleEmptyTitle;
+
+  /// No description provided for @peopleEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Say \"Priya\'s birthday is 9 October\" in Assist.'**
+  String get peopleEmptyMessage;
+
+  /// No description provided for @loadingPeople.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading people…'**
+  String get loadingPeople;
+
+  /// No description provided for @personDates.
+  ///
+  /// In en, this message translates to:
+  /// **'Dates'**
+  String get personDates;
+
+  /// No description provided for @personFollowUps.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-ups'**
+  String get personFollowUps;
+
+  /// No description provided for @personNoDates.
+  ///
+  /// In en, this message translates to:
+  /// **'No dates saved.'**
+  String get personNoDates;
+
+  /// No description provided for @personNoFollowUps.
+  ///
+  /// In en, this message translates to:
+  /// **'No open follow-ups.'**
+  String get personNoFollowUps;
+
+  /// No description provided for @personDateToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get personDateToday;
+
+  /// No description provided for @personDateInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{Tomorrow} other{In {days} days}}'**
+  String personDateInDays(int days);
+
+  /// No description provided for @personTurnsAge.
+  ///
+  /// In en, this message translates to:
+  /// **'turns {age}'**
+  String personTurnsAge(int age);
+
+  /// No description provided for @followUpReplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Replied'**
+  String get followUpReplied;
+
+  /// No description provided for @dateKindBirthday.
+  ///
+  /// In en, this message translates to:
+  /// **'Birthday'**
+  String get dateKindBirthday;
+
+  /// No description provided for @dateKindAnniversary.
+  ///
+  /// In en, this message translates to:
+  /// **'Anniversary'**
+  String get dateKindAnniversary;
+
+  /// No description provided for @dateKindOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get dateKindOther;
 }
 
 class _AppLocalizationsDelegate

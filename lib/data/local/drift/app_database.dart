@@ -19,6 +19,7 @@ import '../../../domain/entities/ai_message.dart';
 import '../../../domain/entities/ai_provider_config.dart';
 import '../../../domain/entities/checklist.dart';
 import '../../../domain/entities/focus_session.dart';
+import '../../../domain/entities/person.dart';
 import '../../../domain/entities/reminder.dart';
 import '../../../domain/entities/schedule_block.dart';
 import '../../../domain/entities/subtask.dart';
@@ -30,6 +31,7 @@ import 'tables/ai_provider_configs_table.dart';
 import 'tables/assistant_actions_table.dart';
 import 'tables/focus_sessions_table.dart';
 import 'tables/list_tables.dart';
+import 'tables/people_tables.dart';
 import 'tables/proposals_table.dart';
 import 'tables/reminders_table.dart';
 import 'tables/schedule_blocks_table.dart';
@@ -56,6 +58,9 @@ part 'app_database.g.dart';
   Reminders,
   Lists,
   ListItems,
+  People,
+  PersonDates,
+  FollowUps,
 ])
 class AppDatabase extends _$AppDatabase {
   /// [executor] is for tests and migration verification; the app always
@@ -68,7 +73,7 @@ class AppDatabase extends _$AppDatabase {
   // Every bump: add a step below, then `dart run drift_dev make-migrations`
   // and commit drift_schemas/ and test/drift/ (rule R2).
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -166,6 +171,15 @@ class AppDatabase extends _$AppDatabase {
               await m.create(schema.listItemsListPosition);
               await _seedDefaultLists();
             },
+            // People, their dates and follow-ups (docs/05 Phase F.3).
+            from12To13: (m, schema) async {
+              await m.createTable(schema.people);
+              await m.createTable(schema.personDates);
+              await m.createTable(schema.followUps);
+              await m.create(schema.peopleNameNocase);
+              await m.create(schema.personDatesPerson);
+              await m.create(schema.followUpsStatus);
+            },
           )(m, from, to);
           await _assertForeignKeysIntact();
         },
@@ -182,6 +196,9 @@ class AppDatabase extends _$AppDatabase {
   Future<void> wipeAllData() {
     return transaction(() async {
       for (final TableInfo<Table, Object?> table in [
+        followUps,
+        personDates,
+        people,
         listItems,
         lists,
         reminders,

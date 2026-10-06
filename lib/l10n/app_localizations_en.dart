@@ -1413,4 +1413,78 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get listClearChecked => 'Clear ticked';
+
+  @override
+  String get actionAddBirthday => 'Birthday saved';
+
+  @override
+  String get actionAddAnniversary => 'Anniversary saved';
+
+  @override
+  String get actionAddPersonDate => 'Date saved';
+
+  @override
+  String get actionCreateFollowUp => 'Follow-up set';
+
+  @override
+  String get actionCompleteFollowUp => 'Followed up';
+
+  @override
+  String get peopleTitle => 'People';
+
+  @override
+  String get peopleHint => 'Birthdays, anniversaries, follow-ups';
+
+  @override
+  String get peopleEmptyTitle => 'No one yet';
+
+  @override
+  String get peopleEmptyMessage =>
+      'Say \"Priya\'s birthday is 9 October\" in Assist.';
+
+  @override
+  String get loadingPeople => 'Loading people…';
+
+  @override
+  String get personDates => 'Dates';
+
+  @override
+  String get personFollowUps => 'Follow-ups';
+
+  @override
+  String get personNoDates => 'No dates saved.';
+
+  @override
+  String get personNoFollowUps => 'No open follow-ups.';
+
+  @override
+  String get personDateToday => 'Today';
+
+  @override
+  String personDateInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'In $days days',
+      one: 'Tomorrow',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String personTurnsAge(int age) {
+    return 'turns $age';
+  }
+
+  @override
+  String get followUpReplied => 'Replied';
+
+  @override
+  String get dateKindBirthday => 'Birthday';
+
+  @override
+  String get dateKindAnniversary => 'Anniversary';
+
+  @override
+  String get dateKindOther => 'Date';
 }
