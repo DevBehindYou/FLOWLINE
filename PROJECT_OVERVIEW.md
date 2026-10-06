@@ -83,7 +83,7 @@ requests go directly from the device to the vendor the user chose.
 | Unit + widget + repository tests | **VERIFIED — all pass** (125 in CI #10; 176 locally with the uncommitted-at-the-time Phase 1 work) | CI + local |
 | Android release APK (`--split-per-abi`) | **VERIFIED — builds, signed through the release signing path**, versionCode from the run number | CI artifact `flowline-release-apks-<sha>` |
 | Release signing with the stable key | **UNVERIFIED** — needs the `ANDROID_*` repository secrets; until then CI signs with a throwaway key and warns | README › Release signing |
-| Emulator / integration tests | **NOT RUN** — no emulator job yet | — |
+| Emulator / integration tests | **VERIFIED in CI** — `integration_test/app_flow_test.dart` on an API 34 emulator: onboarding, a task, a focus session, then an Assist command with no provider → Activity → UNDO | CI job "Integration tests (Android emulator)" |
 | Behaviour on a physical phone | **UNVERIFIED** | see [§21](#21-physical-device-verification-checklist) |
 
 The previously failing first-frame Focus test was fixed in `3fc2115` (a
@@ -1122,8 +1122,15 @@ For each screen: purpose, what it shows, actions, and its state model.
 
 ### 12.8 Assistant — `AssistantScreen`
 - App bar: "AI Providers" icon.
-- **No active provider:** empty state "Connect an AI provider" with a
-  "Go to AI Providers" button.
+- **No active provider (`_LocalBody`, docs/05 Phase F.4):** quick
+  commands still work. The field ("Try: remind me at 6pm to call Mum")
+  runs the orchestrator, which tries the local grammar and stops there:
+  what it did shows under the command with UNDO (and in Activity); a
+  rejected command says to check the name or time; anything else says it
+  needs an AI provider. Held in memory for the session (no conversation
+  without a provider). With nothing typed yet: the empty state "Connect
+  an AI provider", which names two quick commands, and "Go to AI
+  Providers".
 - **Active provider (`_ChatBody`):** chip "<Provider> • <model>", message
   list (`ListView.builder`, reversed, newest at the bottom), a 2 px
   progress bar while sending, input field (1–4 lines, send on enter) and a

@@ -420,7 +420,7 @@ final class TodayActionsProvider extends $NotifierProvider<TodayActions, void> {
   }
 }
 
-String _$todayActionsHash() => r'e5144ec7376bf610f3918e931740993cf74a4309';
+String _$todayActionsHash() => r'00470fd2091ca09fde5bad1266a7a99649de6ec4';
 
 /// Action surface for the Today screen. The View calls through here
 /// rather than touching repositories directly, keeping the MVVM boundary
