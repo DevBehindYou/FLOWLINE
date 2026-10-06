@@ -114,6 +114,25 @@ class TaskCard extends ConsumerWidget {
     final messenger = ScaffoldMessenger.maybeOf(context);
     final l10n = context.l10n;
     final actions = ref.read(todayActionsProvider.notifier);
+    if (task.repeat != null && task.status != TaskStatus.done) {
+      final done =
+          await runAction(context, () => actions.completeRepeating(task));
+      if (done == null) return;
+      final next = done.nextDue;
+      messenger
+        ?..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(
+          content: Text(next == null
+              ? l10n.markedDone(task.title)
+              : l10n.markedDoneNext(
+                  task.title, '${l10n.dayShort(next)} ${l10n.time(next)}')),
+          action: SnackBarAction(
+            label: l10n.undo,
+            onPressed: () => actions.undoEntry(done.entryId),
+          ),
+        ));
+      return;
+    }
     final previous =
         await runAction(context, () => actions.toggleTaskDone(task));
     if (previous == null || previous == TaskStatus.done) return;

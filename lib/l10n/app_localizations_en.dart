@@ -1487,4 +1487,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dateKindOther => 'Date';
+
+  @override
+  String repeatEvery(String days) {
+    return 'Every $days';
+  }
+
+  @override
+  String repeatNextDue(String when) {
+    return 'Next $when';
+  }
+
+  @override
+  String markedDoneNext(String title, String when) {
+    return 'Marked \"$title\" done. Next $when';
+  }
+
+  @override
+  String taskRepeats(String rule) {
+    return 'Repeats: $rule';
+  }
 }

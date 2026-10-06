@@ -2,6 +2,8 @@ import 'package:atomic_assist/design/atomic.dart';
 import 'package:atomic_assist/data/local/drift/app_database.dart';
 import 'package:atomic_assist/data/repositories/task_repository_impl.dart';
 import 'package:atomic_assist/domain/entities/task.dart';
+import 'package:atomic_assist/domain/recurrence/recurrence_rule.dart';
+import 'package:atomic_assist/domain/time/calendar_day.dart';
 import 'package:atomic_assist/features/schedule/view/today_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -55,6 +57,49 @@ void main() {
     await tester.tap(find.text('Undo'));
     await tester.pumpAndSettle();
     expect((await only(tester)).status, TaskStatus.inProgress);
+  });
+
+  Future<void> settle(WidgetTester tester) async {
+    for (var i = 0; i < 10; i++) {
+      await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 5)));
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('ticking a repeating task moves it on; Undo puts it back',
+      (tester) async {
+    final tomorrow = addDays(today(), 1);
+    final due = DateTime(tomorrow.year, tomorrow.month, tomorrow.day, 9);
+    final id = (await tester.runAsync(() => TaskRepositoryImpl(db).createTask(
+        title: 'Water plants',
+        priority: TaskPriority.medium,
+        dueAt: due,
+        repeat: RecurrenceRule.daily())))!;
+    await pumpScreen(tester, db: db, child: const TodayScreen());
+
+    await tester.tap(find.byTooltip('Mark as done'));
+    await settle(tester);
+    final moved =
+        (await tester.runAsync(() => TaskRepositoryImpl(db).getTask(id)))!;
+    expect(moved.status, TaskStatus.todo);
+    expect(moved.dueAt, DateTime(due.year, due.month, due.day + 1, 9));
+    expect(find.textContaining('Marked "Water plants" done. Next'),
+        findsOneWidget);
+    // Through the tool: a ledger row, and a done record of this one.
+    expect(
+        (await tester.runAsync(() => db.select(db.assistantActions).get()))!
+            .map((a) => a.toolName),
+        ['complete_task']);
+    expect((await tester.runAsync(() => db.select(db.tasks).get()))!,
+        hasLength(2));
+
+    await tester.tap(find.text('Undo'));
+    await settle(tester);
+    final rows = (await tester.runAsync(() => db.select(db.tasks).get()))!;
+    expect(rows.single.dueAt, due);
+    expect(rows.single.status, TaskStatus.todo);
   });
 
   testWidgets('long-press changes priority without opening the task',

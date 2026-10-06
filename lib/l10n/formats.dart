@@ -1,5 +1,6 @@
 import 'package:intl/intl.dart';
 
+import '../domain/recurrence/recurrence_rule.dart';
 import 'app_localizations.dart';
 
 /// Locale-aware date and time formats. Skeletons (not fixed patterns), so
@@ -20,6 +21,16 @@ extension L10nFormats on AppLocalizations {
 
   /// "Tue".
   String weekdayShort(DateTime d) => DateFormat.E(localeName).format(d);
+
+  /// "Every day", "Every weekday (Mon–Fri)" or "Every Mon, Thu".
+  String repeatText(RecurrenceRule r) {
+    if (r.isDaily) return repeatDaily;
+    if (r.isWeekdays) return repeatWeekdays;
+    // 2026-03-09 is a Monday.
+    final days = (r.weekdays.toList()..sort())
+        .map((d) => weekdayShort(DateTime(2026, 3, 8 + d)));
+    return repeatEvery(days.join(', '));
+  }
 
   /// The one-letter weekday ("T"), from the locale's own narrow form.
   /// Cutting the first character of the short name split characters in

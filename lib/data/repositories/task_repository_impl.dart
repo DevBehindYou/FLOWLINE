@@ -2,6 +2,8 @@ import 'package:drift/drift.dart';
 
 import '../../domain/entities/subtask.dart';
 import '../../domain/entities/task.dart';
+import '../../domain/recurrence/recurrence_rule.dart';
+import '../../domain/recurrence/repeat_due.dart';
 import '../../domain/repositories/task_repository.dart';
 import '../local/drift/app_database.dart';
 import 'row_mappers.dart';
@@ -122,6 +124,7 @@ class TaskRepositoryImpl implements TaskRepository {
     required TaskPriority priority,
     int? scheduleBlockId,
     DateTime? dueAt,
+    RecurrenceRule? repeat,
   }) {
     return _db.into(_db.tasks).insert(
           TasksCompanion.insert(
@@ -131,6 +134,7 @@ class TaskRepositoryImpl implements TaskRepository {
             status: TaskStatus.todo,
             scheduleBlockId: Value(scheduleBlockId),
             dueAt: Value(dueAt),
+            recurrence: Value(repeat?.format()),
           ),
         );
   }
@@ -145,8 +149,34 @@ class TaskRepositoryImpl implements TaskRepository {
         status: Value(task.status),
         scheduleBlockId: Value(task.scheduleBlockId),
         dueAt: Value(task.dueAt),
+        recurrence: Value(task.repeat?.format()),
       ),
     );
+  }
+
+  @override
+  Future<int?> completeTask(int id, {required DateTime now}) {
+    return _db.transaction(() async {
+      final task = await getTask(id);
+      final repeat = task?.repeat;
+      final due = task?.dueAt;
+      if (task == null || repeat == null || due == null) {
+        await setTaskStatus(id, TaskStatus.done);
+        return null;
+      }
+      final record = await _db.into(_db.tasks).insert(TasksCompanion.insert(
+            title: task.title,
+            notes: Value(task.notes),
+            priority: task.priority,
+            status: TaskStatus.done,
+            dueAt: Value(due),
+          ));
+      await (_db.update(_db.tasks)..where((t) => t.id.equals(id))).write(
+          TasksCompanion(
+              status: const Value(TaskStatus.todo),
+              dueAt: Value(nextRepeatDue(repeat, due, now))));
+      return record;
+    });
   }
 
   @override

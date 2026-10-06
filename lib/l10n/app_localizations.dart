@@ -2535,6 +2535,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Date'**
   String get dateKindOther;
+
+  /// No description provided for @repeatEvery.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {days}'**
+  String repeatEvery(String days);
+
+  /// No description provided for @repeatNextDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Next {when}'**
+  String repeatNextDue(String when);
+
+  /// No description provided for @markedDoneNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked \"{title}\" done. Next {when}'**
+  String markedDoneNext(String title, String when);
+
+  /// No description provided for @taskRepeats.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeats: {rule}'**
+  String taskRepeats(String rule);
 }
 
 class _AppLocalizationsDelegate

@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/providers.dart';
 import '../../../domain/entities/task.dart';
+import '../../../domain/recurrence/recurrence_rule.dart';
 
 part 'add_edit_task_view_model.g.dart';
 
@@ -20,6 +21,7 @@ class AddEditTaskViewModel extends _$AddEditTaskViewModel {
     required TaskPriority priority,
     int? scheduleBlockId,
     DateTime? dueAt,
+    RecurrenceRule? repeat,
   }) async {
     final blockId = await _storedBlockId(scheduleBlockId);
     await ref.read(taskRepositoryProvider).createTask(
@@ -28,6 +30,7 @@ class AddEditTaskViewModel extends _$AddEditTaskViewModel {
           priority: priority,
           scheduleBlockId: blockId,
           dueAt: dueAt,
+          repeat: repeat,
         );
   }
 

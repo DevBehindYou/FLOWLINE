@@ -1,7 +1,10 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../assistant/assistant_providers.dart';
+import '../../../assistant/direct_action.dart';
 import '../../../core/providers.dart';
 import '../../../core/time/current_day.dart';
+import '../../../data/assistant/tool_executor.dart';
 import '../../../domain/entities/planned_block.dart';
 import '../../../domain/entities/schedule_block.dart';
 import '../../../domain/entities/task.dart';
@@ -95,6 +98,32 @@ class TodayActions extends _$TodayActions {
     await ref.read(taskRepositoryProvider).setTaskStatus(task.id, next);
     return task.status;
   }
+
+  /// Completes a repeating task through `complete_task`, so it gets a
+  /// ledger row and Undo puts back both its due time and the completion
+  /// record. Returns the entry to undo and the next due time; null when
+  /// the task changed underneath (it was already done).
+  Future<({int entryId, DateTime? nextDue})?> completeRepeating(
+      Task task) async {
+    final result = await runDirectAction(
+      registry: ref.read(toolRegistryProvider),
+      executor: ref.read(toolExecutorProvider),
+      tool: 'complete_task',
+      args: {'task_id': task.id},
+    );
+    switch (result) {
+      case Executed(:final entryId?):
+        final next = await ref.read(taskRepositoryProvider).getTask(task.id);
+        return (entryId: entryId, nextDue: next?.dueAt);
+      case Failed(:final error):
+        Error.throwWithStackTrace(error, StackTrace.current);
+      case Executed() || Rejected():
+        return null;
+    }
+  }
+
+  Future<void> undoEntry(int entryId) =>
+      ref.read(undoServiceProvider).undoEntry(entryId);
 
   Future<void> setStatus(int taskId, TaskStatus status) =>
       ref.read(taskRepositoryProvider).setTaskStatus(taskId, status);

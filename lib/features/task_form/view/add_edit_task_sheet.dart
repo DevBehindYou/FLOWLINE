@@ -7,6 +7,9 @@ import '../../../design/atomic.dart';
 import '../../../core/async/run_action.dart';
 import '../../../domain/entities/schedule_block.dart';
 import '../../../domain/entities/task.dart';
+import '../../../domain/recurrence/recurrence_rule.dart';
+import '../../schedule_block_form/view/add_edit_schedule_block_sheet.dart'
+    show RepeatPicker;
 import '../../../shared_widgets/confirm_dialog.dart';
 import '../../schedule/viewmodel/today_view_model.dart';
 import '../viewmodel/add_edit_task_view_model.dart';
@@ -38,6 +41,9 @@ class _AddEditTaskSheetState extends ConsumerState<AddEditTaskSheet> {
   late int? _blockId =
       widget.existingTask?.scheduleBlockId ?? widget.scheduleBlockId;
   late DateTime? _dueAt = widget.existingTask?.dueAt;
+
+  /// Only with a due time: completing moves the due time on.
+  late RecurrenceRule? _repeat = widget.existingTask?.repeat;
   bool _saving = false;
   String? _titleError;
 
@@ -93,6 +99,7 @@ class _AddEditTaskSheetState extends ConsumerState<AddEditTaskSheet> {
               status: _status,
               scheduleBlockId: () => _blockId,
               dueAt: () => _dueAt,
+              repeat: () => _dueAt == null ? null : _repeat,
             ),
           );
         } else {
@@ -102,6 +109,7 @@ class _AddEditTaskSheetState extends ConsumerState<AddEditTaskSheet> {
             priority: _priority,
             scheduleBlockId: _blockId,
             dueAt: _dueAt,
+            repeat: _dueAt == null ? null : _repeat,
           );
         }
         return true;
@@ -216,6 +224,14 @@ class _AddEditTaskSheetState extends ConsumerState<AddEditTaskSheet> {
             onPick: _pickDue,
             onClear: () => setState(() => _dueAt = null),
           ),
+          if (_dueAt != null) ...[
+            gap,
+            RepeatPicker(
+              value: _repeat,
+              firstDay: _dueAt!,
+              onChanged: (r) => setState(() => _repeat = r),
+            ),
+          ],
           const SizedBox(height: AtomicSpace.xl),
           AtomicButton(
             label: _isEditing ? l10n.saveChanges : l10n.addTask,

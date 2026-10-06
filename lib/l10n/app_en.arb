@@ -910,5 +910,13 @@
   "followUpReplied": "Replied",
   "dateKindBirthday": "Birthday",
   "dateKindAnniversary": "Anniversary",
-  "dateKindOther": "Date"
+  "dateKindOther": "Date",
+  "repeatEvery": "Every {days}",
+  "@repeatEvery": {"placeholders": {"days": {"type": "String"}}},
+  "repeatNextDue": "Next {when}",
+  "@repeatNextDue": {"placeholders": {"when": {"type": "String"}}},
+  "markedDoneNext": "Marked \"{title}\" done. Next {when}",
+  "@markedDoneNext": {"placeholders": {"title": {"type": "String"}, "when": {"type": "String"}}},
+  "taskRepeats": "Repeats: {rule}",
+  "@taskRepeats": {"placeholders": {"rule": {"type": "String"}}}
 }
