@@ -17,6 +17,13 @@ class NotificationService {
   bool _initialized = false;
   bool _permissionRequested = false;
   final _taps = StreamController<void>.broadcast();
+  final _reminderActions =
+      StreamController<({String action, int reminderId})>.broadcast();
+
+  /// A reminder notification's button, pressed while the app is running
+  /// (DONE, SNOOZE 10 MIN, TOMORROW; docs/05 §13).
+  Stream<({String action, int reminderId})> get reminderActions =>
+      _reminderActions.stream;
 
   /// Fires when the user taps a session notification while the app is
   /// running or in the background (B24).
@@ -24,6 +31,14 @@ class NotificationService {
 
   static const _sessionNotificationId = 1001;
   static const _channelId = 'focus_session';
+  static const _reminderChannelId = 'reminders';
+
+  /// Set at startup to a top-level function: a button pressed while the
+  /// app isn't running runs it in a background isolate.
+  static void Function(NotificationResponse)? backgroundResponseHandler;
+
+  /// The payload of a reminder notification: `reminder:<id>`.
+  static const reminderPayloadPrefix = 'reminder:';
 
   Future<void> init() async {
     if (_initialized) return;
@@ -35,11 +50,62 @@ class NotificationService {
         AndroidInitializationSettings('@mipmap/ic_launcher');
     await _plugin.initialize(
       settings: const InitializationSettings(android: androidSettings),
-      onDidReceiveNotificationResponse: (_) => _taps.add(null),
+      onDidReceiveNotificationResponse: _onResponse,
+      onDidReceiveBackgroundNotificationResponse: backgroundResponseHandler,
     );
 
     _initialized = true;
   }
+
+  void _onResponse(NotificationResponse response) {
+    final reminderId = reminderIdOf(response.payload);
+    final action = response.actionId;
+    if (reminderId != null && action != null && action.isNotEmpty) {
+      _reminderActions.add((action: action, reminderId: reminderId));
+      return;
+    }
+    _taps.add(null);
+  }
+
+  /// The reminder id in a notification payload, or null.
+  static int? reminderIdOf(String? payload) =>
+      payload != null && payload.startsWith(reminderPayloadPrefix)
+          ? int.tryParse(payload.substring(reminderPayloadPrefix.length))
+          : null;
+
+  /// Schedules (or moves: the id is stable) one reminder's notification,
+  /// with its buttons. Inexact, like the session alert: no exact-alarm
+  /// permission, so it may arrive a few minutes late (docs/05 §13).
+  Future<void> scheduleReminder({
+    required int notificationId,
+    required int reminderId,
+    required DateTime fireAt,
+    required String title,
+    required String channelName,
+    required String channelDescription,
+    required List<({String id, String label})> actions,
+  }) =>
+      _plugin.zonedSchedule(
+        id: notificationId,
+        title: title,
+        scheduledDate: tz.TZDateTime.from(fireAt, tz.local),
+        payload: '$reminderPayloadPrefix$reminderId',
+        notificationDetails: NotificationDetails(
+          android: AndroidNotificationDetails(
+            _reminderChannelId,
+            channelName,
+            channelDescription: channelDescription,
+            importance: Importance.high,
+            priority: Priority.high,
+            actions: [
+              for (final a in actions) AndroidNotificationAction(a.id, a.label),
+            ],
+          ),
+        ),
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      );
+
+  Future<void> cancel(int notificationId) => _plugin.cancel(id: notificationId);
 
   /// Asks for POST_NOTIFICATIONS (Android 13+) at most once per process,
   /// on the first session start rather than at launch (spec §5.2).

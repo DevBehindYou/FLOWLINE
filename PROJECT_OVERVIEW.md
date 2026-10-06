@@ -626,8 +626,8 @@ erDiagram
 
 ### 7.3 Migrations
 
-`AppDatabase.schemaVersion = 10`. Snapshots of v3 (what every APK
-before Phase 3 shipped) to v10 live in `drift_schemas/`; `test/drift/`
+`AppDatabase.schemaVersion = 11`. Snapshots of v3 (what every APK
+before Phase 3 shipped) to v11 live in `drift_schemas/`; `test/drift/`
 verifies the upgrade schema and data. Upgrades run **step by step**
 through the generated `app_database.steps.dart`, so each step sees its
 own version's tables. Run `dart run drift_dev make-migrations` after each
@@ -644,6 +644,7 @@ bump, then add the new `fromNToM` step.
 | 7 → 8 | `createTable(utterances, assistant_actions, proposals)` and their indexes, including the partial unique `proposals_open_key` (one open proposal per dedupe key). New tables only (docs/05 Phase E.2) |
 | 8 → 9 | `ai_messages.stop_reason` (why a reply ended; B18: a reply that hit the length limit shows "Cut off") |
 | 9 → 10 | `assistant_actions.preview_json` (what an action did, worded later even if its target is gone) and `ai_messages.turn_group_id` (the assistant turn a chat reply belongs to) |
+| 10 → 11 | `createTable(reminders)`: title (1–200 chars), `fire_at`, kind, status, `snooze_count ≥ 0`, `task_id` FK `ON DELETE SET NULL`; index on `(status, fire_at)` (docs/05 Phase F.1) |
 
 **Assistant tables (v8).** Written by the assistant core (§9.4–§9.5),
 which no screen calls yet (E.5):
@@ -877,6 +878,22 @@ proposal becomes `noLongerPossible` and is closed as expired; a second tap
 does nothing. `AssistantRepository.createProposal` refuses a second open
 proposal with the same dedupe key. Nothing creates proposals yet: the
 scanners and commitment detector are Phase H.
+
+**Reminders (F.1).** `create_reminder`, `snooze_reminder` and
+`complete_reminder` are tools like any other (ledger row, undo; 17 tools
+now). "Remind me to call Mum at 7" is handled by the local grammar with no
+model call. After each commit a `ReminderTouched` effect makes
+`ReminderSync` schedule, move or cancel that reminder's notification
+(stable id `100000 + id`, inexact, so it may be a few minutes late). On
+start and resume, missed reminders are marked fired and the next 14 days
+(at most 64) are scheduled again. The notification's buttons — Done,
+Snooze 10 min, Tomorrow (same time of day, calendar math) — map through
+the pure `reminderActionCall` to the same tool calls and run through the
+executor, so they show in Activity with undo. With the app closed, the
+background isolate opens the database itself and does the same
+(**UNVERIFIED** on a device). Library → Reminders lists open ones, with a
+"Missed" label, and the same three buttons. Notification permission is
+asked when the first reminder is scheduled.
 
 A session started by `start_focus` gets the normal end-of-session alert
 (`FocusTimerViewModel.alertForStartedSession`), and undoing it cancels

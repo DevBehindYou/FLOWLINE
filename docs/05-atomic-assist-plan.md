@@ -2421,7 +2421,10 @@ developer working with AI help.
   - [x] **E.5a** the Assist chat acts: each message is an orchestrator turn with history; action cards under the reply with one UNDO per turn; confirm sheet for held calls; schema **v10** (`assistant_actions.preview_json`, `ai_messages.turn_group_id`). Deviation: chat replies are collected, not streamed
   - [x] **E.5b** Inbox (SUGGESTED with accept/dismiss, re-validated, a confirm for destructive ones; DONE BY AA · TODAY with UNDO), Activity (30 days by day, UNDO per turn, "Changed since. Not undone."), Library hub with Review (was Insights), 5-tab IA with an Inbox count badge
   - Carried forward: NEEDS YOU (persisted confirmations) and CAPTURED (stored captures) with Phase F; the new onboarding content (autonomy choice) with Phase F's settings work; local commands in Assist without an AI provider (conversations need a provider today); the route stays `/assistant`, not `/assist`
-- [ ] F. Reminders, lists, people
+- [ ] F. Reminders, lists, people — in slices:
+  - [x] **F.1** reminders: schema **v11**, three reminder tools (local grammar included), notification sync with a 14-day / 64-alert top-up, notification buttons through the tools (ledger + undo; background isolate **UNVERIFIED**), Library → Reminders. Deviations: inexact alerts only (no exact-alarm request yet); floating (wall-clock) reminders and time-zone re-scheduling not yet; no reminder deletion tool
+  - [ ] **F.2** lists
+  - [ ] **F.3** people and dates, follow-ups, repeating tasks
 - [ ] G. Voice 1
 - [ ] H. Proactive
 - [ ] I. Memory, money, travel, documents

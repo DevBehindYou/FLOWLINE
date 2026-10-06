@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import '../ai/ai_contract.dart';
 import '../repositories/focus_session_repository.dart';
+import '../repositories/reminder_repository.dart';
 import '../repositories/schedule_repository.dart';
 import '../repositories/task_repository.dart';
 import 'action_preview.dart';
@@ -70,6 +71,7 @@ abstract interface class ToolEnv {
   TaskRepository get tasks;
   ScheduleRepository get schedule;
   FocusSessionRepository get focus;
+  ReminderRepository get reminders;
 
   /// Default length of a focus session, from Settings.
   Future<int> focusMinutes();
@@ -99,6 +101,13 @@ final class FocusStarted extends AfterCommit {
 final class FocusStopped extends AfterCommit {
   const FocusStopped(this.sessionId);
   final int sessionId;
+}
+
+/// A reminder was created, changed or removed: bring its notification in
+/// line with the database (schedule, move or cancel).
+final class ReminderTouched extends AfterCommit {
+  const ReminderTouched(this.reminderId);
+  final int reminderId;
 }
 
 final class ToolOutcome {

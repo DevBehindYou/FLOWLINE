@@ -856,5 +856,19 @@
   "@actionTimeOrigin": {"placeholders": {"time": {"type": "String"}, "origin": {"type": "String"}}},
   "libraryTitle": "Library",
   "libraryReview": "Review",
-  "libraryReviewHint": "Your focus over the week"
+  "libraryReviewHint": "Your focus over the week",
+  "actionCreateReminder": "Reminder set",
+  "actionSnoozeReminder": "Snoozed",
+  "actionCompleteReminder": "Reminder done",
+  "remindersTitle": "Reminders",
+  "remindersHint": "What AA will remind you about",
+  "remindersEmptyTitle": "No reminders",
+  "remindersEmptyMessage": "Say \"remind me to call Mum at 7\" in Assist.",
+  "loadingReminders": "Loading reminders…",
+  "reminderDone": "Done",
+  "reminderSnooze10": "Snooze 10 min",
+  "reminderTomorrow": "Tomorrow",
+  "reminderOverdue": "Missed",
+  "reminderNotificationChannel": "Reminders",
+  "reminderNotificationChannelDescription": "Reminders you asked Atomic Assist for"
 }

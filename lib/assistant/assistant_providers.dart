@@ -10,6 +10,7 @@ import '../features/focus_timer/viewmodel/focus_timer_view_model.dart';
 import 'assist_chat.dart';
 import 'orchestrator.dart';
 import 'proposal_service.dart';
+import 'reminder_sync.dart';
 import 'tools/tool_registry.dart';
 
 part 'assistant_providers.g.dart';
@@ -29,6 +30,7 @@ ToolEnv Function() toolEnvFactory(Ref ref) {
         tasks: ref.read(taskRepositoryProvider),
         schedule: ref.read(scheduleRepositoryProvider),
         focus: ref.read(focusSessionRepositoryProvider),
+        reminders: ref.read(reminderRepositoryProvider),
         settings: ref.read(appSettingsRepositoryProvider),
         rows: rows,
       );
@@ -46,6 +48,8 @@ final class _AppAfterCommit implements AfterCommitHandler {
     return switch (effect) {
       FocusStarted(:final sessionId) => focus.alertForStartedSession(sessionId),
       FocusStopped() => focus.cancelAlert(),
+      ReminderTouched(:final reminderId) =>
+        _ref.read(reminderSyncProvider).sync(reminderId),
     };
   }
 }
@@ -90,4 +94,10 @@ ProposalService proposalService(Ref ref) => ProposalService(
 AssistChat assistChat(Ref ref) => AssistChat(
       ai: ref.watch(aiRepositoryProvider),
       orchestrator: ref.watch(assistantOrchestratorProvider),
+    );
+
+@Riverpod(keepAlive: true)
+ReminderSync reminderSync(Ref ref) => ReminderSync(
+      reminders: ref.watch(reminderRepositoryProvider),
+      notifications: () => ref.read(notificationServiceProvider.future),
     );

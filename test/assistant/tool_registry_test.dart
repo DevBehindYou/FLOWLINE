@@ -7,8 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   final registry = ToolRegistry();
 
-  test('the first fourteen tools, with portable schemas', () {
-    expect(registry.tools, hasLength(14));
+  test('every tool has a portable schema', () {
+    expect(registry.tools, hasLength(17));
     for (final t in registry.tools) {
       expect(toolNamePattern.hasMatch(t.name), isTrue, reason: t.name);
       expect(unsupportedSchemaKeywords(t.parameters), isEmpty, reason: t.name);

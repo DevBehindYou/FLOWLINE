@@ -7,10 +7,11 @@ import 'block_tools.dart';
 import 'delete_tools.dart';
 import 'focus_tool.dart';
 import 'read_tools.dart';
+import 'reminder_tools.dart';
 import 'task_tools.dart';
 
-/// The tools AA has (docs/05 §9.2), first slice: the ones the current
-/// schema can back. There are no forbidden tools to register: an unknown
+/// The tools AA has (docs/05 §9.2): the ones the current schema can
+/// back. There are no forbidden tools to register: an unknown
 /// name is rejected, so "pay", "send" or "record" don't exist at all.
 const List<AssistantTool<Object>> defaultTools = [
   GetAgendaTool(),
@@ -25,6 +26,9 @@ const List<AssistantTool<Object>> defaultTools = [
   CreateBlockTool(),
   MoveBlockTool(),
   StartFocusTool(),
+  CreateReminderTool(),
+  SnoozeReminderTool(),
+  CompleteReminderTool(),
   DeleteTaskTool(),
   DeleteBlockTool(),
 ];

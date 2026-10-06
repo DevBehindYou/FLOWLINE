@@ -1314,4 +1314,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get libraryReviewHint => 'Your focus over the week';
+
+  @override
+  String get actionCreateReminder => 'Reminder set';
+
+  @override
+  String get actionSnoozeReminder => 'Snoozed';
+
+  @override
+  String get actionCompleteReminder => 'Reminder done';
+
+  @override
+  String get remindersTitle => 'Reminders';
+
+  @override
+  String get remindersHint => 'What AA will remind you about';
+
+  @override
+  String get remindersEmptyTitle => 'No reminders';
+
+  @override
+  String get remindersEmptyMessage =>
+      'Say \"remind me to call Mum at 7\" in Assist.';
+
+  @override
+  String get loadingReminders => 'Loading reminders…';
+
+  @override
+  String get reminderDone => 'Done';
+
+  @override
+  String get reminderSnooze10 => 'Snooze 10 min';
+
+  @override
+  String get reminderTomorrow => 'Tomorrow';
+
+  @override
+  String get reminderOverdue => 'Missed';
+
+  @override
+  String get reminderNotificationChannel => 'Reminders';
+
+  @override
+  String get reminderNotificationChannelDescription =>
+      'Reminders you asked Atomic Assist for';
 }

@@ -96,7 +96,7 @@ final class ToolEnvFactoryProvider extends $FunctionalProvider<
   }
 }
 
-String _$toolEnvFactoryHash() => r'9e81099594a73059ba38bb1759be0241ff8cb230';
+String _$toolEnvFactoryHash() => r'a565d34dde002659353fe0f00e7479398f7a8ed0';
 
 @ProviderFor(afterCommitHandler)
 final afterCommitHandlerProvider = AfterCommitHandlerProvider._();
@@ -348,3 +348,44 @@ final class AssistChatProvider
 }
 
 String _$assistChatHash() => r'a3cedf3c9b4330d6d92e61983050c92c62a91170';
+
+@ProviderFor(reminderSync)
+final reminderSyncProvider = ReminderSyncProvider._();
+
+final class ReminderSyncProvider
+    extends $FunctionalProvider<ReminderSync, ReminderSync, ReminderSync>
+    with $Provider<ReminderSync> {
+  ReminderSyncProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'reminderSyncProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$reminderSyncHash();
+
+  @$internal
+  @override
+  $ProviderElement<ReminderSync> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  ReminderSync create(Ref ref) {
+    return reminderSync(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ReminderSync value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ReminderSync>(value),
+    );
+  }
+}
+
+String _$reminderSyncHash() => r'7d94eec723bb8a3e493231d78628373f8398dc0b';

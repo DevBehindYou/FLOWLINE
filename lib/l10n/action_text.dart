@@ -16,6 +16,9 @@ extension L10nActions on AppLocalizations {
         MoveBlockPreview() => actionMoveBlock,
         StartFocusPreview() => actionStartFocus,
         BreakDownTaskPreview() => actionBreakDown,
+        CreateReminderPreview() => actionCreateReminder,
+        SnoozeReminderPreview() => actionSnoozeReminder,
+        CompleteReminderPreview() => actionCompleteReminder,
         DeletePreview(kind: DeleteKind.task) => actionDeleteTask,
         DeletePreview(kind: DeleteKind.block) => actionDeleteBlock,
       };
@@ -41,6 +44,11 @@ extension L10nActions on AppLocalizations {
         join([taskTitle ?? '', actionFocusMinutes(minutes)]),
       BreakDownTaskPreview(:final title, :final steps) =>
         join([title, steps.join(', ')]),
+      CreateReminderPreview(:final title, :final at) =>
+        join([title, '${dayShort(at)} ${time(at)}']),
+      SnoozeReminderPreview(:final title, :final until) =>
+        join([title, '${dayShort(until)} ${time(until)}']),
+      CompleteReminderPreview(:final title) => title,
       DeletePreview(:final titles) => titles.join(', '),
     };
   }

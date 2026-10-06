@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'assistant/assistant_providers.dart';
+import 'assistant/reminder_sync.dart';
 import 'core/providers.dart';
 import 'core/router/app_router.dart';
 import 'domain/entities/app_settings.dart';
@@ -32,10 +34,22 @@ class _AtomicAssistAppState extends ConsumerState<AtomicAssistApp> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _reconcileFocusSession();
       unawaited(_listenForNotificationTaps());
+      unawaited(_topUpReminders());
     });
   }
 
   StreamSubscription<void>? _notificationTaps;
+  StreamSubscription<void>? _reminderActions;
+
+  /// Marks what fired while the app was away and schedules the next two
+  /// weeks of reminder alerts (docs/05 §13).
+  Future<void> _topUpReminders() async {
+    try {
+      await ref.read(reminderSyncProvider).topUp();
+    } catch (_) {
+      // Alerts are a convenience on top of the stored reminders.
+    }
+  }
 
   /// A tapped session notification opens the Focus tab, where the
   /// session's summary is waiting (B24).
@@ -45,6 +59,22 @@ class _AtomicAssistAppState extends ConsumerState<AtomicAssistApp> {
       if (!mounted) return;
       void openFocus() => ref.read(appRouterProvider).go('/focus');
       _notificationTaps = service.taps.listen((_) => openFocus());
+      _reminderActions = service.reminderActions.listen((press) async {
+        final touched = await applyReminderAction(
+          actionId: press.action,
+          reminderId: press.reminderId,
+          reminders: ref.read(reminderRepositoryProvider),
+          registry: ref.read(toolRegistryProvider),
+          executor: ref.read(toolExecutorProvider),
+        );
+        if (touched != null) {
+          try {
+            await ref.read(reminderSyncProvider).sync(touched);
+          } catch (_) {
+            // Saved; the next top-up schedules the alert.
+          }
+        }
+      });
       if (await service.launchedFromNotification()) openFocus();
     } catch (_) {
       // Notifications are a convenience; the app works without them.
@@ -56,6 +86,7 @@ class _AtomicAssistAppState extends ConsumerState<AtomicAssistApp> {
     // clock so every "today" window catches up immediately.
     ref.read(currentDayProvider.notifier).refresh();
     _reconcileFocusSession();
+    unawaited(_topUpReminders());
   }
 
   void _reconcileFocusSession() {
@@ -66,6 +97,7 @@ class _AtomicAssistAppState extends ConsumerState<AtomicAssistApp> {
   @override
   void dispose() {
     unawaited(_notificationTaps?.cancel());
+    unawaited(_reminderActions?.cancel());
     _lifecycle.dispose();
     super.dispose();
   }
