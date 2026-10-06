@@ -2019,6 +2019,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Do it'**
   String get confirmDo;
+
+  /// No description provided for @navInbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Inbox'**
+  String get navInbox;
+
+  /// No description provided for @navLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Library'**
+  String get navLibrary;
+
+  /// No description provided for @inboxTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Inbox'**
+  String get inboxTitle;
+
+  /// No description provided for @inboxSuggested.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested'**
+  String get inboxSuggested;
+
+  /// No description provided for @inboxDoneToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Done by AA today'**
+  String get inboxDoneToday;
+
+  /// No description provided for @inboxAllActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'All activity'**
+  String get inboxAllActivity;
+
+  /// No description provided for @inboxEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re clear'**
+  String get inboxEmptyTitle;
+
+  /// No description provided for @inboxEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'AA will put suggestions here.'**
+  String get inboxEmptyMessage;
+
+  /// No description provided for @loadingInbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking…'**
+  String get loadingInbox;
+
+  /// No description provided for @proposalAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get proposalAccept;
+
+  /// No description provided for @proposalDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get proposalDismiss;
+
+  /// No description provided for @proposalNoLongerPossible.
+  ///
+  /// In en, this message translates to:
+  /// **'No longer possible. Things changed since it was suggested.'**
+  String get proposalNoLongerPossible;
+
+  /// No description provided for @proposalYouSaid.
+  ///
+  /// In en, this message translates to:
+  /// **'You said: {text}'**
+  String proposalYouSaid(String text);
+
+  /// No description provided for @reasonCommitment.
+  ///
+  /// In en, this message translates to:
+  /// **'From something you said'**
+  String get reasonCommitment;
+
+  /// No description provided for @reasonMeetingWithoutPrep.
+  ///
+  /// In en, this message translates to:
+  /// **'Meeting coming up'**
+  String get reasonMeetingWithoutPrep;
+
+  /// No description provided for @reasonUpcomingDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date coming up'**
+  String get reasonUpcomingDate;
+
+  /// No description provided for @reasonOverdueDrift.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps slipping'**
+  String get reasonOverdueDrift;
+
+  /// No description provided for @reasonBillDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill due'**
+  String get reasonBillDue;
+
+  /// No description provided for @reasonFreeGapForTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Free time today'**
+  String get reasonFreeGapForTasks;
+
+  /// No description provided for @reasonDayOverbooked.
+  ///
+  /// In en, this message translates to:
+  /// **'Day is full'**
+  String get reasonDayOverbooked;
+
+  /// No description provided for @reasonFollowUpDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-up due'**
+  String get reasonFollowUpDue;
+
+  /// No description provided for @reasonDocumentExpiring.
+  ///
+  /// In en, this message translates to:
+  /// **'Document expiring'**
+  String get reasonDocumentExpiring;
+
+  /// No description provided for @reasonPattern.
+  ///
+  /// In en, this message translates to:
+  /// **'You keep doing this'**
+  String get reasonPattern;
+
+  /// No description provided for @activityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get activityTitle;
+
+  /// No description provided for @activityEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing yet'**
+  String get activityEmptyTitle;
+
+  /// No description provided for @activityEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything AA does shows here, with undo.'**
+  String get activityEmptyMessage;
+
+  /// No description provided for @loadingActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading the log…'**
+  String get loadingActivity;
+
+  /// No description provided for @originSaid.
+  ///
+  /// In en, this message translates to:
+  /// **'You asked'**
+  String get originSaid;
+
+  /// No description provided for @originCommitment.
+  ///
+  /// In en, this message translates to:
+  /// **'From what you said'**
+  String get originCommitment;
+
+  /// No description provided for @originContext.
+  ///
+  /// In en, this message translates to:
+  /// **'Noticed'**
+  String get originContext;
+
+  /// No description provided for @originPattern.
+  ///
+  /// In en, this message translates to:
+  /// **'From a pattern'**
+  String get originPattern;
+
+  /// No description provided for @originRoutine.
+  ///
+  /// In en, this message translates to:
+  /// **'Routine'**
+  String get originRoutine;
+
+  /// No description provided for @actionTimeOrigin.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} · {origin}'**
+  String actionTimeOrigin(String time, String origin);
+
+  /// No description provided for @libraryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Library'**
+  String get libraryTitle;
+
+  /// No description provided for @libraryReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get libraryReview;
+
+  /// No description provided for @libraryReviewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your focus over the week'**
+  String get libraryReviewHint;
 }
 
 class _AppLocalizationsDelegate

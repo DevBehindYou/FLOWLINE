@@ -8,7 +8,10 @@ import '../providers.dart';
 
 import '../../features/ai_assistant/view/assistant_screen.dart';
 import '../../features/focus_timer/view/focus_screen.dart';
+import '../../features/inbox/view/activity_screen.dart';
+import '../../features/inbox/view/inbox_screen.dart';
 import '../../features/insights/view/insights_screen.dart';
+import '../../features/library/view/library_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
 import '../../features/schedule/view/today_screen.dart';
 import '../../features/settings/view/ai_providers_screen.dart';
@@ -68,11 +71,19 @@ GoRouter appRouter(Ref ref) {
               ),
             ],
           ),
+          // TODAY · INBOX · ASSIST · FOCUS · LIBRARY (docs/05 §28).
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/focus',
-                builder: (context, state) => const FocusScreen(),
+                path: '/inbox',
+                builder: (context, state) => const InboxScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'activity',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const ActivityScreen(),
+                  ),
+                ],
               ),
             ],
           ),
@@ -87,8 +98,23 @@ GoRouter appRouter(Ref ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/insights',
-                builder: (context, state) => const InsightsScreen(),
+                path: '/focus',
+                builder: (context, state) => const FocusScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/library',
+                builder: (context, state) => const LibraryScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'review',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const InsightsScreen(),
+                  ),
+                ],
               ),
             ],
           ),

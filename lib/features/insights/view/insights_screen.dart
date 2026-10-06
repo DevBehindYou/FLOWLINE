@@ -23,7 +23,7 @@ class InsightsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.navInsights),
+        title: Text(context.l10n.libraryReview),
         actions: [
           AtomicIconButton(
             icon: AtomicIcons.export,

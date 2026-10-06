@@ -829,7 +829,7 @@ ever builds SQL from schema-known table and column names.
 ### 9.5 Orchestrator and proposals (docs/05 Phase E.4)
 
 **Wired as keepAlive providers (`lib/assistant/assistant_providers.dart`).**
-The Assist chat calls it (E.5a, below); Inbox and Activity are next.
+The Assist chat calls it (E.5a, below); Inbox and Activity read and act on the same ledger (E.5b).
 
 **The acting chat (E.5a).** Every message in Assist is one orchestrator
 turn (`AssistChat`): the prompt and a pending reply are written first
@@ -936,15 +936,20 @@ Rebuild notes:
 ## 11. Navigation
 
 `go_router` with a `StatefulShellRoute.indexedStack`: each tab keeps its own
-navigator and state; the four tab subtrees stay mounted.
+navigator and state; the five tab subtrees stay mounted. Since E.5b the
+tabs are TODAY · INBOX · ASSISTANT · FOCUS · LIBRARY (docs/05 §28), with
+an open-proposal count badge on Inbox.
 
 | Path | Screen | Navigator | How it's reached |
 |---|---|---|---|
 | `/today` *(initial)* | `TodayScreen` | shell branch 0 | bottom nav |
 | `/today/task/:taskId` | `TaskDetailScreen` | **root** (full screen over the shell) | tap a task card |
-| `/focus` | `FocusScreen` | shell branch 1 | bottom nav; ▶ on a task or subtask (`context.go`) |
+| `/inbox` | `InboxScreen` (suggestions, today's actions) | shell branch 1 | bottom nav |
+| `/inbox/activity` | `ActivityScreen` (30 days of the ledger) | root | "All activity" on Inbox |
 | `/assistant` | `AssistantScreen` | shell branch 2 | bottom nav |
-| `/insights` | `InsightsScreen` | shell branch 3 | bottom nav |
+| `/focus` | `FocusScreen` | shell branch 3 | bottom nav; ▶ on a task or subtask (`context.go`) |
+| `/library` | `LibraryScreen` (hub) | shell branch 4 | bottom nav |
+| `/library/review` | `InsightsScreen`, titled "Review" | root | Library → Review |
 | `/settings` | `SettingsHomeScreen` | root | gear icon on Today's app bar |
 | `/settings/ai-providers` | `AiProvidersScreen` | root | Settings list; icon/CTA on Assistant |
 

@@ -1200,4 +1200,118 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get confirmDo => 'Do it';
+
+  @override
+  String get navInbox => 'Inbox';
+
+  @override
+  String get navLibrary => 'Library';
+
+  @override
+  String get inboxTitle => 'Inbox';
+
+  @override
+  String get inboxSuggested => 'Suggested';
+
+  @override
+  String get inboxDoneToday => 'Done by AA today';
+
+  @override
+  String get inboxAllActivity => 'All activity';
+
+  @override
+  String get inboxEmptyTitle => 'You\'re clear';
+
+  @override
+  String get inboxEmptyMessage => 'AA will put suggestions here.';
+
+  @override
+  String get loadingInbox => 'Checking…';
+
+  @override
+  String get proposalAccept => 'Accept';
+
+  @override
+  String get proposalDismiss => 'Dismiss';
+
+  @override
+  String get proposalNoLongerPossible =>
+      'No longer possible. Things changed since it was suggested.';
+
+  @override
+  String proposalYouSaid(String text) {
+    return 'You said: $text';
+  }
+
+  @override
+  String get reasonCommitment => 'From something you said';
+
+  @override
+  String get reasonMeetingWithoutPrep => 'Meeting coming up';
+
+  @override
+  String get reasonUpcomingDate => 'Date coming up';
+
+  @override
+  String get reasonOverdueDrift => 'Keeps slipping';
+
+  @override
+  String get reasonBillDue => 'Bill due';
+
+  @override
+  String get reasonFreeGapForTasks => 'Free time today';
+
+  @override
+  String get reasonDayOverbooked => 'Day is full';
+
+  @override
+  String get reasonFollowUpDue => 'Follow-up due';
+
+  @override
+  String get reasonDocumentExpiring => 'Document expiring';
+
+  @override
+  String get reasonPattern => 'You keep doing this';
+
+  @override
+  String get activityTitle => 'Activity';
+
+  @override
+  String get activityEmptyTitle => 'Nothing yet';
+
+  @override
+  String get activityEmptyMessage =>
+      'Everything AA does shows here, with undo.';
+
+  @override
+  String get loadingActivity => 'Reading the log…';
+
+  @override
+  String get originSaid => 'You asked';
+
+  @override
+  String get originCommitment => 'From what you said';
+
+  @override
+  String get originContext => 'Noticed';
+
+  @override
+  String get originPattern => 'From a pattern';
+
+  @override
+  String get originRoutine => 'Routine';
+
+  @override
+  String actionTimeOrigin(String time, String origin) {
+    return '$time · $origin';
+  }
+
+  @override
+  String get libraryTitle => 'Library';
+
+  @override
+  String get libraryReview => 'Review';
+
+  @override
+  String get libraryReviewHint => 'Your focus over the week';
 }

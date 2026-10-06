@@ -1,11 +1,16 @@
+import 'package:atomic_assist/core/providers.dart';
+import 'package:atomic_assist/data/local/drift/app_database.dart';
 import 'package:atomic_assist/design/atomic.dart';
 import 'package:atomic_assist/features/shell/app_shell.dart';
 import 'package:atomic_assist/l10n/l10n.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
-/// The real AppShell over four placeholder branches.
+import '../../support/test_database.dart';
+
+/// The real AppShell over five placeholder branches.
 Widget _app() {
   StatefulShellBranch branch(String path) => StatefulShellBranch(routes: [
         GoRoute(
@@ -20,21 +25,29 @@ Widget _app() {
         builder: (_, __, shell) => AppShell(navigationShell: shell),
         branches: [
           branch('/today'),
-          branch('/focus'),
+          branch('/inbox'),
           branch('/assistant'),
-          branch('/insights'),
+          branch('/focus'),
+          branch('/library'),
         ],
       ),
     ],
   );
-  return MaterialApp.router(
-    theme: AtomicTheme.light(),
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
-    routerConfig: router,
-  );
+  return ProviderScope(
+      overrides: [appDatabaseProvider.overrideWith((ref) => _db)],
+      child: MaterialApp.router(
+        theme: AtomicTheme.light(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        routerConfig: router,
+      ));
 }
 
+late AppDatabase _db;
+
 void main() {
+  setUp(() => _db = createTestDatabase());
+  tearDown(() => _db.close());
+
   void size(WidgetTester tester, double width, double height) {
     tester.view.physicalSize = Size(width * 2, height * 2);
     tester.view.devicePixelRatio = 2;
@@ -57,9 +70,9 @@ void main() {
     expect(find.byType(AtomicBottomBar), findsNothing);
 
     // Inactive destinations are icon-only; their label is for TalkBack.
-    await tester.tap(find.byIcon(AtomicIcons.review));
+    await tester.tap(find.byIcon(AtomicIcons.library));
     await tester.pumpAndSettle();
-    expect(find.text('screen /insights'), findsOneWidget);
+    expect(find.text('screen /library'), findsOneWidget);
   });
 
   testWidgets('every destination is labelled for screen readers',
@@ -68,7 +81,7 @@ void main() {
     size(tester, 360, 740);
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
-    for (final label in ['Today', 'Focus', 'Assistant', 'Insights']) {
+    for (final label in ['Today', 'Inbox', 'Assistant', 'Focus', 'Library']) {
       expect(find.bySemanticsLabel(label), findsOneWidget, reason: label);
     }
     handle.dispose();

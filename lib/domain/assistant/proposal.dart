@@ -60,6 +60,20 @@ final class Proposal {
   /// `upcomingDates:person:12:2026-10-09`.
   final String dedupeKey;
   final ProposalStatus status;
+
+  // By value: the Inbox keys a provider by proposal, and a fresh stream
+  // emission must not look like a new proposal.
+  @override
+  bool operator ==(Object other) =>
+      other is Proposal &&
+      other.id == id &&
+      other.status == status &&
+      other.toolName == toolName &&
+      other.argsJson == argsJson &&
+      other.expiresAt == expiresAt;
+
+  @override
+  int get hashCode => Object.hash(id, status, toolName, argsJson, expiresAt);
 }
 
 /// A proposal about to be stored.
