@@ -10,6 +10,7 @@ import '../data/assistant/tool_executor.dart';
 import '../data/local/drift/app_database.dart';
 import '../data/repositories/app_settings_repository_impl.dart';
 import '../data/repositories/focus_session_repository_impl.dart';
+import '../data/repositories/list_repository_impl.dart';
 import '../data/repositories/reminder_repository_impl.dart';
 import '../data/repositories/schedule_repository_impl.dart';
 import '../data/repositories/task_repository_impl.dart';
@@ -134,6 +135,7 @@ Future<void> reminderActionInBackground(NotificationResponse response) async {
         schedule: ScheduleRepositoryImpl(db),
         focus: FocusSessionRepositoryImpl(db),
         reminders: reminders,
+        lists: ListRepositoryImpl(db),
         settings: AppSettingsRepositoryImpl(db),
         rows: rows,
       ),

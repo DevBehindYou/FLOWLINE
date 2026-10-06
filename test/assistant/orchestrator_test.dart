@@ -12,6 +12,7 @@ import 'package:atomic_assist/data/local/drift/app_database.dart';
 import 'package:atomic_assist/data/repositories/app_settings_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/assistant_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/focus_session_repository_impl.dart';
+import 'package:atomic_assist/data/repositories/list_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/reminder_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/schedule_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/task_repository_impl.dart';
@@ -51,6 +52,7 @@ void main() {
         schedule: schedule,
         focus: FocusSessionRepositoryImpl(db),
         reminders: ReminderRepositoryImpl(db),
+        lists: ListRepositoryImpl(db),
         settings: AppSettingsRepositoryImpl(db),
         rows: StoredRows(db),
         now: clock.now(),
@@ -189,7 +191,7 @@ void main() {
       expect(_json(results.first.json)['slots'], isNotEmpty);
       expect(_json(results.last.json)['block_id'], isA<int>());
       expect(ai.requests.first.system, contains('Now: 2026-10-05T16:40'));
-      expect(ai.requests.first.tools, hasLength(17));
+      expect(ai.requests.first.tools, hasLength(21));
       // One turn, one group: a single UNDO removes the walk.
       expect(await at(() => undo.undoGroup(r.groupId)), UndoResult.undone);
       expect(await schedule.getBlocksForDay(now), isEmpty);

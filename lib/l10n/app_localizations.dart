@@ -2319,6 +2319,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reminders you asked Atomic Assist for'**
   String get reminderNotificationChannelDescription;
+
+  /// No description provided for @actionAddListItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to list'**
+  String get actionAddListItems;
+
+  /// No description provided for @actionCheckListItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Ticked'**
+  String get actionCheckListItem;
+
+  /// No description provided for @actionUncheckListItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Unticked'**
+  String get actionUncheckListItem;
+
+  /// No description provided for @actionClearChecked.
+  ///
+  /// In en, this message translates to:
+  /// **'Cleared ticked items'**
+  String get actionClearChecked;
+
+  /// No description provided for @confirmClearCheckedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 ticked item will be removed from {list}.} other{{count} ticked items will be removed from {list}.}} You can undo this.'**
+  String confirmClearCheckedMessage(int count, String list);
+
+  /// No description provided for @listsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lists'**
+  String get listsTitle;
+
+  /// No description provided for @listsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping, errands, packing'**
+  String get listsHint;
+
+  /// No description provided for @listsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No lists'**
+  String get listsEmptyTitle;
+
+  /// No description provided for @listsEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Say \"add milk to shopping\" in Assist.'**
+  String get listsEmptyMessage;
+
+  /// No description provided for @loadingLists.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading lists…'**
+  String get loadingLists;
+
+  /// No description provided for @listCounter.
+  ///
+  /// In en, this message translates to:
+  /// **'{open} / {total}'**
+  String listCounter(int open, int total);
+
+  /// No description provided for @listEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing on this list yet.'**
+  String get listEmptyMessage;
+
+  /// No description provided for @listAddHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an item'**
+  String get listAddHint;
+
+  /// No description provided for @listAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get listAdd;
+
+  /// No description provided for @listClearChecked.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear ticked'**
+  String get listClearChecked;
 }
 
 class _AppLocalizationsDelegate

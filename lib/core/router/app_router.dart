@@ -12,6 +12,8 @@ import '../../features/inbox/view/activity_screen.dart';
 import '../../features/inbox/view/inbox_screen.dart';
 import '../../features/insights/view/insights_screen.dart';
 import '../../features/library/view/library_screen.dart';
+import '../../features/lists/view/list_detail_screen.dart';
+import '../../features/lists/view/lists_screen.dart';
 import '../../features/reminders/view/reminders_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
 import '../../features/schedule/view/today_screen.dart';
@@ -110,6 +112,20 @@ GoRouter appRouter(Ref ref) {
                 path: '/library',
                 builder: (context, state) => const LibraryScreen(),
                 routes: [
+                  GoRoute(
+                    path: 'lists',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const ListsScreen(),
+                    routes: [
+                      GoRoute(
+                        path: ':listId',
+                        parentNavigatorKey: _rootNavigatorKey,
+                        builder: (context, state) => ListDetailScreen(
+                          listId: int.parse(state.pathParameters['listId']!),
+                        ),
+                      ),
+                    ],
+                  ),
                   GoRoute(
                     path: 'reminders',
                     parentNavigatorKey: _rootNavigatorKey,

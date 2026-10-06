@@ -8,6 +8,7 @@ import 'package:atomic_assist/data/assistant/undo_service.dart';
 import 'package:atomic_assist/data/local/drift/app_database.dart';
 import 'package:atomic_assist/data/repositories/app_settings_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/focus_session_repository_impl.dart';
+import 'package:atomic_assist/data/repositories/list_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/reminder_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/schedule_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/task_repository_impl.dart';
@@ -41,7 +42,7 @@ void main() {
   final roundTripped = <String>{};
 
   // Seed: what a real day looks like.
-  late int report, bank, inBlock, deepWork, gymSeries, sub1, callMum;
+  late int report, bank, inBlock, deepWork, gymSeries, sub1, callMum, milk;
 
   setUp(() async {
     db = createTestDatabase();
@@ -59,6 +60,7 @@ void main() {
         schedule: schedule,
         focus: focus,
         reminders: ReminderRepositoryImpl(db),
+        lists: ListRepositoryImpl(db),
         settings: AppSettingsRepositoryImpl(db),
         rows: rows,
         now: clock.now(),
@@ -100,6 +102,13 @@ void main() {
       await focus.completeSession(s, endedEarly: true);
       callMum = await ReminderRepositoryImpl(db)
           .create(title: 'Call Mum', fireAt: DateTime(2026, 10, 5, 19));
+      // The default Shopping list, with one open and one ticked item.
+      final lists = ListRepositoryImpl(db);
+      final shopping = (await lists.findByName('shopping'))!;
+      final ids = await lists.addItems(shopping.id, ['Milk', 'Bread'],
+          at: DateTime(2026, 10, 4, 9));
+      milk = ids.first;
+      await lists.setChecked(ids.last, true, at: DateTime(2026, 10, 4, 10));
     });
   });
   tearDown(() => db.close());
@@ -239,6 +248,24 @@ void main() {
 
     test('complete_reminder', () async {
       await roundTrip('complete_reminder', {'reminder_id': callMum});
+    });
+
+    test('add_list_items (skips what is already open on it)', () async {
+      final r = await roundTrip('add_list_items', {
+        'list': 'SHOPPING',
+        'items': ['eggs', 'milk', 'Eggs', 'bread'],
+      });
+      // milk is open already; Eggs repeats eggs; bread was ticked, so it
+      // goes back on.
+      expect(r.outcome.result['added'], ['eggs', 'bread']);
+    });
+
+    test('check_list_item', () async {
+      await roundTrip('check_list_item', {'item_id': milk});
+    });
+
+    test('clear_checked puts the ticked items back on undo', () async {
+      await roundTrip('clear_checked', {'list': 'shopping'});
     });
 
     test('delete_block restores the block and re-schedules its tasks',

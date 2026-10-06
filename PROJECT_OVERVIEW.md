@@ -626,8 +626,8 @@ erDiagram
 
 ### 7.3 Migrations
 
-`AppDatabase.schemaVersion = 11`. Snapshots of v3 (what every APK
-before Phase 3 shipped) to v11 live in `drift_schemas/`; `test/drift/`
+`AppDatabase.schemaVersion = 12`. Snapshots of v3 (what every APK
+before Phase 3 shipped) to v12 live in `drift_schemas/`; `test/drift/`
 verifies the upgrade schema and data. Upgrades run **step by step**
 through the generated `app_database.steps.dart`, so each step sees its
 own version's tables. Run `dart run drift_dev make-migrations` after each
@@ -645,6 +645,7 @@ bump, then add the new `fromNToM` step.
 | 8 → 9 | `ai_messages.stop_reason` (why a reply ended; B18: a reply that hit the length limit shows "Cut off") |
 | 9 → 10 | `assistant_actions.preview_json` (what an action did, worded later even if its target is gone) and `ai_messages.turn_group_id` (the assistant turn a chat reply belongs to) |
 | 10 → 11 | `createTable(reminders)`: title (1–200 chars), `fire_at`, kind, status, `snooze_count ≥ 0`, `task_id` FK `ON DELETE SET NULL`; index on `(status, fire_at)` (docs/05 Phase F.1) |
+| 11 → 12 | `createTable(lists, list_items)`: list names 1–60 chars and unique ignoring case (`lists_name_nocase`), items 1–200 chars, FK `ON DELETE CASCADE`, index on `(list_id, position)`; seeds Shopping, Errands, Packing (also on a fresh install) (docs/05 Phase F.2) |
 
 **Assistant tables (v8).** Written by the assistant core (§9.4–§9.5),
 which no screen calls yet (E.5):
@@ -894,6 +895,17 @@ background isolate opens the database itself and does the same
 (**UNVERIFIED** on a device). Library → Reminders lists open ones, with a
 "Missed" label, and the same three buttons. Notification permission is
 asked when the first reminder is scheduled.
+
+**Lists (F.2).** Four tools: `list_items` (read), `add_list_items`
+(skips items already open on the list, ignoring case, and repeats in the
+same request), `check_list_item`, and `clear_checked` (destructive: always
+confirmed; undo puts the items back). Lists are named by name, ignoring
+case; an unknown name isn't created silently: the model is told the lists
+that exist. "Add milk, eggs and bread to shopping" (or the Hinglish form)
+is handled by the local grammar. Library → Lists shows each list with
+open / total; a list's screen ticks, adds and clears ticked items, and
+every tap there goes through the same tools (`runDirectAction`), so it
+shows in Activity with undo. 21 tools in all.
 
 A session started by `start_focus` gets the normal end-of-session alert
 (`FocusTimerViewModel.alertForStartedSession`), and undoing it cancels

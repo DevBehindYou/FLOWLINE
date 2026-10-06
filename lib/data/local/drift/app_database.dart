@@ -17,6 +17,7 @@ import '../../../domain/assistant/proposal.dart';
 import '../../../domain/assistant/utterance.dart';
 import '../../../domain/entities/ai_message.dart';
 import '../../../domain/entities/ai_provider_config.dart';
+import '../../../domain/entities/checklist.dart';
 import '../../../domain/entities/focus_session.dart';
 import '../../../domain/entities/reminder.dart';
 import '../../../domain/entities/schedule_block.dart';
@@ -28,6 +29,7 @@ import 'tables/ai_messages_table.dart';
 import 'tables/ai_provider_configs_table.dart';
 import 'tables/assistant_actions_table.dart';
 import 'tables/focus_sessions_table.dart';
+import 'tables/list_tables.dart';
 import 'tables/proposals_table.dart';
 import 'tables/reminders_table.dart';
 import 'tables/schedule_blocks_table.dart';
@@ -52,6 +54,8 @@ part 'app_database.g.dart';
   AssistantActions,
   Proposals,
   Reminders,
+  Lists,
+  ListItems,
 ])
 class AppDatabase extends _$AppDatabase {
   /// [executor] is for tests and migration verification; the app always
@@ -64,12 +68,13 @@ class AppDatabase extends _$AppDatabase {
   // Every bump: add a step below, then `dart run drift_dev make-migrations`
   // and commit drift_schemas/ and test/drift/ (rule R2).
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (Migrator m) async {
           await m.createAll();
+          await _seedDefaultLists();
         },
         // Step by step (drift's generated app_database.steps.dart): each
         // step sees the schema of the version it migrates to, not today's
@@ -153,6 +158,14 @@ class AppDatabase extends _$AppDatabase {
               await m.createTable(schema.reminders);
               await m.create(schema.remindersStatusFireAt);
             },
+            // Lists (docs/05 Phase F.2), with the three default ones.
+            from11To12: (m, schema) async {
+              await m.createTable(schema.lists);
+              await m.createTable(schema.listItems);
+              await m.create(schema.listsNameNocase);
+              await m.create(schema.listItemsListPosition);
+              await _seedDefaultLists();
+            },
           )(m, from, to);
           await _assertForeignKeysIntact();
         },
@@ -169,6 +182,8 @@ class AppDatabase extends _$AppDatabase {
   Future<void> wipeAllData() {
     return transaction(() async {
       for (final TableInfo<Table, Object?> table in [
+        listItems,
+        lists,
         reminders,
         assistantActions,
         proposals,
@@ -186,6 +201,21 @@ class AppDatabase extends _$AppDatabase {
         await delete(table).go();
       }
     });
+  }
+
+  /// Shopping, Errands and Packing (docs/05 §17). Raw SQL so it runs in a
+  /// migration step against that step's own schema. User data from then
+  /// on: renaming or deleting them is the user's business.
+  Future<void> _seedDefaultLists() async {
+    for (final (name, kind) in [
+      ('Shopping', ListKind.shopping),
+      ('Errands', ListKind.errands),
+      ('Packing', ListKind.packing),
+    ]) {
+      await customStatement(
+          'INSERT OR IGNORE INTO lists (name, kind, archived) VALUES (?, ?, 0)',
+          [name, kind.index]);
+    }
   }
 
   /// Makes v3 data satisfy the v4 constraints before they're created.
