@@ -35,6 +35,9 @@ enum UndoTable {
   reminders,
   lists,
   listItems,
+  people,
+  personDates,
+  followUps,
 }
 
 /// How to reverse one action. Stored as JSON in the ledger row

@@ -12,6 +12,7 @@ import '../data/repositories/app_settings_repository_impl.dart';
 import '../data/repositories/assistant_repository_impl.dart';
 import '../data/repositories/focus_session_repository_impl.dart';
 import '../data/repositories/list_repository_impl.dart';
+import '../data/repositories/people_repository_impl.dart';
 import '../data/repositories/reminder_repository_impl.dart';
 import '../data/repositories/schedule_repository_impl.dart';
 import '../data/repositories/task_repository_impl.dart';
@@ -24,6 +25,7 @@ import '../domain/repositories/app_settings_repository.dart';
 import '../domain/repositories/assistant_repository.dart';
 import '../domain/repositories/focus_session_repository.dart';
 import '../domain/repositories/list_repository.dart';
+import '../domain/repositories/people_repository.dart';
 import '../domain/repositories/reminder_repository.dart';
 import '../domain/repositories/schedule_repository.dart';
 import '../domain/repositories/task_repository.dart';
@@ -45,6 +47,11 @@ AppDatabase appDatabase(Ref ref) {
 @Riverpod(keepAlive: true)
 AssistantRepository assistantRepository(Ref ref) {
   return AssistantRepositoryImpl(ref.watch(appDatabaseProvider));
+}
+
+@Riverpod(keepAlive: true)
+PeopleRepository peopleRepository(Ref ref) {
+  return PeopleRepositoryImpl(ref.watch(appDatabaseProvider));
 }
 
 @Riverpod(keepAlive: true)

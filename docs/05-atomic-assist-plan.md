@@ -2424,7 +2424,8 @@ developer working with AI help.
 - [ ] F. Reminders, lists, people — in slices:
   - [x] **F.1** reminders: schema **v11**, three reminder tools (local grammar included), notification sync with a 14-day / 64-alert top-up, notification buttons through the tools (ledger + undo; background isolate **UNVERIFIED**), Library → Reminders. Deviations: inexact alerts only (no exact-alarm request yet); floating (wall-clock) reminders and time-zone re-scheduling not yet; no reminder deletion tool
   - [x] **F.2** lists: schema **v12** (lists, items, default Shopping / Errands / Packing), four list tools (local grammar included, case-insensitive de-duplication), Library → Lists and a list screen whose taps go through the tools. Deviation: an unknown list name is reported to the model instead of a "Create list?" chip; no create/rename list tool yet
-  - [ ] **F.3** people and dates, follow-ups, repeating tasks
+  - [x] **F.3a** people and dates, follow-ups: schema **v13** (people, person_dates, follow_ups), four tools (`get_person`, `add_person_date`, `create_follow_up`, `complete_follow_up`), Library → People and a person screen. Deviations: no "7 days before" date reminder yet (moves to the Phase H `upcomingDates` scanner); no contact picker, phone or email; no rename/delete person tool
+  - [ ] **F.3b** repeating tasks
 - [ ] G. Voice 1
 - [ ] H. Proactive
 - [ ] I. Memory, money, travel, documents

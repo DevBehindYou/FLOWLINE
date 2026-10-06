@@ -21,6 +21,9 @@ final class StoredRows {
         UndoTable.reminders => _db.reminders,
         UndoTable.lists => _db.lists,
         UndoTable.listItems => _db.listItems,
+        UndoTable.people => _db.people,
+        UndoTable.personDates => _db.personDates,
+        UndoTable.followUps => _db.followUps,
       };
 
   Set<String> columns(UndoTable t) =>

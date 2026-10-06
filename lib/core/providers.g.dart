@@ -94,6 +94,48 @@ final class AssistantRepositoryProvider extends $FunctionalProvider<
 String _$assistantRepositoryHash() =>
     r'd8c397ff510087879055f60c61087f234f49f65d';
 
+@ProviderFor(peopleRepository)
+final peopleRepositoryProvider = PeopleRepositoryProvider._();
+
+final class PeopleRepositoryProvider extends $FunctionalProvider<
+    PeopleRepository,
+    PeopleRepository,
+    PeopleRepository> with $Provider<PeopleRepository> {
+  PeopleRepositoryProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'peopleRepositoryProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$peopleRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<PeopleRepository> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  PeopleRepository create(Ref ref) {
+    return peopleRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(PeopleRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<PeopleRepository>(value),
+    );
+  }
+}
+
+String _$peopleRepositoryHash() => r'824c1aa4bdad2e1364635711f44f7fd7bb3ad569';
+
 @ProviderFor(listRepository)
 final listRepositoryProvider = ListRepositoryProvider._();
 

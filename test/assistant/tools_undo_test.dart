@@ -9,6 +9,7 @@ import 'package:atomic_assist/data/local/drift/app_database.dart';
 import 'package:atomic_assist/data/repositories/app_settings_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/focus_session_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/list_repository_impl.dart';
+import 'package:atomic_assist/data/repositories/people_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/reminder_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/schedule_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/task_repository_impl.dart';
@@ -16,6 +17,7 @@ import 'package:atomic_assist/domain/assistant/autonomy.dart';
 import 'package:atomic_assist/domain/assistant/ledger.dart';
 import 'package:atomic_assist/domain/assistant/tool.dart';
 import 'package:atomic_assist/domain/entities/focus_session.dart';
+import 'package:atomic_assist/domain/entities/reminder.dart';
 import 'package:atomic_assist/domain/entities/task.dart';
 import 'package:atomic_assist/domain/recurrence/recurrence_rule.dart';
 import 'package:clock/clock.dart';
@@ -42,7 +44,16 @@ void main() {
   final roundTripped = <String>{};
 
   // Seed: what a real day looks like.
-  late int report, bank, inBlock, deepWork, gymSeries, sub1, callMum, milk;
+  late int report,
+      bank,
+      inBlock,
+      deepWork,
+      gymSeries,
+      sub1,
+      callMum,
+      milk,
+      ravi,
+      invoice;
 
   setUp(() async {
     db = createTestDatabase();
@@ -61,6 +72,7 @@ void main() {
         focus: focus,
         reminders: ReminderRepositoryImpl(db),
         lists: ListRepositoryImpl(db),
+        people: PeopleRepositoryImpl(db),
         settings: AppSettingsRepositoryImpl(db),
         rows: rows,
         now: clock.now(),
@@ -109,6 +121,18 @@ void main() {
           at: DateTime(2026, 10, 4, 9));
       milk = ids.first;
       await lists.setChecked(ids.last, true, at: DateTime(2026, 10, 4, 10));
+      // Ravi, with one open follow-up and its reminder.
+      final people = PeopleRepositoryImpl(db);
+      ravi = await people.createPerson('Ravi', relation: 'client');
+      final chase = await ReminderRepositoryImpl(db).create(
+          title: 'Ravi · invoice',
+          fireAt: DateTime(2026, 10, 9, 10),
+          kind: ReminderKind.followUp);
+      invoice = await people.createFollowUp(
+          personId: ravi,
+          about: 'invoice',
+          waitUntil: DateTime(2026, 10, 9, 10),
+          reminderId: chase);
     });
   });
   tearDown(() => db.close());
@@ -266,6 +290,33 @@ void main() {
 
     test('clear_checked puts the ticked items back on undo', () async {
       await roundTrip('clear_checked', {'list': 'shopping'});
+    });
+
+    test('add_person_date for someone known', () async {
+      await roundTrip('add_person_date',
+          {'person': 'ravi', 'kind': 'anniversary', 'month': 3, 'day': 14});
+    });
+
+    test('add_person_date for someone new: undo removes them too', () async {
+      final r = await roundTrip('add_person_date', {
+        'person': 'Priya',
+        'month': 10,
+        'day': 9,
+        'year': 1992,
+      });
+      expect(r.outcome.result['person_id'], isNot(ravi));
+    });
+
+    test('create_follow_up (with its reminder)', () async {
+      await roundTrip('create_follow_up', {
+        'person': 'Asha',
+        'about': 'the deck',
+        'wait_until': '2026-10-08T10:00',
+      });
+    });
+
+    test('complete_follow_up closes its reminder too', () async {
+      await roundTrip('complete_follow_up', {'follow_up_id': invoice});
     });
 
     test('delete_block restores the block and re-schedules its tasks',

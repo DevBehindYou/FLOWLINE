@@ -11,6 +11,7 @@ import 'package:atomic_assist/data/repositories/app_settings_repository_impl.dar
 import 'package:atomic_assist/data/repositories/assistant_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/focus_session_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/list_repository_impl.dart';
+import 'package:atomic_assist/data/repositories/people_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/reminder_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/schedule_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/task_repository_impl.dart';
@@ -100,6 +101,7 @@ void main() {
           focus: FocusSessionRepositoryImpl(db),
           reminders: reminders,
           lists: ListRepositoryImpl(db),
+          people: PeopleRepositoryImpl(db),
           settings: AppSettingsRepositoryImpl(db),
           rows: StoredRows(db),
         ),
@@ -202,6 +204,7 @@ void main() {
           focus: FocusSessionRepositoryImpl(db),
           reminders: reminders,
           lists: ListRepositoryImpl(db),
+          people: PeopleRepositoryImpl(db),
           settings: AppSettingsRepositoryImpl(db),
           rows: StoredRows(db),
           now: clock.now(),

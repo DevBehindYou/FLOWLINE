@@ -70,7 +70,7 @@ void main() {
       'not an object': '[1, 2]',
       'no op': '{"table": "tasks", "ids": [1]}',
       'unknown op': '{"op": "drop", "table": "tasks", "ids": [1]}',
-      'unknown table': '{"op": "delete", "table": "people", "ids": [1]}',
+      'unknown table': '{"op": "delete", "table": "payments", "ids": [1]}',
       'missing table': '{"op": "delete", "ids": [1]}',
       'empty ids': '{"op": "delete", "table": "tasks", "ids": []}',
       'string id': '{"op": "delete", "table": "tasks", "ids": ["1"]}',

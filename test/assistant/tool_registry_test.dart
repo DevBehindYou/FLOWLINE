@@ -8,7 +8,7 @@ void main() {
   final registry = ToolRegistry();
 
   test('every tool has a portable schema', () {
-    expect(registry.tools, hasLength(21));
+    expect(registry.tools, hasLength(25));
     for (final t in registry.tools) {
       expect(toolNamePattern.hasMatch(t.name), isTrue, reason: t.name);
       expect(unsupportedSchemaKeywords(t.parameters), isEmpty, reason: t.name);
@@ -29,7 +29,8 @@ void main() {
       'find_free_time',
       'search_tasks',
       'get_task',
-      'list_items'
+      'list_items',
+      'get_person'
     });
     expect(withRisk(ActionRisk.destructive),
         {'delete_task', 'delete_block', 'clear_checked'});

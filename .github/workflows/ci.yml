@@ -147,10 +147,14 @@ jobs:
       - name: Generate and patch android/
         run: |
           flutter create --platforms android --org com.devbehindyou .
+          # `flutter create .` re-resolves pubspec.lock (and rewrites
+          # analysis_options.yaml); keep the committed ones, so a new
+          # upstream release can't break the build.
+          git checkout -- pubspec.lock analysis_options.yaml
           dart run tool/ci/patch_android.dart android
 
       - name: flutter pub get
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
 
       - name: Generate Drift + Riverpod code
         timeout-minutes: 10
@@ -191,7 +195,12 @@ jobs:
         # android/ is intentionally gitignored (see README "Before you
         # build") so it always comes from the pinned Flutter's template
         # rather than hand-maintained, stale Gradle/AGP files.
-        run: flutter create --platforms android --org com.devbehindyou .
+        # `flutter create .` re-resolves pubspec.lock (and rewrites
+        # analysis_options.yaml); keep the committed ones, so a new
+        # upstream release can't break the build.
+        run: |
+          flutter create --platforms android --org com.devbehindyou .
+          git checkout -- pubspec.lock analysis_options.yaml
 
       - name: Cache Gradle
         uses: actions/cache@v6
@@ -206,7 +215,7 @@ jobs:
         run: dart run tool/ci/patch_android.dart android
 
       - name: flutter pub get
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
 
       - name: Generate Drift + Riverpod code
         timeout-minutes: 10

@@ -7,6 +7,7 @@ import 'block_tools.dart';
 import 'delete_tools.dart';
 import 'focus_tool.dart';
 import 'list_tools.dart';
+import 'people_tools.dart';
 import 'read_tools.dart';
 import 'reminder_tools.dart';
 import 'task_tools.dart';
@@ -34,6 +35,10 @@ const List<AssistantTool<Object>> defaultTools = [
   AddListItemsTool(),
   CheckListItemTool(),
   ClearCheckedTool(),
+  GetPersonTool(),
+  AddPersonDateTool(),
+  CreateFollowUpTool(),
+  CompleteFollowUpTool(),
   DeleteTaskTool(),
   DeleteBlockTool(),
 ];
