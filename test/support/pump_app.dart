@@ -1,8 +1,11 @@
-import 'package:flowline/core/providers.dart';
-import 'package:flowline/core/theme/app_theme.dart';
-import 'package:flowline/data/local/drift/app_database.dart';
+import 'package:atomic_assist/core/providers.dart';
+import 'package:atomic_assist/core/riverpod_config.dart';
+import 'package:atomic_assist/design/atomic.dart';
+import 'package:atomic_assist/data/local/drift/app_database.dart';
+import 'package:atomic_assist/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 
 Widget _app({
@@ -12,13 +15,17 @@ Widget _app({
   required List<Override> extraOverrides,
 }) {
   return ProviderScope(
+    retry: noAutomaticRetry,
     overrides: [
       appDatabaseProvider.overrideWith((ref) => db),
       ...extraOverrides,
     ],
     child: MaterialApp(
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
+      debugShowCheckedModeBanner: false,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      theme: AtomicTheme.light(),
+      darkTheme: AtomicTheme.dark(),
       themeMode: themeMode,
       home: child,
     ),

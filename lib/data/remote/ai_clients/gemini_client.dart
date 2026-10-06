@@ -1,73 +1,165 @@
-import 'package:dio/dio.dart';
+import 'dart:convert';
 
+import '../../../domain/ai/ai_contract.dart';
 import '../../../domain/entities/ai_message.dart';
 import '../../../domain/entities/ai_provider_config.dart';
-import '../../../domain/entities/ai_response.dart';
-import '../../../domain/repositories/ai_client.dart';
-import 'ai_error_mapper.dart';
+import 'http_ai_client.dart';
 
-class GeminiClient implements AIClient {
-  GeminiClient(this._dio);
+class GeminiClient extends HttpAIClient {
+  GeminiClient(super.dio);
 
-  final Dio _dio;
+  static const _base = 'https://generativelanguage.googleapis.com/v1beta';
 
   @override
   AIProviderId get id => AIProviderId.gemini;
 
-  @override
-  Future<AIResponse> sendMessage({
-    required AIProviderConfig config,
-    required String apiKey,
-    required String prompt,
-    required List<AIMessage> history,
-  }) async {
-    try {
-      // Gemini uses 'model' rather than 'assistant' for its own turns.
-      final contents = [
-        ...history.map(
-          (m) => {
-            'role': m.role == AIMessageRole.user ? 'user' : 'model',
-            'parts': [
-              {'text': m.content}
-            ],
-          },
-        ),
-        {
-          'role': 'user',
-          'parts': [
-            {'text': prompt}
-          ],
-        },
-      ];
+  // Header form rather than a `?key=` query parameter, so the key never
+  // ends up in a URL that could be logged somewhere.
+  Map<String, String> _headers(String apiKey) => {
+        'x-goog-api-key': apiKey,
+        'Content-Type': 'application/json',
+      };
 
-      final response = await _dio.post<Map<String, dynamic>>(
-        'https://generativelanguage.googleapis.com/v1beta/models/${config.defaultModel}:generateContent',
-        options: Options(
-          headers: {
-            // Header form rather than a `?key=` query param, so the key
-            // never ends up in a URL that could be logged somewhere.
-            'x-goog-api-key': apiKey,
-            'Content-Type': 'application/json',
+  Map<String, Object?> _content(String role, String text) => {
+        'role': role,
+        'parts': [
+          {'text': text}
+        ],
+      };
+
+  @override
+  VendorCall buildChat(AIRequest request) => (
+        // alt=sse: server-sent events, one GenerateContentResponse each.
+        url: '$_base/models/${request.config.defaultModel}'
+            ':streamGenerateContent?alt=sse',
+        headers: _headers(request.apiKey),
+        body: {
+          if (request.system != null)
+            'systemInstruction': {
+              'parts': [
+                {'text': request.system}
+              ],
+            },
+          // Gemini calls its own turns 'model', not 'assistant'.
+          'contents': [
+            for (final m in request.history)
+              _content(
+                  m.role == AIMessageRole.user ? 'user' : 'model', m.content),
+            _content('user', request.prompt),
+            ..._continuation(request.continuation),
+          ],
+          if (request.tools.isNotEmpty) ...{
+            'tools': [
+              {
+                'functionDeclarations': [
+                  for (final t in request.tools)
+                    {
+                      'name': t.name,
+                      'description': t.description,
+                      'parameters': t.parameters,
+                    },
+                ],
+              },
+            ],
+            'toolConfig': {
+              'functionCallingConfig': {
+                'mode': switch (request.toolChoice) {
+                  AIToolChoice.auto => 'AUTO',
+                  AIToolChoice.none => 'NONE',
+                  AIToolChoice.required => 'ANY',
+                },
+              },
+            },
           },
-        ),
-        data: {'contents': contents},
+          'generationConfig': {
+            'maxOutputTokens': request.maxOutputTokens,
+            if (request.format == AIResponseFormat.json)
+              'responseMimeType': 'application/json',
+          },
+        },
       );
 
-      final candidates = (response.data?['candidates'] as List?) ?? const [];
-      final parts = candidates.isEmpty
-          ? const []
-          : ((candidates.first as Map)['content']?['parts'] as List?) ??
-              const [];
-      final text = parts.map((p) => (p as Map)['text'] as String? ?? '').join();
+  // The model's calls as a 'model' turn of functionCall parts; a round's
+  // results as one 'user' turn of functionResponse parts (the response
+  // must be an object, so the result JSON is wrapped).
+  List<Map<String, Object?>> _continuation(List<AITurn> turns) => [
+        for (final t in groupToolResults(turns))
+          if (t is AIAssistantTurn)
+            {
+              'role': 'model',
+              'parts': [
+                if (t.text.isNotEmpty) {'text': t.text},
+                for (final c in t.toolCalls)
+                  {
+                    'functionCall': {
+                      'name': c.name,
+                      'args': jsonObjectOf(c.argumentsJson),
+                    },
+                  },
+              ],
+            }
+          else if (t is List<AIToolResultTurn>)
+            {
+              'role': 'user',
+              'parts': [
+                for (final r in t)
+                  {
+                    'functionResponse': {
+                      'name': r.name,
+                      'response': {
+                        r.isError ? 'error' : 'result': jsonDecodeOrText(r.json)
+                      },
+                    },
+                  },
+              ],
+            },
+      ];
 
-      if (text.isEmpty) {
-        return const AIResponse.error('Gemini returned an empty response.');
-      }
-      return AIResponse(text);
-    } on DioException catch (e) {
-      return AIResponse.error(describeDioError(e, 'Gemini'));
-    } catch (e) {
-      return AIResponse.error('Unexpected error talking to Gemini: $e');
+  @override
+  String? readChunk(Map<String, Object?> chunk, StreamState state) {
+    final usage = jsonMap(chunk['usageMetadata']);
+    if (usage != null) {
+      state.inputTokens = jsonInt(usage['promptTokenCount']);
+      state.outputTokens = jsonInt(usage['candidatesTokenCount']);
     }
+    final candidate = jsonMap(jsonList(chunk['candidates']).firstOrNull);
+    switch (jsonString(candidate?['finishReason'])) {
+      case 'STOP':
+        state.stopReason = AIStopReason.complete;
+      case 'MAX_TOKENS':
+        state.stopReason = AIStopReason.maxTokens;
+      case null:
+        break;
+      default:
+        state.stopReason = AIStopReason.other;
+    }
+    final parts = jsonList(jsonMap(candidate?['content'])?['parts']);
+    // Calls arrive whole, one per part (an id only on some models).
+    for (final part in parts.map(jsonMap)) {
+      final call = jsonMap(part?['functionCall']);
+      if (jsonString(call?['name']) case final name?) {
+        state.addToolCall(
+            id: jsonString(call?['id']),
+            name: name,
+            json: jsonEncode(call?['args'] ?? const {}));
+      }
+    }
+    return parts.map((p) => jsonString(jsonMap(p)?['text']) ?? '').join();
   }
+
+  @override
+  VendorCall buildModels(AIProviderConfig config, String apiKey) =>
+      (url: '$_base/models', headers: _headers(apiKey), body: null);
+
+  /// Only models that can chat; ids without the `models/` prefix, as
+  /// generateContent's URL wants them.
+  @override
+  List<AIModelInfo> readModels(Map<String, Object?>? body) => [
+        for (final m in jsonList(body?['models']).map(jsonMap))
+          if (jsonString(m?['name']) case final name?)
+            if (jsonList(m?['supportedGenerationMethods'])
+                .contains('generateContent'))
+              AIModelInfo(name.replaceFirst('models/', ''),
+                  displayName: jsonString(m?['displayName'])),
+      ];
 }

@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
-import 'package:flowline/data/local/drift/app_database.dart';
+import 'package:atomic_assist/data/local/drift/app_database.dart';
 
 /// An in-memory Drift database for widget/unit tests — never touches disk.
 /// Callers must `close()` it, typically via `tearDown`.

@@ -1,10 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../design/atomic.dart';
 import '../../../domain/entities/ai_provider_config.dart';
+import '../../../shared_widgets/error_view.dart';
 import '../../ai_assistant/viewmodel/assistant_view_model.dart';
 import '../viewmodel/ai_providers_view_model.dart';
 import 'add_edit_ai_provider_sheet.dart';
+import '../../../l10n/l10n.dart';
 
 class AiProvidersScreen extends ConsumerWidget {
   const AiProvidersScreen({super.key});
@@ -14,21 +19,24 @@ class AiProvidersScreen extends ConsumerWidget {
     final providersAsync = ref.watch(aiProvidersProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('AI Providers')),
+      appBar: AppBar(title: Text(context.l10n.settingsAiProviders)),
       body: providersAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) =>
-            Center(child: Text('Something went wrong: $error')),
+        loading: () => AtomicLoading(label: context.l10n.loadingProviders),
+        error: (error, _) => ErrorView(
+          error: error,
+          onRetry: () => ref.invalidate(aiProvidersProvider),
+        ),
         data: (providers) => RadioGroup<AIProviderId>(
           groupValue: providers.where((p) => p.isActive).firstOrNull?.id,
           onChanged: (id) {
             if (id == null) return;
-            ref.read(aiProvidersViewModelProvider.notifier).setActive(id);
+            unawaited(
+                ref.read(aiProvidersViewModelProvider.notifier).setActive(id));
           },
           child: ListView.separated(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AtomicSpace.screenMargin),
             itemCount: providers.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (_, __) => const SizedBox(height: AtomicSpace.s),
             itemBuilder: (context, index) =>
                 _ProviderCard(config: providers[index]),
           ),
@@ -47,7 +55,7 @@ class _ProviderCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isOllama = config.id == AIProviderId.ollama;
     final hasKeyAsync = ref.watch(providerHasKeyProvider(config.id));
-    final canActivate = isOllama || hasKeyAsync.valueOrNull == true;
+    final canActivate = isOllama || hasKeyAsync.value == true;
 
     final String subtitle;
     if (isOllama) {
@@ -56,40 +64,42 @@ class _ProviderCard extends ConsumerWidget {
     } else {
       subtitle = hasKeyAsync.when(
         data: (hasKey) => hasKey
-            ? 'Connected \u2022 ${config.defaultModel}'
-            : 'Not connected',
+            ? context.l10n.providerConnected(config.defaultModel)
+            : context.l10n.providerNotConnected,
         loading: () => '\u2026',
-        error: (_, __) => 'Unknown',
+        error: (_, __) => context.l10n.providerStatusUnknown,
       );
     }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Row(
-          children: [
-            Radio<AIProviderId>(value: config.id, enabled: canActivate),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(config.displayName,
-                      style: Theme.of(context).textTheme.titleMedium),
-                  Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
-                ],
-              ),
+    // The active provider is the selected card (2 dp Signal border).
+    final isActive = config.isActive;
+    return AtomicCard(
+      kind: isActive ? AtomicCardKind.selected : AtomicCardKind.content,
+      padding: const EdgeInsets.symmetric(
+          horizontal: AtomicSpace.xxs, vertical: AtomicSpace.xxs),
+      child: Row(
+        children: [
+          Radio<AIProviderId>(value: config.id, enabled: canActivate),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AtomicText.display(config.displayName,
+                    style: AtomicType.rowTitle),
+                AtomicText.mono(subtitle, style: AtomicType.caption),
+              ],
             ),
-            IconButton(
-              icon: const Icon(Icons.edit_outlined),
-              tooltip: 'Edit',
-              onPressed: () => showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (_) => AddEditAiProviderSheet(config: config),
-              ),
+          ),
+          AtomicIconButton(
+            icon: AtomicIcons.edit,
+            semanticLabel: context.l10n.edit,
+            onPressed: () => showModalBottomSheet<void>(
+              context: context,
+              isScrollControlled: true,
+              builder: (_) => AddEditAiProviderSheet(config: config),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

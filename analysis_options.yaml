@@ -1,10 +1,37 @@
 include: package:flutter_lints/flutter.yaml
 
+# Stricter than the defaults on purpose (rule R15 in
+# docs/04-build-and-optimization-plan.md): this codebase is built and
+# verified mostly by CI, so the analyzer is the first line of defence.
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  errors:
+    # A context used after an await on an unmounted widget crashes or
+    # misroutes; treat it as a build failure, not a hint.
+    use_build_context_synchronously: error
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.steps.dart"
+    - "test/drift/*/generated/**"
+    - build/**
+
 linter:
   rules:
     prefer_const_constructors: true
     prefer_const_literals_to_create_immutables: true
-
-analyzer:
-  exclude:
-    - "**/*.g.dart"
+    # A future nobody awaits hides its failure; mark deliberate
+    # fire-and-forget calls with unawaited().
+    unawaited_futures: true
+    discarded_futures: true
+    avoid_dynamic_calls: true
+    always_declare_return_types: true
+    prefer_final_locals: true
+    cancel_subscriptions: true
+    close_sinks: true
+    avoid_slow_async_io: true
+    only_throw_errors: true
+    test_types_in_equals: true
+    unnecessary_await_in_return: true

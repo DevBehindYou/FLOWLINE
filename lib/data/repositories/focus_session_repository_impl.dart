@@ -28,6 +28,14 @@ class FocusSessionRepositoryImpl implements FocusSessionRepository {
   }
 
   @override
+  Future<FocusSession?> getSession(int id) async {
+    final row = await (_db.select(_db.focusSessions)
+          ..where((s) => s.id.equals(id)))
+        .getSingleOrNull();
+    return row == null ? null : _map(row);
+  }
+
+  @override
   Stream<List<FocusSession>> watchSessionsForTask(int taskId) {
     final query = _db.select(_db.focusSessions)
       ..where((s) => s.taskId.equals(taskId))
@@ -36,27 +44,24 @@ class FocusSessionRepositoryImpl implements FocusSessionRepository {
   }
 
   @override
-  Stream<List<FocusSession>> watchTodaysSessions() {
-    final now = clock.now();
-    final dayStart = DateTime(now.year, now.month, now.day);
-    final dayEnd = dayStart.add(const Duration(days: 1));
-    final query = _db.select(_db.focusSessions)
-      ..where(
-        (s) =>
-            s.startedAt.isBiggerOrEqualValue(dayStart) &
-            s.startedAt.isSmallerThanValue(dayEnd),
-      );
-    return query.watch().map((rows) => rows.map(_map).toList());
-  }
+  Stream<List<FocusSession>> watchCompletedSessionsInRange(
+          DateTime start, DateTime end) =>
+      _completedInRange(start, end)
+          .watch()
+          .map((rows) => rows.map(_map).toList());
 
   @override
-  Stream<List<FocusSession>> watchSessionsInRange(
+  Future<List<FocusSession>> getCompletedSessionsInRange(
+          DateTime start, DateTime end) async =>
+      (await _completedInRange(start, end).get()).map(_map).toList();
+
+  SimpleSelectStatement<$FocusSessionsTable, FocusSessionRow> _completedInRange(
       DateTime start, DateTime end) {
-    final query = _db.select(_db.focusSessions)
+    return _db.select(_db.focusSessions)
       ..where((s) =>
-          s.startedAt.isBiggerOrEqualValue(start) &
-          s.startedAt.isSmallerThanValue(end));
-    return query.watch().map((rows) => rows.map(_map).toList());
+          s.completedAt.isBiggerOrEqualValue(start) &
+          s.completedAt.isSmallerThanValue(end))
+      ..orderBy([(s) => OrderingTerm.asc(s.completedAt)]);
   }
 
   @override
@@ -66,16 +71,18 @@ class FocusSessionRepositoryImpl implements FocusSessionRepository {
     int? taskId,
     int? subtaskId,
   }) async {
-    // Defensive self-heal: there should never be more than one active
-    // session (watchActiveSession relies on that), but if one was left
-    // dangling, close it out rather than letting watchSingleOrNull throw.
-    // It only counts as ended early if it still had time left.
+    // At most one session is ever active (watchActiveSession relies on
+    // it). The UI only offers Start when none is, so an active one here
+    // means a duplicate request (a double tap racing the screen rebuild,
+    // B6): starting is idempotent and returns it unchanged rather than
+    // closing a session the user just started as "ended early". Only a
+    // session whose time already ran out unobserved is closed — at its
+    // natural end — before the new one starts.
     final existing = await getActiveSession();
     if (existing != null) {
-      await completeSession(
-        existing.id,
-        endedEarly: existing.remainingSec > 0,
-      );
+      final expired = existing.isRunning && existing.remainingSec <= 0;
+      if (!expired) return existing.id;
+      await completeSession(existing.id, endedEarly: false);
     }
 
     final now = clock.now();
@@ -92,11 +99,17 @@ class FocusSessionRepositoryImpl implements FocusSessionRepository {
         );
   }
 
+  // Pause and resume only touch an active session (`completedAt IS NULL`):
+  // a quick End followed by Pause/Resume must not write timer state onto a
+  // session that's already completed.
   @override
   Future<void> pauseSession(int id) async {
     final row = await _rowById(id);
     final session = _map(row);
-    await (_db.update(_db.focusSessions)..where((s) => s.id.equals(id))).write(
+    if (session.completedAt != null || session.isPaused) return;
+    await (_db.update(_db.focusSessions)
+          ..where((s) => s.id.equals(id) & s.completedAt.isNull()))
+        .write(
       FocusSessionsCompanion(
         remainingSecAtSegmentStart: Value(session.remainingSec),
         segmentStartedAt: const Value(null),
@@ -107,7 +120,12 @@ class FocusSessionRepositoryImpl implements FocusSessionRepository {
 
   @override
   Future<void> resumeSession(int id) {
-    return (_db.update(_db.focusSessions)..where((s) => s.id.equals(id))).write(
+    return (_db.update(_db.focusSessions)
+          ..where((s) =>
+              s.id.equals(id) &
+              s.completedAt.isNull() &
+              s.isPaused.equals(true)))
+        .write(
       FocusSessionsCompanion(
         segmentStartedAt: Value(clock.now()),
         isPaused: const Value(false),

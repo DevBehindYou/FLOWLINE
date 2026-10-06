@@ -1,0 +1,14 @@
+targets:
+  $default:
+    builders:
+      drift_dev:
+        options:
+          # Schema snapshots + generated migration tests (rule R2 in
+          # docs/04-build-and-optimization-plan.md). After every
+          # schemaVersion bump run:
+          #   dart run drift_dev make-migrations
+          # and commit drift_schemas/ plus the generated test files.
+          databases:
+            atomic_assist: lib/data/local/drift/app_database.dart
+          schema_dir: drift_schemas/
+          test_dir: test/drift/

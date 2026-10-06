@@ -1,62 +1,67 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
+import '../../../core/time/current_day.dart';
+import '../../../design/atomic.dart';
+import '../../../domain/time/calendar_day.dart';
 import '../../../shared_widgets/empty_state.dart';
-import '../../schedule_block_form/view/add_edit_schedule_block_sheet.dart';
-import '../../schedule_intelligence/view/conflict_warning_sheet.dart';
+import '../../../shared_widgets/error_view.dart';
+import '../../../shared_widgets/settings_action.dart';
+import '../../schedule_block_form/view/schedule_block_flow.dart';
 import '../../task_form/view/add_edit_task_sheet.dart';
 import '../viewmodel/today_view_model.dart';
 import '../widgets/day_timeline.dart';
+import '../../../l10n/l10n.dart';
 
 class TodayScreen extends ConsumerWidget {
   const TodayScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final selectedDate = ref.watch(selectedDateProvider);
-    final blocksAsync = ref.watch(scheduleBlocksForSelectedDateProvider);
-    final unscheduledAsync = ref.watch(unscheduledTasksProvider);
+    final planAsync = ref.watch(dayPlanProvider);
+    final backlogAsync = ref.watch(openBacklogProvider);
+    final doneCount = ref.watch(completedBacklogCountProvider).value ?? 0;
+    final loading = AtomicLoading(label: l10n.loadingDay);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Flowline'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            tooltip: 'Settings',
-            onPressed: () => context.push('/settings'),
-          ),
-        ],
+        title: Text(l10n.appTitle),
+        actions: const [SettingsAction()],
       ),
       body: Column(
         children: [
           _DateHeader(date: selectedDate),
           Expanded(
-            child: blocksAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) =>
-                  Center(child: Text('Something went wrong: $error')),
-              data: (blocks) {
-                return unscheduledAsync.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (error, _) =>
-                      Center(child: Text('Something went wrong: $error')),
-                  data: (unscheduled) {
-                    if (blocks.isEmpty && unscheduled.isEmpty) {
+            child: planAsync.when(
+              loading: () => loading,
+              error: (error, _) => ErrorView(
+                error: error,
+                onRetry: () => ref.invalidate(dayPlanProvider),
+              ),
+              data: (plan) {
+                return backlogAsync.when(
+                  loading: () => loading,
+                  error: (error, _) => ErrorView(
+                    error: error,
+                    onRetry: () => ref.invalidate(openBacklogProvider),
+                  ),
+                  data: (backlog) {
+                    if (plan.isEmpty && backlog.isEmpty && doneCount == 0) {
                       return EmptyState(
-                        icon: Icons.calendar_today_outlined,
-                        title: 'No tasks yet',
-                        message: 'Add your first task to start planning today.',
-                        actionLabel: 'Add Task',
+                        icon: AtomicIcons.calendar,
+                        title: l10n.todayEmptyTitle,
+                        message: l10n.todayEmptyMessage,
+                        actionLabel: l10n.addTask,
                         onAction: () => _openAddTask(context),
                       );
                     }
                     return DayTimeline(
-                      blocks: blocks,
-                      unscheduledTasks: unscheduled,
+                      plan: plan,
+                      openBacklog: backlog,
                       onAddBlock: () => _openAddBlock(context, selectedDate),
                     );
                   },
@@ -66,42 +71,27 @@ class TodayScreen extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      // The floating action (system §9.6): ink, not Signal, so the screen
+      // keeps at most one Signal primary.
+      floatingActionButton: AtomicButton(
+        label: l10n.addTask,
+        icon: AtomicIcons.add,
+        variant: AtomicButtonVariant.solid,
         onPressed: () => _openAddTask(context),
-        icon: const Icon(Icons.add),
-        label: const Text('Add Task'),
       ),
     );
   }
 
   void _openAddTask(BuildContext context) {
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (_) => const AddEditTaskSheet(),
-    );
+    ));
   }
 
-  void _openAddBlock(BuildContext context, DateTime date) async {
-    final pendingConflict = await showModalBottomSheet<ScheduleConflictPending>(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => AddEditScheduleBlockSheet(initialDate: date),
-    );
-    if (pendingConflict != null && context.mounted) {
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        builder: (_) => ConflictWarningSheet(
-          pendingTitle: pendingConflict.title,
-          pendingStart: pendingConflict.start,
-          pendingEnd: pendingConflict.end,
-          conflicts: pendingConflict.conflicts,
-          existingBlock: pendingConflict.existingBlock,
-        ),
-      );
-    }
-  }
+  Future<void> _openAddBlock(BuildContext context, DateTime date) =>
+      openScheduleBlockEditor(context, day: date);
 }
 
 class _DateHeader extends ConsumerWidget {
@@ -111,41 +101,44 @@ class _DateHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final actions = ref.read(selectedDateProvider.notifier);
-    final isToday = _isSameDay(date, DateTime.now());
+    final isToday = isSameDay(date, ref.watch(currentDayProvider));
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AtomicSpace.xs, vertical: AtomicSpace.xs),
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.chevron_left),
+          AtomicIconButton(
+            icon: AtomicIcons.chevronLeft,
+            semanticLabel: l10n.previousDay,
             onPressed: actions.previousDay,
           ),
           Expanded(
             child: Column(
               children: [
-                Text(
-                  DateFormat('EEEE, MMM d').format(date),
-                  style: Theme.of(context).textTheme.titleLarge,
+                Semantics(
+                  header: true,
+                  child: AtomicText.display(l10n.dayLong(date),
+                      style: AtomicType.cardTitle, textAlign: TextAlign.center),
                 ),
                 if (!isToday)
-                  TextButton(
+                  AtomicButton(
+                    label: l10n.jumpToToday,
+                    variant: AtomicButtonVariant.text,
                     onPressed: actions.goToToday,
-                    child: const Text('Jump to today'),
                   ),
               ],
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.chevron_right),
+          AtomicIconButton(
+            icon: AtomicIcons.chevronRight,
+            semanticLabel: l10n.nextDay,
             onPressed: actions.nextDay,
           ),
         ],
       ),
     );
   }
-
-  bool _isSameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
 }

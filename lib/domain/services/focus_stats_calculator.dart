@@ -1,4 +1,5 @@
 import '../entities/focus_session.dart';
+import '../time/calendar_day.dart';
 
 class DailyFocusTotal {
   const DailyFocusTotal({
@@ -30,19 +31,19 @@ class FocusStatsCalculator {
   /// never has to guess at a missing bar.
   List<DailyFocusTotal> dailyTotals(List<FocusSession> sessions,
       {int days = 7}) {
-    final today = _dateOnly(DateTime.now());
+    final todayStart = today();
     final byDay = <DateTime, List<FocusSession>>{};
     for (final session in sessions) {
       if (session.sessionType != FocusSessionType.focus ||
           session.completedAt == null) {
         continue;
       }
-      final day = _dateOnly(session.completedAt!);
+      final day = startOfDay(session.completedAt!);
       byDay.putIfAbsent(day, () => []).add(session);
     }
 
     return List.generate(days, (i) {
-      final day = today.subtract(Duration(days: days - 1 - i));
+      final day = addDays(todayStart, -(days - 1 - i));
       final daySessions = byDay[day] ?? const [];
       final total = daySessions.fold<int>(
           0, (sum, s) => sum + (s.actualDurationSec ?? 0));
@@ -59,21 +60,19 @@ class FocusStatsCalculator {
     final qualifyingDays = <DateTime>{
       for (final s in sessions)
         if (s.sessionType == FocusSessionType.focus && s.completedAt != null)
-          _dateOnly(s.completedAt!),
+          startOfDay(s.completedAt!),
     };
 
-    final today = _dateOnly(DateTime.now());
-    var cursor = qualifyingDays.contains(today)
-        ? today
-        : today.subtract(const Duration(days: 1));
+    final todayStart = today();
+    var cursor = qualifyingDays.contains(todayStart)
+        ? todayStart
+        : addDays(todayStart, -1);
 
     var streak = 0;
     while (qualifyingDays.contains(cursor)) {
       streak++;
-      cursor = cursor.subtract(const Duration(days: 1));
+      cursor = addDays(cursor, -1);
     }
     return streak;
   }
-
-  DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 }

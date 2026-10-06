@@ -1,12 +1,18 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/providers.dart';
+import '../../../core/time/current_day.dart';
 import '../../../domain/entities/export_format.dart';
 import '../../../domain/services/focus_stats_calculator.dart';
+import '../../../domain/time/calendar_day.dart';
 
 part 'export_view_model.g.dart';
 
-@riverpod
+// keepAlive (rule R11): an action surface whose methods use `ref` after
+// an `await`. Auto-dispose would let it be disposed mid-action (the sheet
+// or screen that called it closes), and Riverpod 3 throws on any use of a
+// disposed Ref.
+@Riverpod(keepAlive: true)
 class ExportViewModel extends _$ExportViewModel {
   @override
   bool build() => false; // true while an export is in flight
@@ -16,16 +22,13 @@ class ExportViewModel extends _$ExportViewModel {
   Future<void> export(ExportFormat format) async {
     state = true;
     try {
-      final now = DateTime.now();
-      final rangeStart = DateTime(now.year, now.month, now.day)
-          .subtract(const Duration(days: 6));
-      final rangeEnd =
-          DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+      final day = ref.read(currentDayProvider);
+      final rangeStart = addDays(day, -6);
+      final rangeEnd = addDays(day, 1);
 
       final sessions = await ref
           .read(focusSessionRepositoryProvider)
-          .watchSessionsInRange(rangeStart, rangeEnd)
-          .first;
+          .getCompletedSessionsInRange(rangeStart, rangeEnd);
       final streak = const FocusStatsCalculator().currentStreak(sessions);
       final service = ref.read(exportServiceProvider);
 

@@ -1,5 +1,6 @@
-import 'package:flowline/data/local/drift/app_database.dart';
-import 'package:flowline/features/ai_assistant/view/assistant_screen.dart';
+import 'package:atomic_assist/design/atomic.dart';
+import 'package:atomic_assist/data/local/drift/app_database.dart';
+import 'package:atomic_assist/features/ai_assistant/view/assistant_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -22,7 +23,7 @@ void main() {
       expect(find.text('Connect an AI provider'), findsOneWidget);
       expect(find.text('Add an API key in Settings to start chatting.'),
           findsOneWidget);
-      expect(find.widgetWithText(ElevatedButton, 'Go to AI Providers'),
+      expect(find.widgetWithText(AtomicButton, 'Go to AI Providers'),
           findsOneWidget);
       // No provider means no chat composer should be reachable yet.
       expect(find.byType(TextField), findsNothing);

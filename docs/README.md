@@ -1,4 +1,8 @@
-# Flowline — Documentation Index
+# Atomic Assist — Documentation Index
+
+> The product was called **Flowline** until 2026-10-04. Documents written
+> before then (`01`–`04`, `history.md`, `history/design-tokens/`) keep the old
+> name; they are records of what was planned and decided at the time.
 
 Everything that was produced before and alongside the code, colocated
 with it so the repo is self-contained. Mapped below to the categories
@@ -13,7 +17,10 @@ originally asked for.
 | **Framework** | `01-architecture.md` §2 (why MVVM/Riverpod/Drift/go_router) and §14 (package list) |
 | **Development** | the top-level `../README.md` — the actual as-built record, phase by phase, including every deliberate scope cut and its reasoning. `03-scope-architecture-dfd-v2.md` §10 is the roadmap as originally *planned*; the top-level README is what actually shipped and how it differs |
 | **Providers / dependencies** | `03-scope-architecture-dfd-v2.md` §7 (confirmed AI provider & model matrix) and §8 (full dependency list); `../pubspec.yaml` is the source of truth for exact versions actually used |
-| **UI/UX design** | `02-ux-ui-spec.md` (the original design brief — pages, components, flows) and `design-tokens/` (the three `DESIGN.md` token files pulled from the design team's delivery: dark early pass, dark system/final, light). The full delivered mockups (`Flowline_app_ui_ux_design.zip`, screenshots + HTML per screen) aren't duplicated here since you already have that file — drop it in `docs/design/` yourself if you want everything in one place |
+| **Forward plan (current)** | `05-atomic-assist-plan.md` — the personal-assistant product (research, capabilities, autonomy and privacy model, architecture with code) and the complete Atomic UI/UX rebuild |
+| **Atomic design system** | `design-system/atomic-design-system.md` — the DevBehindYou Atomic visual language; the source of truth for every screen. It replaces the Flowline token files, now in `history/design-tokens/` |
+| **Build & optimization plan** | `04-build-and-optimization-plan.md` — what to build next, in what order, and the rules (R1–R21) that keep it future-proof and bug-proof |
+| **UI/UX design** | `02-ux-ui-spec.md` (the original design brief — pages, components, flows) and `history/design-tokens/` (superseded; the three `DESIGN.md` token files pulled from the design team's delivery: dark early pass, dark system/final, light). The full delivered mockups (`Flowline_app_ui_ux_design.zip`, screenshots + HTML per screen) aren't duplicated here since you already have that file — drop it in `docs/design/` yourself if you want everything in one place |
 
 ## Reading order, if you want one
 
@@ -23,6 +30,10 @@ originally asked for.
    back, plus the AI Monitoring (voice) design
 4. `../README.md` — what was actually built, phase by phase, against
    all of the above
+5. `../PROJECT_OVERVIEW.md` — the as-built description and known issues
+6. `04-build-and-optimization-plan.md` — the forward plan: phased
+   roadmap, engineering rules, a second defect register (B1–B30),
+   optimization budgets, testing strategy and release track
 
 ## A note on drift between these docs and the code
 

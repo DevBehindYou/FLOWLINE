@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../design/atomic.dart';
+
 import '../../../domain/entities/schedule_block.dart';
+import '../../../domain/recurrence/recurrence_rule.dart';
+import '../../../core/async/run_action.dart';
 import '../../schedule_intelligence/viewmodel/schedule_intelligence_view_model.dart';
 import '../viewmodel/add_edit_schedule_block_view_model.dart';
+import '../../../l10n/l10n.dart';
 
 /// Returned by [AddEditScheduleBlockSheet] (via `Navigator.pop`) instead
 /// of saving directly when the pending block overlaps an existing one.
@@ -18,6 +23,7 @@ class ScheduleConflictPending {
     required this.end,
     required this.conflicts,
     this.existingBlock,
+    this.recurrence,
   });
 
   final String title;
@@ -25,6 +31,9 @@ class ScheduleConflictPending {
   final DateTime end;
   final List<ScheduleBlock> conflicts;
   final ScheduleBlock? existingBlock;
+
+  /// For a new repeating block.
+  final RecurrenceRule? recurrence;
 }
 
 class AddEditScheduleBlockSheet extends ConsumerStatefulWidget {
@@ -32,10 +41,15 @@ class AddEditScheduleBlockSheet extends ConsumerStatefulWidget {
     super.key,
     required this.initialDate,
     this.existingBlock,
+    this.draft,
   });
 
   final DateTime initialDate;
   final ScheduleBlock? existingBlock;
+
+  /// Values to reopen the form with after "Edit times" on the conflict
+  /// sheet, so the user adjusts what they typed instead of starting over.
+  final ScheduleConflictPending? draft;
 
   @override
   ConsumerState<AddEditScheduleBlockSheet> createState() =>
@@ -44,18 +58,34 @@ class AddEditScheduleBlockSheet extends ConsumerStatefulWidget {
 
 class _AddEditScheduleBlockSheetState
     extends ConsumerState<AddEditScheduleBlockSheet> {
-  late final TextEditingController _titleController =
-      TextEditingController(text: widget.existingBlock?.title ?? '');
-  late TimeOfDay _startTime = widget.existingBlock != null
-      ? TimeOfDay.fromDateTime(widget.existingBlock!.startTime)
-      : const TimeOfDay(hour: 9, minute: 0);
-  late TimeOfDay _endTime = widget.existingBlock != null
-      ? TimeOfDay.fromDateTime(widget.existingBlock!.endTime)
-      : const TimeOfDay(hour: 10, minute: 30);
+  late final TextEditingController _titleController = TextEditingController(
+      text: widget.draft?.title ?? widget.existingBlock?.title ?? '');
+  late TimeOfDay _startTime = TimeOfDay.fromDateTime(
+      widget.draft?.start ?? widget.existingBlock?.startTime ?? _at(9, 0));
+  late TimeOfDay _endTime = TimeOfDay.fromDateTime(
+      widget.draft?.end ?? widget.existingBlock?.endTime ?? _at(10, 30));
+
+  DateTime _at(int hour, int minute) => DateTime(widget.initialDate.year,
+      widget.initialDate.month, widget.initialDate.day, hour, minute);
   String? _error;
   bool _saving = false;
+  late RecurrenceRule? _recurrence = widget.draft?.recurrence ??
+      (widget.existingBlock?.isOccurrence ?? true
+          ? null
+          : widget.existingBlock?.recurrence);
 
   bool get _isEditing => widget.existingBlock != null;
+
+  /// A new block, or a whole series. Not one occurrence (that only moves
+  /// that day) and not an existing plain block (its tasks would end up
+  /// on a template that is never shown).
+  bool get _canRepeat {
+    final existing = widget.existingBlock;
+    return existing == null ||
+        (existing.recurrence != null && !existing.isOccurrence);
+  }
+
+  bool get _isSeriesEdit => _isEditing && _canRepeat;
 
   @override
   void dispose() {
@@ -84,13 +114,13 @@ class _AddEditScheduleBlockSheetState
   Future<void> _save() async {
     final title = _titleController.text.trim();
     if (title.isEmpty) {
-      setState(() => _error = 'Title is required');
+      setState(() => _error = context.l10n.titleRequired);
       return;
     }
     final start = _combine(_startTime);
     final end = _combine(_endTime);
     if (!end.isAfter(start)) {
-      setState(() => _error = 'End time must be after start time');
+      setState(() => _error = context.l10n.endAfterStart);
       return;
     }
 
@@ -99,16 +129,28 @@ class _AddEditScheduleBlockSheetState
       _saving = true;
     });
 
-    final conflicts = await ref
-        .read(scheduleIntelligenceViewModelProvider.notifier)
-        .findConflicts(
-          date: widget.initialDate,
-          startTime: start,
-          endTime: end,
-          excludeBlockId: widget.existingBlock?.id,
-        );
+    // A series has no single day to check against; overlaps between its
+    // occurrences and other blocks are flagged on the timeline instead.
+    final conflicts = _isSeriesEdit
+        ? const <ScheduleBlock>[]
+        : await runAction(
+            context,
+            () => ref
+                .read(scheduleIntelligenceViewModelProvider.notifier)
+                .findConflicts(
+                  date: widget.initialDate,
+                  startTime: start,
+                  endTime: end,
+                  excludeBlockId: widget.existingBlock?.id,
+                ),
+            failureMessage: context.l10n.checkScheduleFailed,
+          );
 
     if (!mounted) return;
+    if (conflicts == null) {
+      setState(() => _saving = false);
+      return;
+    }
 
     if (conflicts.isNotEmpty) {
       // Hand off to the caller rather than opening ConflictWarningSheet
@@ -121,81 +163,178 @@ class _AddEditScheduleBlockSheetState
           end: end,
           conflicts: conflicts,
           existingBlock: widget.existingBlock,
+          recurrence: _recurrence,
         ),
       );
       return;
     }
 
     final viewModel = ref.read(addEditScheduleBlockViewModelProvider.notifier);
-    if (_isEditing) {
-      await viewModel.updateBlock(
-        widget.existingBlock!
-            .copyWith(title: title, startTime: start, endTime: end),
-      );
-    } else {
-      await viewModel.createBlock(title: title, startTime: start, endTime: end);
-    }
+    final saved = await runAction(
+      context,
+      () async {
+        if (_isEditing) {
+          await viewModel.updateBlock(widget.existingBlock!.copyWith(
+            title: title,
+            startTime: start,
+            endTime: end,
+            recurrence: _isSeriesEdit ? _recurrence : null,
+          ));
+        } else {
+          await viewModel.createBlock(
+              title: title,
+              startTime: start,
+              endTime: end,
+              recurrence: _recurrence);
+        }
+        return true;
+      },
+      failureMessage: context.l10n.saveBlockFailed,
+    );
 
-    if (mounted) Navigator.of(context).pop();
+    if (!mounted) return;
+    if (saved == true) {
+      Navigator.of(context).pop();
+    } else {
+      setState(() => _saving = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _isEditing ? 'Edit Schedule Block' : 'Add Schedule Block',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _titleController,
-              autofocus: !_isEditing,
-              decoration:
-                  InputDecoration(labelText: 'Block title', errorText: _error),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => _pickTime(isStart: true),
-                    child: Text('Start: ${_startTime.format(context)}'),
-                  ),
+    final l10n = context.l10n;
+    const gap = SizedBox(height: AtomicSpace.s);
+    return AtomicSheetFrame(
+      label: _isEditing ? l10n.editScheduleBlock : l10n.addScheduleBlockTitle,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            controller: _titleController,
+            autofocus: !_isEditing,
+            decoration: InputDecoration(
+                labelText: l10n.blockTitleField, errorText: _error),
+          ),
+          gap,
+          Row(
+            children: [
+              Expanded(
+                child: AtomicButton(
+                  label: l10n.startAt(_startTime.format(context)),
+                  variant: AtomicButtonVariant.ghost,
+                  expand: true,
+                  onPressed: () => _pickTime(isStart: true),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => _pickTime(isStart: false),
-                    child: Text('End: ${_endTime.format(context)}'),
-                  ),
+              ),
+              const SizedBox(width: AtomicSpace.s),
+              Expanded(
+                child: AtomicButton(
+                  label: l10n.endAt(_endTime.format(context)),
+                  variant: AtomicButtonVariant.ghost,
+                  expand: true,
+                  onPressed: () => _pickTime(isStart: false),
                 ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _saving ? null : _save,
-              child: _saving
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(_isEditing ? 'Save Changes' : 'Add Block'),
+              ),
+            ],
+          ),
+          if (_canRepeat) ...[
+            gap,
+            RepeatPicker(
+              value: _recurrence,
+              firstDay: widget.initialDate,
+              onChanged: (rule) => setState(() => _recurrence = rule),
             ),
           ],
-        ),
+          const SizedBox(height: AtomicSpace.xl),
+          AtomicButton(
+            label: _isEditing ? l10n.saveChanges : l10n.addBlock,
+            busyLabel: l10n.saving,
+            busy: _saving,
+            expand: true,
+            onPressed: _save,
+          ),
+        ],
       ),
+    );
+  }
+}
+
+enum _RepeatKind { none, daily, weekdays, weekly }
+
+/// "Does not repeat" / every day / weekdays / chosen weekdays (spec §5.5).
+class RepeatPicker extends StatelessWidget {
+  const RepeatPicker({
+    super.key,
+    required this.value,
+    required this.firstDay,
+    required this.onChanged,
+  });
+
+  final RecurrenceRule? value;
+
+  /// The block's first day; "Weekly" starts on its weekday.
+  final DateTime firstDay;
+  final ValueChanged<RecurrenceRule?> onChanged;
+
+  _RepeatKind get _kind => switch (value) {
+        null => _RepeatKind.none,
+        final r when r.isDaily => _RepeatKind.daily,
+        final r when r.isWeekdays => _RepeatKind.weekdays,
+        _ => _RepeatKind.weekly,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final kind = _kind;
+    // Monday..Sunday of any week, for the day labels.
+    final monday = DateTime(2026, 3, 9);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DropdownButtonFormField<_RepeatKind>(
+          initialValue: kind,
+          isExpanded: true,
+          decoration: InputDecoration(labelText: l10n.repeat),
+          items: [
+            DropdownMenuItem(
+                value: _RepeatKind.none, child: Text(l10n.repeatNone)),
+            DropdownMenuItem(
+                value: _RepeatKind.daily, child: Text(l10n.repeatDaily)),
+            DropdownMenuItem(
+                value: _RepeatKind.weekdays, child: Text(l10n.repeatWeekdays)),
+            DropdownMenuItem(
+                value: _RepeatKind.weekly, child: Text(l10n.repeatWeekly)),
+          ],
+          onChanged: (k) => onChanged(switch (k) {
+            _RepeatKind.daily => RecurrenceRule.daily(),
+            _RepeatKind.weekdays => RecurrenceRule.weekdays(),
+            _RepeatKind.weekly => RecurrenceRule([firstDay.weekday]),
+            _RepeatKind.none || null => null,
+          }),
+        ),
+        if (kind == _RepeatKind.weekly) ...[
+          const SizedBox(height: AtomicSpace.xs),
+          Wrap(
+            spacing: AtomicSpace.chipGap,
+            children: [
+              for (var d = DateTime.monday; d <= DateTime.sunday; d++)
+                AtomicChip(
+                  label:
+                      l10n.weekdayShort(DateTime(2026, 3, monday.day + d - 1)),
+                  selected: value!.weekdays.contains(d),
+                  // At least one day stays selected.
+                  onSelected: (on) {
+                    final days = {...value!.weekdays};
+                    on ? days.add(d) : days.remove(d);
+                    if (days.isNotEmpty) onChanged(RecurrenceRule(days));
+                  },
+                ),
+            ],
+          ),
+        ],
+      ],
     );
   }
 }
