@@ -3,6 +3,9 @@ import '../../domain/assistant/autonomy.dart';
 import '../../domain/assistant/ledger.dart';
 import '../../domain/assistant/tool.dart';
 import '../../domain/entities/task.dart';
+import '../../domain/recurrence/recurrence_rule.dart';
+import '../../domain/recurrence/repeat_due.dart';
+import '../../domain/assistant/quick_parse.dart' show isoLocal;
 import 'args.dart';
 import 'checks.dart';
 
@@ -26,6 +29,7 @@ typedef CreateTaskArgs = ({
   DateTime? due,
   TaskPriority priority,
   String notes,
+  RecurrenceRule? repeat,
 });
 
 final class CreateTaskTool extends AssistantTool<CreateTaskArgs> {
@@ -34,7 +38,9 @@ final class CreateTaskTool extends AssistantTool<CreateTaskArgs> {
   @override
   String get name => 'create_task';
   @override
-  String get description => 'Adds a task to the backlog.';
+  String get description =>
+      'Adds a task to the backlog. A repeating task (a chore) needs a due '
+      'time; completing it moves it to the next day it repeats on.';
   @override
   Map<String, Object?> get parameters => const {
         'type': 'object',
@@ -46,6 +52,7 @@ final class CreateTaskTool extends AssistantTool<CreateTaskArgs> {
           },
           'priority': _priority,
           'notes': {'type': 'string', 'maxLength': 2000},
+          'repeat': repeatProperty,
         },
         'required': ['title'],
       };
@@ -59,6 +66,7 @@ final class CreateTaskTool extends AssistantTool<CreateTaskArgs> {
         priority: optionalEnum(json, 'priority', TaskPriority.values) ??
             TaskPriority.medium,
         notes: optionalString(json, 'notes', maxLength: 2000) ?? '',
+        repeat: optionalRepeat(json, 'repeat'),
       );
 
   @override
@@ -66,17 +74,25 @@ final class CreateTaskTool extends AssistantTool<CreateTaskArgs> {
     if (a.due != null && isPast(a.due!, env.now)) {
       return const Invalid(InvalidReason.inPast, 'due');
     }
+    if (a.repeat != null && a.due == null) {
+      return const Invalid(InvalidReason.empty, 'due');
+    }
     return const Valid();
   }
 
   @override
   Future<ActionPreview> preview(CreateTaskArgs a, ToolEnv env) async =>
-      CreateTaskPreview(title: a.title, priority: a.priority, due: a.due);
+      CreateTaskPreview(
+          title: a.title, priority: a.priority, due: a.due, repeat: a.repeat);
 
   @override
   Future<ToolOutcome> run(CreateTaskArgs a, ToolEnv env) async {
     final id = await env.tasks.createTask(
-        title: a.title, notes: a.notes, priority: a.priority, dueAt: a.due);
+        title: a.title,
+        notes: a.notes,
+        priority: a.priority,
+        dueAt: a.due,
+        repeat: a.repeat);
     return ToolOutcome(
       result: {'task_id': id},
       undo: DeleteRows(UndoTable.tasks, [id]),
@@ -91,6 +107,8 @@ typedef UpdateTaskArgs = ({
   TaskPriority? priority,
   DateTime? due,
   bool clearDue,
+  RecurrenceRule? repeat,
+  bool clearRepeat,
 });
 
 final class UpdateTaskTool extends AssistantTool<UpdateTaskArgs> {
@@ -100,8 +118,9 @@ final class UpdateTaskTool extends AssistantTool<UpdateTaskArgs> {
   String get name => 'update_task';
   @override
   String get description =>
-      'Changes a task\'s title, notes, priority or due time. Send only '
-      'the fields to change; clear_due removes the due time.';
+      'Changes a task\'s title, notes, priority, due time or repeat. Send '
+      'only the fields to change; clear_due removes the due time, '
+      'clear_repeat stops it repeating.';
   @override
   Map<String, Object?> get parameters => const {
         'type': 'object',
@@ -115,6 +134,8 @@ final class UpdateTaskTool extends AssistantTool<UpdateTaskArgs> {
             'description': 'Local date-time, YYYY-MM-DDTHH:MM.',
           },
           'clear_due': {'type': 'boolean'},
+          'repeat': repeatProperty,
+          'clear_repeat': {'type': 'boolean'},
         },
       };
   @override
@@ -125,6 +146,10 @@ final class UpdateTaskTool extends AssistantTool<UpdateTaskArgs> {
     final clearDue = json['clear_due'];
     if (clearDue != null && clearDue is! bool) {
       throw const ToolArgumentError('clear_due', 'must be a boolean');
+    }
+    final clearRepeat = json['clear_repeat'];
+    if (clearRepeat != null && clearRepeat is! bool) {
+      throw const ToolArgumentError('clear_repeat', 'must be a boolean');
     }
     final notes = json['notes'];
     if (notes != null && notes is! String) {
@@ -141,6 +166,8 @@ final class UpdateTaskTool extends AssistantTool<UpdateTaskArgs> {
       priority: optionalEnum(json, 'priority', TaskPriority.values),
       due: optionalDateTime(json, 'due'),
       clearDue: clearDue == true,
+      repeat: optionalRepeat(json, 'repeat'),
+      clearRepeat: clearRepeat == true,
     );
   }
 
@@ -149,6 +176,9 @@ final class UpdateTaskTool extends AssistantTool<UpdateTaskArgs> {
         notes: a.notes,
         priority: a.priority,
         dueAt: a.clearDue ? () => null : (a.due == null ? null : () => a.due),
+        repeat: a.clearRepeat
+            ? () => null
+            : (a.repeat == null ? null : () => a.repeat),
       );
 
   Set<TaskField> _changed(Task before, Task after) => {
@@ -156,6 +186,7 @@ final class UpdateTaskTool extends AssistantTool<UpdateTaskArgs> {
         if (before.notes != after.notes) TaskField.notes,
         if (before.priority != after.priority) TaskField.priority,
         if (before.dueAt != after.dueAt) TaskField.due,
+        if (before.repeat != after.repeat) TaskField.repeat,
       };
 
   @override
@@ -165,6 +196,13 @@ final class UpdateTaskTool extends AssistantTool<UpdateTaskArgs> {
     final task = _found(resolved);
     if (a.due != null && a.clearDue) {
       return const Invalid(InvalidReason.outOfRange, 'due and clear_due');
+    }
+    if (a.repeat != null && a.clearRepeat) {
+      return const Invalid(InvalidReason.outOfRange, 'repeat and clear_repeat');
+    }
+    final updated = _apply(task, a);
+    if (updated.repeat != null && updated.dueAt == null) {
+      return const Invalid(InvalidReason.empty, 'due');
     }
     if (a.due != null && isPast(a.due!, env.now)) {
       return const Invalid(InvalidReason.inPast, 'due');
@@ -201,7 +239,9 @@ final class CompleteTaskTool extends AssistantTool<TaskRef> {
   @override
   String get name => 'complete_task';
   @override
-  String get description => 'Marks an open task done.';
+  String get description =>
+      'Marks an open task done. A repeating task stays open, due on the '
+      'next day it repeats on.';
   @override
   Map<String, Object?> get parameters => const {
         'type': 'object',
@@ -226,18 +266,35 @@ final class CompleteTaskTool extends AssistantTool<TaskRef> {
   }
 
   @override
-  Future<ActionPreview> preview(TaskRef ref, ToolEnv env) async =>
-      CompleteTaskPreview(_found(await resolveTask(env, ref)).title);
+  Future<ActionPreview> preview(TaskRef ref, ToolEnv env) async {
+    final task = _found(await resolveTask(env, ref));
+    final (repeat, due) = (task.repeat, task.dueAt);
+    return CompleteTaskPreview(task.title,
+        nextDue: repeat == null || due == null
+            ? null
+            : nextRepeatDue(repeat, due, env.now));
+  }
 
   @override
   Future<ToolOutcome> run(TaskRef ref, ToolEnv env) async {
     final task = _found(await resolveTask(env, ref));
     final before = await mustRow(env, UndoTable.tasks, task.id);
-    await env.tasks.setTaskStatus(task.id, TaskStatus.done);
+    final record = await env.tasks.completeTask(task.id, now: env.now);
     final after = await mustRow(env, UndoTable.tasks, task.id);
+    final restore = fieldsUndo(UndoTable.tasks, task.id, before, after);
+    final nextDue =
+        record == null ? null : (await env.tasks.getTask(task.id))?.dueAt;
     return ToolOutcome(
-      result: {'task_id': task.id},
-      undo: fieldsUndo(UndoTable.tasks, task.id, before, after),
+      result: {
+        'task_id': task.id,
+        if (nextDue != null) 'next_due': isoLocal(nextDue),
+      },
+      undo: record == null
+          ? restore
+          : UndoAll([
+              DeleteRows(UndoTable.tasks, [record]),
+              if (restore != null) restore,
+            ]),
     );
   }
 }

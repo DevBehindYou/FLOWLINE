@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../domain/entities/ai_message.dart';
 import '../../../domain/entities/ai_provider_config.dart';
 import '../../../core/async/run_action.dart';
 import '../../../design/atomic.dart';
@@ -40,18 +41,145 @@ class AssistantScreen extends ConsumerWidget {
           onRetry: () => ref.invalidate(activeAiProviderProvider),
         ),
         data: (provider) {
-          if (provider == null) {
-            return EmptyState(
-              icon: AtomicIcons.ai,
-              title: context.l10n.assistantNoProviderTitle,
-              message: context.l10n.assistantNoProviderMessage,
-              actionLabel: context.l10n.assistantGoToProviders,
-              onAction: () => context.push('/settings/ai-providers'),
-            );
-          }
+          if (provider == null) return const _LocalBody();
           return _ChatBody(provider: provider);
         },
       ),
+    );
+  }
+}
+
+/// Confirm sheets and stop notices for the turn in flight.
+mixin _Notices<T extends ConsumerStatefulWidget> on ConsumerState<T> {
+  Future<void> onNotice(AssistNotice? notice) async {
+    if (notice == null) return;
+    ref.read(assistNoticesProvider.notifier).clear();
+    final l10n = context.l10n;
+    switch (notice) {
+      case AssistStopped(:final limit):
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
+            content: Text(switch (limit) {
+          TurnLimit.rounds => l10n.turnStoppedRounds,
+          TurnLimit.calls => l10n.turnStoppedCalls,
+          TurnLimit.timeout => l10n.turnStoppedTimeout,
+        })));
+      case AssistConfirm(:final pending):
+        final yes = await showAtomicConfirm(
+          context: context,
+          label: l10n.confirmSheetLabel,
+          title: l10n.confirmActionTitle,
+          message: l10n.confirmMessage(pending.preview),
+          confirmLabel: l10n.confirmDo,
+          cancelLabel: l10n.cancel,
+        );
+        if (!yes || !mounted) return;
+        await runAction(
+            context,
+            () =>
+                ref.read(assistantViewModelProvider.notifier).confirm(pending));
+    }
+  }
+}
+
+/// No provider: the phone's own grammar still runs reminders, tasks,
+/// lists and the rest (docs/05 §29.10), each with its UNDO. Anything else
+/// says it needs a provider.
+class _LocalBody extends ConsumerStatefulWidget {
+  const _LocalBody();
+
+  @override
+  ConsumerState<_LocalBody> createState() => _LocalBodyState();
+}
+
+class _LocalBodyState extends ConsumerState<_LocalBody> with _Notices {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _send() async {
+    final text = _controller.text.trim();
+    if (text.isEmpty || ref.read(assistantViewModelProvider)) return;
+    _controller.clear();
+    final sent = await runAction(context, () async {
+      await ref.read(assistantViewModelProvider.notifier).sendLocal(text);
+      return true;
+    }, failureMessage: context.l10n.assistantSendFailed);
+    if (sent != true && mounted && _controller.text.isEmpty) {
+      _controller.text = text;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen(assistNoticesProvider, (_, next) => onNotice(next));
+    final l10n = context.l10n;
+    final p = context.atomic.palette;
+    final turns = ref.watch(localTurnsProvider);
+    final isSending = ref.watch(assistantViewModelProvider);
+    return Column(
+      children: [
+        Expanded(
+          child: turns.isEmpty
+              ? EmptyState(
+                  icon: AtomicIcons.ai,
+                  title: l10n.assistantNoProviderTitle,
+                  message: l10n.assistantNoProviderMessage,
+                  actionLabel: l10n.assistantGoToProviders,
+                  onAction: () => context.push('/settings/ai-providers'),
+                )
+              : ListView.builder(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: AtomicSpace.s),
+                  reverse: true,
+                  itemCount: turns.length,
+                  itemBuilder: (context, index) {
+                    final turn = turns[turns.length - 1 - index];
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ChatBubble(
+                          message: AIMessage(
+                            id: -1 - index,
+                            conversationId: -1,
+                            role: AIMessageRole.user,
+                            content: turn.text,
+                            sentAt: DateTime(2000),
+                          ),
+                        ),
+                        switch (turn.outcome) {
+                          LocalOutcome.acted =>
+                            TurnActions(groupId: turn.groupId),
+                          LocalOutcome.rejected ||
+                          LocalOutcome.needsProvider =>
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: AtomicSpace.xxs),
+                              child: AtomicText.body(
+                                turn.outcome == LocalOutcome.rejected
+                                    ? l10n.localRejected
+                                    : l10n.localNeedsProvider,
+                                style: AtomicType.bodySmall
+                                    .copyWith(color: p.textMuted),
+                              ),
+                            ),
+                        },
+                      ],
+                    );
+                  },
+                ),
+        ),
+        if (isSending) const AtomicLoadingBar(),
+        _Composer(
+          controller: _controller,
+          isSending: isSending,
+          hint: l10n.assistantLocalHint,
+          onSend: _send,
+        ),
+      ],
     );
   }
 }
@@ -65,7 +193,7 @@ class _ChatBody extends ConsumerStatefulWidget {
   ConsumerState<_ChatBody> createState() => _ChatBodyState();
 }
 
-class _ChatBodyState extends ConsumerState<_ChatBody> {
+class _ChatBodyState extends ConsumerState<_ChatBody> with _Notices {
   final _controller = TextEditingController();
 
   @override
@@ -97,38 +225,9 @@ class _ChatBodyState extends ConsumerState<_ChatBody> {
     }
   }
 
-  Future<void> _onNotice(AssistNotice? notice) async {
-    if (notice == null) return;
-    ref.read(assistNoticesProvider.notifier).clear();
-    final l10n = context.l10n;
-    switch (notice) {
-      case AssistStopped(:final limit):
-        ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
-            content: Text(switch (limit) {
-          TurnLimit.rounds => l10n.turnStoppedRounds,
-          TurnLimit.calls => l10n.turnStoppedCalls,
-          TurnLimit.timeout => l10n.turnStoppedTimeout,
-        })));
-      case AssistConfirm(:final pending):
-        final yes = await showAtomicConfirm(
-          context: context,
-          label: l10n.confirmSheetLabel,
-          title: l10n.confirmActionTitle,
-          message: l10n.confirmMessage(pending.preview),
-          confirmLabel: l10n.confirmDo,
-          cancelLabel: l10n.cancel,
-        );
-        if (!yes || !mounted) return;
-        await runAction(
-            context,
-            () =>
-                ref.read(assistantViewModelProvider.notifier).confirm(pending));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    ref.listen(assistNoticesProvider, (_, next) => _onNotice(next));
+    ref.listen(assistNoticesProvider, (_, next) => onNotice(next));
     final conversationAsync =
         ref.watch(latestConversationForProviderProvider(widget.provider.id));
     final isSending = ref.watch(assistantViewModelProvider);
@@ -171,43 +270,10 @@ class _ChatBodyState extends ConsumerState<_ChatBody> {
           ),
         ),
         if (isSending) const AtomicLoadingBar(),
-        SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AtomicSpace.s, vertical: AtomicSpace.xs),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: InputDecoration(
-                        hintText: context.l10n.assistantInputHint),
-                    minLines: 1,
-                    maxLines: 4,
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => _send(conversationAsync.value?.id),
-                  ),
-                ),
-                const SizedBox(width: AtomicSpace.xxs),
-                // Send, or Stop while a reply is on its way (spec §5.9).
-                isSending
-                    ? AtomicIconButton(
-                        icon: AtomicIcons.stop,
-                        semanticLabel: context.l10n.stop,
-                        style: AtomicIconButtonStyle.ink,
-                        onPressed:
-                            ref.read(assistantViewModelProvider.notifier).stop,
-                      )
-                    : AtomicIconButton(
-                        icon: AtomicIcons.send,
-                        semanticLabel: context.l10n.send,
-                        style: AtomicIconButtonStyle.signal,
-                        onPressed: () => _send(conversationAsync.value?.id),
-                      ),
-              ],
-            ),
-          ),
+        _Composer(
+          controller: _controller,
+          isSending: isSending,
+          onSend: () => _send(conversationAsync.value?.id),
         ),
       ],
     );
@@ -262,6 +328,65 @@ class _MessageList extends ConsumerWidget {
           },
         );
       },
+    );
+  }
+}
+
+/// The message field with Send, or Stop while a reply is on its way.
+class _Composer extends ConsumerWidget {
+  const _Composer({
+    required this.controller,
+    required this.isSending,
+    required this.onSend,
+    this.hint,
+  });
+
+  final TextEditingController controller;
+  final bool isSending;
+  final VoidCallback onSend;
+
+  /// The field's hint; the chat's by default.
+  final String? hint;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+            horizontal: AtomicSpace.s, vertical: AtomicSpace.xs),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: controller,
+                decoration: InputDecoration(
+                    hintText: hint ?? context.l10n.assistantInputHint),
+                minLines: 1,
+                maxLines: 4,
+                textInputAction: TextInputAction.send,
+                onSubmitted: (_) => onSend(),
+              ),
+            ),
+            const SizedBox(width: AtomicSpace.xxs),
+            // Send, or Stop while a reply is on its way (spec §5.9).
+            isSending
+                ? AtomicIconButton(
+                    icon: AtomicIcons.stop,
+                    semanticLabel: context.l10n.stop,
+                    style: AtomicIconButtonStyle.ink,
+                    onPressed:
+                        ref.read(assistantViewModelProvider.notifier).stop,
+                  )
+                : AtomicIconButton(
+                    icon: AtomicIcons.send,
+                    semanticLabel: context.l10n.send,
+                    style: AtomicIconButtonStyle.signal,
+                    onPressed: onSend,
+                  ),
+          ],
+        ),
+      ),
     );
   }
 }

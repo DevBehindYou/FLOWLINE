@@ -42,10 +42,17 @@ extension L10nActions on AppLocalizations {
         parts.where((s) => s.isNotEmpty).join(' · ');
     return switch (p) {
       ReadPreview() => '',
-      CreateTaskPreview(:final title, :final due) =>
-        join([title, if (due != null) '${dayShort(due)} ${time(due)}']),
+      CreateTaskPreview(:final title, :final due, :final repeat) => join([
+          title,
+          if (due != null) '${dayShort(due)} ${time(due)}',
+          if (repeat != null) repeatText(repeat),
+        ]),
       UpdateTaskPreview(:final title) => title,
-      CompleteTaskPreview(:final title) => title,
+      CompleteTaskPreview(:final title, :final nextDue) => join([
+          title,
+          if (nextDue != null)
+            repeatNextDue('${dayShort(nextDue)} ${time(nextDue)}'),
+        ]),
       ScheduleTaskPreview(:final title, :final start, :final end) =>
         join([title, range(start, end)]),
       CreateBlockPreview(:final title, :final start, :final end) =>

@@ -468,6 +468,55 @@ abstract class _$AssistNotices extends $Notifier<AssistNotice?> {
   }
 }
 
+@ProviderFor(LocalTurns)
+final localTurnsProvider = LocalTurnsProvider._();
+
+final class LocalTurnsProvider
+    extends $NotifierProvider<LocalTurns, List<LocalTurn>> {
+  LocalTurnsProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'localTurnsProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$localTurnsHash();
+
+  @$internal
+  @override
+  LocalTurns create() => LocalTurns();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(List<LocalTurn> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<List<LocalTurn>>(value),
+    );
+  }
+}
+
+String _$localTurnsHash() => r'5a84067881cbc92ebf6bf3b7e76ef980b9004456';
+
+abstract class _$LocalTurns extends $Notifier<List<LocalTurn>> {
+  List<LocalTurn> build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<List<LocalTurn>, List<LocalTurn>>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<List<LocalTurn>, List<LocalTurn>>,
+        List<LocalTurn>,
+        Object?,
+        Object?>;
+    return element.handleCreate(ref, build);
+  }
+}
+
 @ProviderFor(AssistantViewModel)
 final assistantViewModelProvider = AssistantViewModelProvider._();
 
@@ -501,7 +550,7 @@ final class AssistantViewModelProvider
 }
 
 String _$assistantViewModelHash() =>
-    r'3e7c6ec85a3a4a2b246985d8713d9c7be0121265';
+    r'fdd12136bc7c87f4bcf400584a1de597f019155c';
 
 abstract class _$AssistantViewModel extends $Notifier<bool> {
   bool build();

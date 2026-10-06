@@ -313,7 +313,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get assistantNoProviderMessage =>
-      'Add an API key in Settings to start chatting.';
+      'Quick commands work without one: “remind me at 6pm to call Mum”, “add milk to shopping”. Add an API key in Settings for everything else.';
 
   @override
   String get assistantGoToProviders => 'Go to AI Providers';
@@ -1487,4 +1487,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dateKindOther => 'Date';
+
+  @override
+  String repeatEvery(String days) {
+    return 'Every $days';
+  }
+
+  @override
+  String repeatNextDue(String when) {
+    return 'Next $when';
+  }
+
+  @override
+  String markedDoneNext(String title, String when) {
+    return 'Marked \"$title\" done. Next $when';
+  }
+
+  @override
+  String taskRepeats(String rule) {
+    return 'Repeats: $rule';
+  }
+
+  @override
+  String get assistantLocalHint => 'Try: remind me at 6pm to call Mum';
+
+  @override
+  String get localNeedsProvider => 'That needs an AI provider.';
+
+  @override
+  String get localRejected =>
+      'AA couldn’t do that. Check the name or time and try again.';
 }

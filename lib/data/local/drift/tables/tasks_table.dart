@@ -19,4 +19,13 @@ class Tasks extends Table {
   IntColumn get status => intEnum<TaskStatus>()();
   DateTimeColumn get dueAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  // A repeating task (schema v14): the same RRULE subset as blocks (see
+  // RecurrenceRule). Completing one moves due_at to the next occurrence,
+  // so a repeating task always has a due time.
+  TextColumn get recurrence => text().nullable()();
+
+  @override
+  List<String> get customConstraints => [
+        'CHECK (recurrence IS NULL OR due_at IS NOT NULL)',
+      ];
 }

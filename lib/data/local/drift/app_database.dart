@@ -73,7 +73,7 @@ class AppDatabase extends _$AppDatabase {
   // Every bump: add a step below, then `dart run drift_dev make-migrations`
   // and commit drift_schemas/ and test/drift/ (rule R2).
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -179,6 +179,13 @@ class AppDatabase extends _$AppDatabase {
               await m.create(schema.peopleNameNocase);
               await m.create(schema.personDatesPerson);
               await m.create(schema.followUpsStatus);
+            },
+            // Repeating tasks (docs/05 Phase F.3b): tasks.recurrence and the
+            // CHECK that a repeating task has a due time. alterTable copies
+            // every row with foreign keys off, as in from3To4.
+            from13To14: (m, schema) async {
+              await m.alterTable(TableMigration(schema.tasks,
+                  newColumns: [schema.tasks.recurrence]));
             },
           )(m, from, to);
           await _assertForeignKeysIntact();

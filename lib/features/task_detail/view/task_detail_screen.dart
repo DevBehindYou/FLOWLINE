@@ -122,6 +122,20 @@ class TaskDetailScreen extends ConsumerWidget {
                   ],
                 ),
               ],
+              if (task.repeat case final repeat?) ...[
+                const SizedBox(height: AtomicSpace.xs),
+                Row(
+                  children: [
+                    Icon(AtomicIcons.repeat,
+                        size: AtomicSize.iconTiny, color: p.textMuted),
+                    const SizedBox(width: AtomicSpace.iconLabelGap),
+                    Expanded(
+                      child: AtomicText.body(
+                          l10n.taskRepeats(l10n.repeatText(repeat))),
+                    ),
+                  ],
+                ),
+              ],
               if (task.notes.isNotEmpty) ...[
                 const SizedBox(height: AtomicSpace.xs),
                 AtomicText.body(task.notes),

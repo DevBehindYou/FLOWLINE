@@ -3,6 +3,7 @@ import '../../domain/assistant/tool.dart';
 import '../../domain/entities/schedule_block.dart';
 import '../../domain/entities/task.dart';
 import '../../domain/recurrence/occurrences.dart';
+import '../../domain/recurrence/recurrence_rule.dart';
 
 // Argument parsing shared by the tools. Model output is untrusted (R16):
 // every reader checks type and range and throws ToolArgumentError, which
@@ -104,6 +105,42 @@ T? optionalEnum<T extends Enum>(
   throw ToolArgumentError(
       key, 'one of ${values.map((e) => e.name).join(', ')}');
 }
+
+/// The JSON schema of a `repeat` argument, read by [optionalRepeat].
+const repeatProperty = {
+  'type': 'string',
+  'description': 'daily, weekdays, or days of the week such as "mon,thu".',
+};
+
+const _dayCodes = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
+/// "daily", "weekdays" or a comma list of day names ("mon, thu"; the
+/// first three letters are enough).
+RecurrenceRule? optionalRepeat(Map<String, Object?> json, String key) {
+  final v = json[key];
+  if (v == null) return null;
+  if (v is! String) throw ToolArgumentError(key, 'must be a string');
+  final text = v.trim().toLowerCase();
+  if (text == 'daily' || text == 'every day') return RecurrenceRule.daily();
+  if (text == 'weekdays') return RecurrenceRule.weekdays();
+  final days = <int>{};
+  for (final part in text.split(',')) {
+    final code = part.trim();
+    final index =
+        code.length < 3 ? -1 : _dayCodes.indexOf(code.substring(0, 3));
+    if (index < 0) {
+      throw ToolArgumentError(key, 'daily, weekdays or days like mon,thu');
+    }
+    days.add(index + 1);
+  }
+  return RecurrenceRule(days);
+}
+
+String repeatJson(RecurrenceRule r) => r.isDaily
+    ? 'daily'
+    : r.isWeekdays
+        ? 'weekdays'
+        : (r.weekdays.toList()..sort()).map((d) => _dayCodes[d - 1]).join(',');
 
 List<String> requireStringList(Map<String, Object?> json, String key,
     {required int minItems, required int maxItems}) {
@@ -212,6 +249,7 @@ Map<String, Object?> taskJson(Task t) => {
       'priority': t.priority.name,
       if (t.dueAt != null) 'due': isoLocal(t.dueAt!),
       if (t.scheduleBlockId != null) 'block_id': t.scheduleBlockId,
+      if (t.repeat != null) 'repeat': repeatJson(t.repeat!),
     };
 
 Map<String, Object?> blockJson(ScheduleBlock b) => {

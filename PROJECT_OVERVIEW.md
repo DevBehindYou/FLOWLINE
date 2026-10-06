@@ -83,7 +83,7 @@ requests go directly from the device to the vendor the user chose.
 | Unit + widget + repository tests | **VERIFIED — all pass** (125 in CI #10; 176 locally with the uncommitted-at-the-time Phase 1 work) | CI + local |
 | Android release APK (`--split-per-abi`) | **VERIFIED — builds, signed through the release signing path**, versionCode from the run number | CI artifact `flowline-release-apks-<sha>` |
 | Release signing with the stable key | **UNVERIFIED** — needs the `ANDROID_*` repository secrets; until then CI signs with a throwaway key and warns | README › Release signing |
-| Emulator / integration tests | **NOT RUN** — no emulator job yet | — |
+| Emulator / integration tests | **VERIFIED in CI** — `integration_test/app_flow_test.dart` on an API 34 emulator: onboarding, a task, a focus session, then an Assist command with no provider → Activity → UNDO | CI job "Integration tests (Android emulator)" |
 | Behaviour on a physical phone | **UNVERIFIED** | see [§21](#21-physical-device-verification-checklist) |
 
 The previously failing first-frame Focus test was fixed in `3fc2115` (a
@@ -626,8 +626,8 @@ erDiagram
 
 ### 7.3 Migrations
 
-`AppDatabase.schemaVersion = 13`. Snapshots of v3 (what every APK
-before Phase 3 shipped) to v13 live in `drift_schemas/`; `test/drift/`
+`AppDatabase.schemaVersion = 14`. Snapshots of v3 (what every APK
+before Phase 3 shipped) to v14 live in `drift_schemas/`; `test/drift/`
 verifies the upgrade schema and data. Upgrades run **step by step**
 through the generated `app_database.steps.dart`, so each step sees its
 own version's tables. Run `dart run drift_dev make-migrations` after each
@@ -647,6 +647,7 @@ bump, then add the new `fromNToM` step.
 | 10 → 11 | `createTable(reminders)`: title (1–200 chars), `fire_at`, kind, status, `snooze_count ≥ 0`, `task_id` FK `ON DELETE SET NULL`; index on `(status, fire_at)` (docs/05 Phase F.1) |
 | 11 → 12 | `createTable(lists, list_items)`: list names 1–60 chars and unique ignoring case (`lists_name_nocase`), items 1–200 chars, FK `ON DELETE CASCADE`, index on `(list_id, position)`; seeds Shopping, Errands, Packing (also on a fresh install) (docs/05 Phase F.2) |
 | 12 → 13 | `createTable(people, person_dates, follow_ups)`: names 1–120 chars and unique ignoring case (`people_name_nocase`), month 1–12 / day 1–31, `about` 1–200 chars; dates and follow-ups deleted with their person, `follow_ups.reminder_id` FK `ON DELETE SET NULL` (docs/05 Phase F.3a) |
+| 13 → 14 | `tasks` rebuilt (`alterTable`, foreign keys off) with `recurrence` (the blocks' RRULE subset) and `CHECK (recurrence IS NULL OR due_at IS NOT NULL)` (docs/05 Phase F.3b) |
 
 **Assistant tables (v8).** Written by the assistant core (§9.4–§9.5),
 which no screen calls yet (E.5):
@@ -921,6 +922,17 @@ days", "turns 30") and open follow-ups, and ticking one goes through the
 same tool. 25 tools in all. Not yet: a reminder ahead of a date (Phase H
 scanner), contacts import, a tool to rename or delete a person.
 
+**Repeating tasks (F.3b).** A task can repeat daily, on weekdays or on
+chosen days (`tasks.recurrence`, schema v14); it then always has a due
+time (a CHECK). Completing one (`complete_task`, or ticking it on Today,
+which runs the same tool) keeps it open with `due_at` moved to the next
+day it repeats on after both its due day and today, at the same time of
+day (`repeat_due.dart`), and adds a done copy as the record, in one
+transaction; undo deletes the copy and restores the due time.
+`create_task` and `update_task` take `repeat` (`daily`, `weekdays`,
+`mon,thu`); the task form shows Repeat once a due time is set, and the
+task screen says how it repeats.
+
 A session started by `start_focus` gets the normal end-of-session alert
 (`FocusTimerViewModel.alertForStartedSession`), and undoing it cancels
 the alert.
@@ -1110,8 +1122,15 @@ For each screen: purpose, what it shows, actions, and its state model.
 
 ### 12.8 Assistant — `AssistantScreen`
 - App bar: "AI Providers" icon.
-- **No active provider:** empty state "Connect an AI provider" with a
-  "Go to AI Providers" button.
+- **No active provider (`_LocalBody`, docs/05 Phase F.4):** quick
+  commands still work. The field ("Try: remind me at 6pm to call Mum")
+  runs the orchestrator, which tries the local grammar and stops there:
+  what it did shows under the command with UNDO (and in Activity); a
+  rejected command says to check the name or time; anything else says it
+  needs an AI provider. Held in memory for the session (no conversation
+  without a provider). With nothing typed yet: the empty state "Connect
+  an AI provider", which names two quick commands, and "Go to AI
+  Providers".
 - **Active provider (`_ChatBody`):** chip "<Provider> • <model>", message
   list (`ListView.builder`, reversed, newest at the bottom), a 2 px
   progress bar while sending, input field (1–4 lines, send on enter) and a

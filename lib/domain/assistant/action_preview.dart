@@ -1,5 +1,6 @@
 import '../entities/person.dart';
 import '../entities/task.dart';
+import '../recurrence/recurrence_rule.dart';
 
 // Typed descriptions of what a tool call does (docs/05 §9.1). The single
 // source for every sentence AA says about an action: the chat, the Inbox,
@@ -24,13 +25,15 @@ final class CreateTaskPreview extends ActionPreview {
     required this.title,
     required this.priority,
     this.due,
+    this.repeat,
   });
   final String title;
   final TaskPriority priority;
   final DateTime? due;
+  final RecurrenceRule? repeat;
 }
 
-enum TaskField { title, notes, priority, due }
+enum TaskField { title, notes, priority, due, repeat }
 
 final class UpdateTaskPreview extends ActionPreview {
   const UpdateTaskPreview({required this.title, required this.fields});
@@ -41,8 +44,11 @@ final class UpdateTaskPreview extends ActionPreview {
 }
 
 final class CompleteTaskPreview extends ActionPreview {
-  const CompleteTaskPreview(this.title);
+  const CompleteTaskPreview(this.title, {this.nextDue});
   final String title;
+
+  /// A repeating task stays open, due again at this time.
+  final DateTime? nextDue;
 }
 
 final class ScheduleTaskPreview extends ActionPreview {
@@ -193,18 +199,29 @@ Map<String, Object?> previewToJson(ActionPreview p) {
         'kind': kind.name,
         if (day != null) 'day': ms(day),
       },
-    CreateTaskPreview(:final title, :final priority, :final due) => {
+    CreateTaskPreview(
+      :final title,
+      :final priority,
+      :final due,
+      :final repeat
+    ) =>
+      {
         'k': 'createTask',
         'title': title,
         'priority': priority.name,
         if (due != null) 'due': ms(due),
+        if (repeat != null) 'repeat': repeat.format(),
       },
     UpdateTaskPreview(:final title, :final fields) => {
         'k': 'updateTask',
         'title': title,
         'fields': [for (final f in fields) f.name],
       },
-    CompleteTaskPreview(:final title) => {'k': 'completeTask', 'title': title},
+    CompleteTaskPreview(:final title, :final nextDue) => {
+        'k': 'completeTask',
+        'title': title,
+        if (nextDue != null) 'nextDue': ms(nextDue),
+      },
     ScheduleTaskPreview(:final title, :final start, :final end) => {
         'k': 'scheduleTask',
         'title': title,
@@ -345,13 +362,16 @@ ActionPreview _decode(Map<Object?, Object?> j) {
     'createTask' => CreateTaskPreview(
         title: str('title'),
         priority: byName(TaskPriority.values, 'priority'),
-        due: optTime('due')),
+        due: optTime('due'),
+        repeat: RecurrenceRule.tryParse(
+            j['repeat'] is String ? j['repeat']! as String : null)),
     'updateTask' => UpdateTaskPreview(title: str('title'), fields: {
         for (final f in strings('fields'))
           TaskField.values.firstWhere((v) => v.name == f,
               orElse: () => throw FormatException('field $f')),
       }),
-    'completeTask' => CompleteTaskPreview(str('title')),
+    'completeTask' =>
+      CompleteTaskPreview(str('title'), nextDue: optTime('nextDue')),
     'scheduleTask' => ScheduleTaskPreview(
         title: str('title'), start: time('start'), end: time('end')),
     'createBlock' => CreateBlockPreview(

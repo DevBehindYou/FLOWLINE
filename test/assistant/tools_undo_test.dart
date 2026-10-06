@@ -198,6 +198,50 @@ void main() {
       await roundTrip('complete_task', {'task': 'write report'});
     });
 
+    test('create_task, repeating', () async {
+      await roundTrip('create_task', {
+        'title': 'Water plants',
+        'due': '2026-10-06T08:00',
+        'repeat': 'mon, thu',
+      });
+      // (Undone above; created again to read what was stored.)
+      await withClock(Clock.fixed(now), () async {
+        await run('create_task', {
+          'title': 'Water plants',
+          'due': '2026-10-06T08:00',
+          'repeat': 'mon, thu',
+        });
+      });
+      final plants = (await tasks.findTasks('water plants')).single;
+      expect(
+          plants.repeat, RecurrenceRule([DateTime.monday, DateTime.thursday]));
+    });
+
+    test('update_task, start repeating', () async {
+      await roundTrip('update_task', {'task_id': report, 'repeat': 'daily'});
+    });
+
+    test('complete_task, repeating: moves on and keeps a record', () async {
+      final plants = await tasks.createTask(
+          title: 'Water plants',
+          priority: TaskPriority.medium,
+          dueAt: DateTime(2026, 10, 5, 8),
+          repeat: RecurrenceRule([DateTime.monday, DateTime.thursday]));
+      final result = await roundTrip('complete_task', {'task_id': plants});
+      expect(result.outcome.result['next_due'], '2026-10-08T08:00');
+
+      await withClock(
+          Clock.fixed(now), () => run('complete_task', {'task_id': plants}));
+      final moved = (await tasks.getTask(plants))!;
+      expect(moved.status, TaskStatus.todo);
+      expect(moved.dueAt, DateTime(2026, 10, 8, 8));
+      final record = (await tasks.findTasks('water plants', includeDone: true))
+          .singleWhere((t) => t.id != plants);
+      expect(record.status, TaskStatus.done);
+      expect(record.dueAt, DateTime(2026, 10, 5, 8));
+      expect(record.repeat, isNull);
+    });
+
     test('schedule_task (task already in a block moves back)', () async {
       await roundTrip('schedule_task',
           {'task_id': inBlock, 'start': '2026-10-05T14:00', 'minutes': 45});
@@ -402,6 +446,18 @@ void main() {
           expect(result, isA<Rejected>(), reason: '$result');
           return (result as Rejected).invalid;
         });
+
+    test('a repeating task needs a due time', () async {
+      expect(
+          (await rejected('create_task', {'title': 'Gym', 'repeat': 'daily'}))
+              .reason,
+          InvalidReason.empty);
+      expect(
+          (await rejected(
+                  'update_task', {'task_id': bank, 'repeat': 'weekdays'}))
+              .reason,
+          InvalidReason.empty);
+    });
 
     test('nothing is recorded for a rejected call', () async {
       await rejected('complete_task', {'task_id': bank});

@@ -7,7 +7,8 @@ import 'package:integration_test/integration_test.dart';
 /// The real app on an Android emulator (CI job "Integration tests"):
 /// real SQLite file, real plugins, real lifecycle. Covers what widget
 /// tests can't: startup, routing from a fresh install, and the plugins
-/// behind a focus session.
+/// behind a focus session, and an assistant command through to Activity
+/// and UNDO.
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -29,7 +30,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
   }
 
-  testWidgets('fresh install: onboarding, a task, a focus session',
+  testWidgets(
+      'fresh install: onboarding, a task, a focus session, a command, undo',
       (tester) async {
     app.main();
 
@@ -70,5 +72,23 @@ void main() {
     await pumpUntil(tester, find.text('Session ended early'));
     await tap(tester, find.text('Back to Today'));
     await pumpUntil(tester, find.text('Write the report'));
+
+    // A command typed into Assist with no AI provider: the phone's own
+    // grammar acts, through a tool, with a ledger row (Phase F gate).
+    await tap(tester, find.bySemanticsLabel(RegExp(r'^Assistant$')));
+    await pumpUntil(tester, find.byType(TextField));
+    await tester.enterText(find.byType(TextField), 'add milk to shopping');
+    await tap(tester, find.bySemanticsLabel('Send'));
+    await pumpUntil(tester, find.text('UNDO'));
+
+    // Activity lists it, and its UNDO reverts it.
+    await tap(tester, find.bySemanticsLabel(RegExp(r'^Inbox')));
+    await tap(tester, find.text('ALL ACTIVITY'));
+    await pumpUntil(tester, find.textContaining('milk'));
+    await tap(tester, find.text('UNDO').last);
+    await pumpUntil(
+        tester,
+        find.byWidgetPredicate((w) =>
+            w is Text && (w.data == 'UNDONE' || w.semanticsLabel == 'Undone')));
   });
 }

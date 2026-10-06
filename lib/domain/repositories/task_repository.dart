@@ -1,5 +1,6 @@
 import '../entities/subtask.dart';
 import '../entities/task.dart';
+import '../recurrence/recurrence_rule.dart';
 
 /// Contract for task + subtask persistence. The implementation
 /// (`TaskRepositoryImpl`, backed by Drift) lives in `data/repositories/` —
@@ -37,9 +38,16 @@ abstract interface class TaskRepository {
     required TaskPriority priority,
     int? scheduleBlockId,
     DateTime? dueAt,
+    RecurrenceRule? repeat,
   });
 
   Future<void> updateTask(Task task);
+
+  /// Marks [id] done. A repeating task instead stays open with its due
+  /// time moved to the next occurrence after [now], and a done copy is
+  /// added as the record of this completion; its id is returned (null
+  /// for a task that doesn't repeat). One transaction.
+  Future<int?> completeTask(int id, {required DateTime now});
   Future<void> deleteTask(int id);
   Future<void> setTaskStatus(int id, TaskStatus status);
 

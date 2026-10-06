@@ -625,7 +625,7 @@ abstract class AppLocalizations {
   /// No description provided for @assistantNoProviderMessage.
   ///
   /// In en, this message translates to:
-  /// **'Add an API key in Settings to start chatting.'**
+  /// **'Quick commands work without one: “remind me at 6pm to call Mum”, “add milk to shopping”. Add an API key in Settings for everything else.'**
   String get assistantNoProviderMessage;
 
   /// No description provided for @assistantGoToProviders.
@@ -2535,6 +2535,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Date'**
   String get dateKindOther;
+
+  /// No description provided for @repeatEvery.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {days}'**
+  String repeatEvery(String days);
+
+  /// No description provided for @repeatNextDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Next {when}'**
+  String repeatNextDue(String when);
+
+  /// No description provided for @markedDoneNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked \"{title}\" done. Next {when}'**
+  String markedDoneNext(String title, String when);
+
+  /// No description provided for @taskRepeats.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeats: {rule}'**
+  String taskRepeats(String rule);
+
+  /// No description provided for @assistantLocalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Try: remind me at 6pm to call Mum'**
+  String get assistantLocalHint;
+
+  /// No description provided for @localNeedsProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'That needs an AI provider.'**
+  String get localNeedsProvider;
+
+  /// No description provided for @localRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'AA couldn’t do that. Check the name or time and try again.'**
+  String get localRejected;
 }
 
 class _AppLocalizationsDelegate

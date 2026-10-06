@@ -141,7 +141,7 @@
   "providerStatusUnknown": "Unknown",
   "edit": "Edit",
   "assistantNoProviderTitle": "Connect an AI provider",
-  "assistantNoProviderMessage": "Add an API key in Settings to start chatting.",
+  "assistantNoProviderMessage": "Quick commands work without one: “remind me at 6pm to call Mum”, “add milk to shopping”. Add an API key in Settings for everything else.",
   "assistantGoToProviders": "Go to AI Providers",
   "assistantSendFailed": "Couldn't send — your message is back in the box.",
   "assistantEmptyTitle": "Ask me anything",
@@ -910,5 +910,16 @@
   "followUpReplied": "Replied",
   "dateKindBirthday": "Birthday",
   "dateKindAnniversary": "Anniversary",
-  "dateKindOther": "Date"
+  "dateKindOther": "Date",
+  "repeatEvery": "Every {days}",
+  "@repeatEvery": {"placeholders": {"days": {"type": "String"}}},
+  "repeatNextDue": "Next {when}",
+  "@repeatNextDue": {"placeholders": {"when": {"type": "String"}}},
+  "markedDoneNext": "Marked \"{title}\" done. Next {when}",
+  "@markedDoneNext": {"placeholders": {"title": {"type": "String"}, "when": {"type": "String"}}},
+  "taskRepeats": "Repeats: {rule}",
+  "@taskRepeats": {"placeholders": {"rule": {"type": "String"}}},
+  "assistantLocalHint": "Try: remind me at 6pm to call Mum",
+  "localNeedsProvider": "That needs an AI provider.",
+  "localRejected": "AA couldn’t do that. Check the name or time and try again."
 }

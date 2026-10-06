@@ -15,6 +15,7 @@ Task taskFromRow(TaskRow row) => Task(
       scheduleBlockId: row.scheduleBlockId,
       dueAt: row.dueAt,
       createdAt: row.createdAt,
+      repeat: RecurrenceRule.tryParse(row.recurrence),
     );
 
 ScheduleBlock blockFromRow(ScheduleBlockRow row) => ScheduleBlock(
