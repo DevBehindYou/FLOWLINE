@@ -19,6 +19,8 @@ final class StoredRows {
         UndoTable.scheduleBlockExceptions => _db.scheduleBlockExceptions,
         UndoTable.focusSessions => _db.focusSessions,
         UndoTable.reminders => _db.reminders,
+        UndoTable.lists => _db.lists,
+        UndoTable.listItems => _db.listItems,
       };
 
   Set<String> columns(UndoTable t) =>

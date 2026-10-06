@@ -870,5 +870,22 @@
   "reminderTomorrow": "Tomorrow",
   "reminderOverdue": "Missed",
   "reminderNotificationChannel": "Reminders",
-  "reminderNotificationChannelDescription": "Reminders you asked Atomic Assist for"
+  "reminderNotificationChannelDescription": "Reminders you asked Atomic Assist for",
+  "actionAddListItems": "Added to list",
+  "actionCheckListItem": "Ticked",
+  "actionUncheckListItem": "Unticked",
+  "actionClearChecked": "Cleared ticked items",
+  "confirmClearCheckedMessage": "{count, plural, =1{1 ticked item will be removed from {list}.} other{{count} ticked items will be removed from {list}.}} You can undo this.",
+  "@confirmClearCheckedMessage": {"placeholders": {"count": {"type": "int"}, "list": {"type": "String"}}},
+  "listsTitle": "Lists",
+  "listsHint": "Shopping, errands, packing",
+  "listsEmptyTitle": "No lists",
+  "listsEmptyMessage": "Say \"add milk to shopping\" in Assist.",
+  "loadingLists": "Loading lists…",
+  "listCounter": "{open} / {total}",
+  "@listCounter": {"placeholders": {"open": {"type": "int"}, "total": {"type": "int"}}},
+  "listEmptyMessage": "Nothing on this list yet.",
+  "listAddHint": "Add an item",
+  "listAdd": "Add",
+  "listClearChecked": "Clear ticked"
 }

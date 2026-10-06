@@ -17,10 +17,14 @@ extension L10nActions on AppLocalizations {
         StartFocusPreview() => actionStartFocus,
         BreakDownTaskPreview() => actionBreakDown,
         CreateReminderPreview() => actionCreateReminder,
+        AddListItemsPreview() => actionAddListItems,
+        CheckListItemPreview(:final checked) =>
+          checked ? actionCheckListItem : actionUncheckListItem,
         SnoozeReminderPreview() => actionSnoozeReminder,
         CompleteReminderPreview() => actionCompleteReminder,
         DeletePreview(kind: DeleteKind.task) => actionDeleteTask,
         DeletePreview(kind: DeleteKind.block) => actionDeleteBlock,
+        DeletePreview(kind: DeleteKind.checkedItems) => actionClearChecked,
       };
 
   /// What it applies to ("Walk · 5:00 PM–5:30 PM").
@@ -49,6 +53,9 @@ extension L10nActions on AppLocalizations {
       SnoozeReminderPreview(:final title, :final until) =>
         join([title, '${dayShort(until)} ${time(until)}']),
       CompleteReminderPreview(:final title) => title,
+      AddListItemsPreview(:final list, :final items) =>
+        join([list, items.join(', ')]),
+      CheckListItemPreview(:final list, :final text) => join([list, text]),
       DeletePreview(:final titles) => titles.join(', '),
     };
   }
@@ -67,6 +74,12 @@ extension L10nActions on AppLocalizations {
           :final unscheduledTaskCount
         ) =>
           confirmDeleteBlockMessage(unscheduledTaskCount, titles.join(', ')),
+        DeletePreview(
+          kind: DeleteKind.checkedItems,
+          :final titles,
+          :final subtaskCount
+        ) =>
+          confirmClearCheckedMessage(subtaskCount, titles.join(', ')),
         _ => confirmActionMessage(actionLabel(p), actionDetail(p)),
       };
 }

@@ -94,6 +94,47 @@ final class AssistantRepositoryProvider extends $FunctionalProvider<
 String _$assistantRepositoryHash() =>
     r'd8c397ff510087879055f60c61087f234f49f65d';
 
+@ProviderFor(listRepository)
+final listRepositoryProvider = ListRepositoryProvider._();
+
+final class ListRepositoryProvider
+    extends $FunctionalProvider<ListRepository, ListRepository, ListRepository>
+    with $Provider<ListRepository> {
+  ListRepositoryProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'listRepositoryProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$listRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<ListRepository> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  ListRepository create(Ref ref) {
+    return listRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ListRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ListRepository>(value),
+    );
+  }
+}
+
+String _$listRepositoryHash() => r'21c0762f9175d1c73c1492e74562c1bf6ca390d8';
+
 @ProviderFor(reminderRepository)
 final reminderRepositoryProvider = ReminderRepositoryProvider._();
 

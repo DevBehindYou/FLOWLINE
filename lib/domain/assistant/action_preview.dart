@@ -9,7 +9,7 @@ sealed class ActionPreview {
   const ActionPreview();
 }
 
-enum ReadKind { agenda, freeTime, searchTasks, task }
+enum ReadKind { agenda, freeTime, searchTasks, task, list }
 
 /// A read tool: nothing changes.
 final class ReadPreview extends ActionPreview {
@@ -110,7 +110,23 @@ final class CompleteReminderPreview extends ActionPreview {
   final String title;
 }
 
-enum DeleteKind { task, block }
+final class AddListItemsPreview extends ActionPreview {
+  const AddListItemsPreview({required this.list, required this.items});
+  final String list;
+  final List<String> items;
+}
+
+final class CheckListItemPreview extends ActionPreview {
+  const CheckListItemPreview(
+      {required this.list, required this.text, required this.checked});
+  final String list;
+  final String text;
+  final bool checked;
+}
+
+/// [checkedItems]: a list's ticked items (the title is the list, the
+/// count is in `subtaskCount`).
+enum DeleteKind { task, block, checkedItems }
 
 /// States exactly what goes (design system §9.9): the confirm sheet lists
 /// [titles] and says how many dependent rows go with them.
@@ -193,6 +209,17 @@ Map<String, Object?> previewToJson(ActionPreview p) {
         'k': 'breakDown',
         'title': title,
         'steps': steps,
+      },
+    AddListItemsPreview(:final list, :final items) => {
+        'k': 'addListItems',
+        'list': list,
+        'items': items,
+      },
+    CheckListItemPreview(:final list, :final text, :final checked) => {
+        'k': 'checkListItem',
+        'list': list,
+        'text': text,
+        'checked': checked,
       },
     CreateReminderPreview(:final title, :final at) => {
         'k': 'createReminder',
@@ -282,6 +309,14 @@ ActionPreview _decode(Map<Object?, Object?> j) {
         taskTitle: j['task'] == null ? null : str('task')),
     'breakDown' =>
       BreakDownTaskPreview(title: str('title'), steps: strings('steps')),
+    'addListItems' =>
+      AddListItemsPreview(list: str('list'), items: strings('items')),
+    'checkListItem' => CheckListItemPreview(
+        list: str('list'),
+        text: str('text'),
+        checked: j['checked'] is bool
+            ? j['checked']! as bool
+            : throw const FormatException('checked')),
     'createReminder' =>
       CreateReminderPreview(title: str('title'), at: time('at')),
     'snoozeReminder' =>

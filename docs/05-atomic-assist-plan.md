@@ -2423,7 +2423,7 @@ developer working with AI help.
   - Carried forward: NEEDS YOU (persisted confirmations) and CAPTURED (stored captures) with Phase F; the new onboarding content (autonomy choice) with Phase F's settings work; local commands in Assist without an AI provider (conversations need a provider today); the route stays `/assistant`, not `/assist`
 - [ ] F. Reminders, lists, people — in slices:
   - [x] **F.1** reminders: schema **v11**, three reminder tools (local grammar included), notification sync with a 14-day / 64-alert top-up, notification buttons through the tools (ledger + undo; background isolate **UNVERIFIED**), Library → Reminders. Deviations: inexact alerts only (no exact-alarm request yet); floating (wall-clock) reminders and time-zone re-scheduling not yet; no reminder deletion tool
-  - [ ] **F.2** lists
+  - [x] **F.2** lists: schema **v12** (lists, items, default Shopping / Errands / Packing), four list tools (local grammar included, case-insensitive de-duplication), Library → Lists and a list screen whose taps go through the tools. Deviation: an unknown list name is reported to the model instead of a "Create list?" chip; no create/rename list tool yet
   - [ ] **F.3** people and dates, follow-ups, repeating tasks
 - [ ] G. Voice 1
 - [ ] H. Proactive

@@ -33,6 +33,8 @@ enum UndoTable {
   scheduleBlockExceptions,
   focusSessions,
   reminders,
+  lists,
+  listItems,
 }
 
 /// How to reverse one action. Stored as JSON in the ledger row

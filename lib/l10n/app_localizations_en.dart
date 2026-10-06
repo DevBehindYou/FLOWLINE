@@ -1358,4 +1358,59 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get reminderNotificationChannelDescription =>
       'Reminders you asked Atomic Assist for';
+
+  @override
+  String get actionAddListItems => 'Added to list';
+
+  @override
+  String get actionCheckListItem => 'Ticked';
+
+  @override
+  String get actionUncheckListItem => 'Unticked';
+
+  @override
+  String get actionClearChecked => 'Cleared ticked items';
+
+  @override
+  String confirmClearCheckedMessage(int count, String list) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ticked items will be removed from $list.',
+      one: '1 ticked item will be removed from $list.',
+    );
+    return '$_temp0 You can undo this.';
+  }
+
+  @override
+  String get listsTitle => 'Lists';
+
+  @override
+  String get listsHint => 'Shopping, errands, packing';
+
+  @override
+  String get listsEmptyTitle => 'No lists';
+
+  @override
+  String get listsEmptyMessage => 'Say \"add milk to shopping\" in Assist.';
+
+  @override
+  String get loadingLists => 'Loading lists…';
+
+  @override
+  String listCounter(int open, int total) {
+    return '$open / $total';
+  }
+
+  @override
+  String get listEmptyMessage => 'Nothing on this list yet.';
+
+  @override
+  String get listAddHint => 'Add an item';
+
+  @override
+  String get listAdd => 'Add';
+
+  @override
+  String get listClearChecked => 'Clear ticked';
 }

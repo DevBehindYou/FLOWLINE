@@ -6,6 +6,7 @@ import '../../domain/assistant/tool.dart';
 import 'block_tools.dart';
 import 'delete_tools.dart';
 import 'focus_tool.dart';
+import 'list_tools.dart';
 import 'read_tools.dart';
 import 'reminder_tools.dart';
 import 'task_tools.dart';
@@ -29,6 +30,10 @@ const List<AssistantTool<Object>> defaultTools = [
   CreateReminderTool(),
   SnoozeReminderTool(),
   CompleteReminderTool(),
+  ListItemsTool(),
+  AddListItemsTool(),
+  CheckListItemTool(),
+  ClearCheckedTool(),
   DeleteTaskTool(),
   DeleteBlockTool(),
 ];

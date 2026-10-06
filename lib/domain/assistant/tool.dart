@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import '../ai/ai_contract.dart';
 import '../repositories/focus_session_repository.dart';
+import '../repositories/list_repository.dart';
 import '../repositories/reminder_repository.dart';
 import '../repositories/schedule_repository.dart';
 import '../repositories/task_repository.dart';
@@ -72,6 +73,7 @@ abstract interface class ToolEnv {
   ScheduleRepository get schedule;
   FocusSessionRepository get focus;
   ReminderRepository get reminders;
+  ListRepository get lists;
 
   /// Default length of a focus session, from Settings.
   Future<int> focusMinutes();

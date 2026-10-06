@@ -31,6 +31,7 @@ ToolEnv Function() toolEnvFactory(Ref ref) {
         schedule: ref.read(scheduleRepositoryProvider),
         focus: ref.read(focusSessionRepositoryProvider),
         reminders: ref.read(reminderRepositoryProvider),
+        lists: ref.read(listRepositoryProvider),
         settings: ref.read(appSettingsRepositoryProvider),
         rows: rows,
       );

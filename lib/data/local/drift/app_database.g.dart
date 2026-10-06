@@ -5351,6 +5351,642 @@ class RemindersCompanion extends UpdateCompanion<ReminderRow> {
   }
 }
 
+class $ListsTable extends Lists with TableInfo<$ListsTable, ListRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ListsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      check: () => ComparableExpr(name.length).isBetweenValues(1, 60),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  @override
+  late final GeneratedColumnWithTypeConverter<ListKind, int> kind =
+      GeneratedColumn<int>('kind', aliasedName, false,
+              type: DriftSqlType.int, requiredDuringInsert: true)
+          .withConverter<ListKind>($ListsTable.$converterkind);
+  static const VerificationMeta _archivedMeta =
+      const VerificationMeta('archived');
+  @override
+  late final GeneratedColumn<bool> archived = GeneratedColumn<bool>(
+      'archived', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("archived" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  @override
+  List<GeneratedColumn> get $columns => [id, name, kind, archived];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'lists';
+  @override
+  VerificationContext validateIntegrity(Insertable<ListRow> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('archived')) {
+      context.handle(_archivedMeta,
+          archived.isAcceptableOrUnknown(data['archived']!, _archivedMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ListRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ListRow(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      kind: $ListsTable.$converterkind.fromSql(attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}kind'])!),
+      archived: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}archived'])!,
+    );
+  }
+
+  @override
+  $ListsTable createAlias(String alias) {
+    return $ListsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<ListKind, int, int> $converterkind =
+      const EnumIndexConverter<ListKind>(ListKind.values);
+}
+
+class ListRow extends DataClass implements Insertable<ListRow> {
+  final int id;
+  final String name;
+  final ListKind kind;
+  final bool archived;
+  const ListRow(
+      {required this.id,
+      required this.name,
+      required this.kind,
+      required this.archived});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    {
+      map['kind'] = Variable<int>($ListsTable.$converterkind.toSql(kind));
+    }
+    map['archived'] = Variable<bool>(archived);
+    return map;
+  }
+
+  ListsCompanion toCompanion(bool nullToAbsent) {
+    return ListsCompanion(
+      id: Value(id),
+      name: Value(name),
+      kind: Value(kind),
+      archived: Value(archived),
+    );
+  }
+
+  factory ListRow.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ListRow(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      kind: $ListsTable.$converterkind
+          .fromJson(serializer.fromJson<int>(json['kind'])),
+      archived: serializer.fromJson<bool>(json['archived']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'kind': serializer.toJson<int>($ListsTable.$converterkind.toJson(kind)),
+      'archived': serializer.toJson<bool>(archived),
+    };
+  }
+
+  ListRow copyWith({int? id, String? name, ListKind? kind, bool? archived}) =>
+      ListRow(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        kind: kind ?? this.kind,
+        archived: archived ?? this.archived,
+      );
+  ListRow copyWithCompanion(ListsCompanion data) {
+    return ListRow(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      archived: data.archived.present ? data.archived.value : this.archived,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ListRow(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('kind: $kind, ')
+          ..write('archived: $archived')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, kind, archived);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ListRow &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.kind == this.kind &&
+          other.archived == this.archived);
+}
+
+class ListsCompanion extends UpdateCompanion<ListRow> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<ListKind> kind;
+  final Value<bool> archived;
+  const ListsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.archived = const Value.absent(),
+  });
+  ListsCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    required ListKind kind,
+    this.archived = const Value.absent(),
+  })  : name = Value(name),
+        kind = Value(kind);
+  static Insertable<ListRow> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<int>? kind,
+    Expression<bool>? archived,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (kind != null) 'kind': kind,
+      if (archived != null) 'archived': archived,
+    });
+  }
+
+  ListsCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? name,
+      Value<ListKind>? kind,
+      Value<bool>? archived}) {
+    return ListsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      kind: kind ?? this.kind,
+      archived: archived ?? this.archived,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<int>($ListsTable.$converterkind.toSql(kind.value));
+    }
+    if (archived.present) {
+      map['archived'] = Variable<bool>(archived.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ListsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('kind: $kind, ')
+          ..write('archived: $archived')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ListItemsTable extends ListItems
+    with TableInfo<$ListItemsTable, ListItemRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ListItemsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _listIdMeta = const VerificationMeta('listId');
+  @override
+  late final GeneratedColumn<int> listId = GeneratedColumn<int>(
+      'list_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES lists (id) ON DELETE CASCADE'));
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+      'body', aliasedName, false,
+      check: () => ComparableExpr(body.length).isBetweenValues(1, 200),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _checkedMeta =
+      const VerificationMeta('checked');
+  @override
+  late final GeneratedColumn<bool> checked = GeneratedColumn<bool>(
+      'checked', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("checked" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _positionMeta =
+      const VerificationMeta('position');
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+      'position', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _addedAtMeta =
+      const VerificationMeta('addedAt');
+  @override
+  late final GeneratedColumn<DateTime> addedAt = GeneratedColumn<DateTime>(
+      'added_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _checkedAtMeta =
+      const VerificationMeta('checkedAt');
+  @override
+  late final GeneratedColumn<DateTime> checkedAt = GeneratedColumn<DateTime>(
+      'checked_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, listId, body, checked, position, addedAt, checkedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'list_items';
+  @override
+  VerificationContext validateIntegrity(Insertable<ListItemRow> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('list_id')) {
+      context.handle(_listIdMeta,
+          listId.isAcceptableOrUnknown(data['list_id']!, _listIdMeta));
+    } else if (isInserting) {
+      context.missing(_listIdMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+          _bodyMeta, body.isAcceptableOrUnknown(data['body']!, _bodyMeta));
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    if (data.containsKey('checked')) {
+      context.handle(_checkedMeta,
+          checked.isAcceptableOrUnknown(data['checked']!, _checkedMeta));
+    }
+    if (data.containsKey('position')) {
+      context.handle(_positionMeta,
+          position.isAcceptableOrUnknown(data['position']!, _positionMeta));
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('added_at')) {
+      context.handle(_addedAtMeta,
+          addedAt.isAcceptableOrUnknown(data['added_at']!, _addedAtMeta));
+    } else if (isInserting) {
+      context.missing(_addedAtMeta);
+    }
+    if (data.containsKey('checked_at')) {
+      context.handle(_checkedAtMeta,
+          checkedAt.isAcceptableOrUnknown(data['checked_at']!, _checkedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ListItemRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ListItemRow(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      listId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}list_id'])!,
+      body: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}body'])!,
+      checked: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}checked'])!,
+      position: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}position'])!,
+      addedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}added_at'])!,
+      checkedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}checked_at']),
+    );
+  }
+
+  @override
+  $ListItemsTable createAlias(String alias) {
+    return $ListItemsTable(attachedDatabase, alias);
+  }
+}
+
+class ListItemRow extends DataClass implements Insertable<ListItemRow> {
+  final int id;
+  final int listId;
+  final String body;
+  final bool checked;
+  final int position;
+  final DateTime addedAt;
+  final DateTime? checkedAt;
+  const ListItemRow(
+      {required this.id,
+      required this.listId,
+      required this.body,
+      required this.checked,
+      required this.position,
+      required this.addedAt,
+      this.checkedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['list_id'] = Variable<int>(listId);
+    map['body'] = Variable<String>(body);
+    map['checked'] = Variable<bool>(checked);
+    map['position'] = Variable<int>(position);
+    map['added_at'] = Variable<DateTime>(addedAt);
+    if (!nullToAbsent || checkedAt != null) {
+      map['checked_at'] = Variable<DateTime>(checkedAt);
+    }
+    return map;
+  }
+
+  ListItemsCompanion toCompanion(bool nullToAbsent) {
+    return ListItemsCompanion(
+      id: Value(id),
+      listId: Value(listId),
+      body: Value(body),
+      checked: Value(checked),
+      position: Value(position),
+      addedAt: Value(addedAt),
+      checkedAt: checkedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(checkedAt),
+    );
+  }
+
+  factory ListItemRow.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ListItemRow(
+      id: serializer.fromJson<int>(json['id']),
+      listId: serializer.fromJson<int>(json['listId']),
+      body: serializer.fromJson<String>(json['body']),
+      checked: serializer.fromJson<bool>(json['checked']),
+      position: serializer.fromJson<int>(json['position']),
+      addedAt: serializer.fromJson<DateTime>(json['addedAt']),
+      checkedAt: serializer.fromJson<DateTime?>(json['checkedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'listId': serializer.toJson<int>(listId),
+      'body': serializer.toJson<String>(body),
+      'checked': serializer.toJson<bool>(checked),
+      'position': serializer.toJson<int>(position),
+      'addedAt': serializer.toJson<DateTime>(addedAt),
+      'checkedAt': serializer.toJson<DateTime?>(checkedAt),
+    };
+  }
+
+  ListItemRow copyWith(
+          {int? id,
+          int? listId,
+          String? body,
+          bool? checked,
+          int? position,
+          DateTime? addedAt,
+          Value<DateTime?> checkedAt = const Value.absent()}) =>
+      ListItemRow(
+        id: id ?? this.id,
+        listId: listId ?? this.listId,
+        body: body ?? this.body,
+        checked: checked ?? this.checked,
+        position: position ?? this.position,
+        addedAt: addedAt ?? this.addedAt,
+        checkedAt: checkedAt.present ? checkedAt.value : this.checkedAt,
+      );
+  ListItemRow copyWithCompanion(ListItemsCompanion data) {
+    return ListItemRow(
+      id: data.id.present ? data.id.value : this.id,
+      listId: data.listId.present ? data.listId.value : this.listId,
+      body: data.body.present ? data.body.value : this.body,
+      checked: data.checked.present ? data.checked.value : this.checked,
+      position: data.position.present ? data.position.value : this.position,
+      addedAt: data.addedAt.present ? data.addedAt.value : this.addedAt,
+      checkedAt: data.checkedAt.present ? data.checkedAt.value : this.checkedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ListItemRow(')
+          ..write('id: $id, ')
+          ..write('listId: $listId, ')
+          ..write('body: $body, ')
+          ..write('checked: $checked, ')
+          ..write('position: $position, ')
+          ..write('addedAt: $addedAt, ')
+          ..write('checkedAt: $checkedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, listId, body, checked, position, addedAt, checkedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ListItemRow &&
+          other.id == this.id &&
+          other.listId == this.listId &&
+          other.body == this.body &&
+          other.checked == this.checked &&
+          other.position == this.position &&
+          other.addedAt == this.addedAt &&
+          other.checkedAt == this.checkedAt);
+}
+
+class ListItemsCompanion extends UpdateCompanion<ListItemRow> {
+  final Value<int> id;
+  final Value<int> listId;
+  final Value<String> body;
+  final Value<bool> checked;
+  final Value<int> position;
+  final Value<DateTime> addedAt;
+  final Value<DateTime?> checkedAt;
+  const ListItemsCompanion({
+    this.id = const Value.absent(),
+    this.listId = const Value.absent(),
+    this.body = const Value.absent(),
+    this.checked = const Value.absent(),
+    this.position = const Value.absent(),
+    this.addedAt = const Value.absent(),
+    this.checkedAt = const Value.absent(),
+  });
+  ListItemsCompanion.insert({
+    this.id = const Value.absent(),
+    required int listId,
+    required String body,
+    this.checked = const Value.absent(),
+    required int position,
+    required DateTime addedAt,
+    this.checkedAt = const Value.absent(),
+  })  : listId = Value(listId),
+        body = Value(body),
+        position = Value(position),
+        addedAt = Value(addedAt);
+  static Insertable<ListItemRow> custom({
+    Expression<int>? id,
+    Expression<int>? listId,
+    Expression<String>? body,
+    Expression<bool>? checked,
+    Expression<int>? position,
+    Expression<DateTime>? addedAt,
+    Expression<DateTime>? checkedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (listId != null) 'list_id': listId,
+      if (body != null) 'body': body,
+      if (checked != null) 'checked': checked,
+      if (position != null) 'position': position,
+      if (addedAt != null) 'added_at': addedAt,
+      if (checkedAt != null) 'checked_at': checkedAt,
+    });
+  }
+
+  ListItemsCompanion copyWith(
+      {Value<int>? id,
+      Value<int>? listId,
+      Value<String>? body,
+      Value<bool>? checked,
+      Value<int>? position,
+      Value<DateTime>? addedAt,
+      Value<DateTime?>? checkedAt}) {
+    return ListItemsCompanion(
+      id: id ?? this.id,
+      listId: listId ?? this.listId,
+      body: body ?? this.body,
+      checked: checked ?? this.checked,
+      position: position ?? this.position,
+      addedAt: addedAt ?? this.addedAt,
+      checkedAt: checkedAt ?? this.checkedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (listId.present) {
+      map['list_id'] = Variable<int>(listId.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (checked.present) {
+      map['checked'] = Variable<bool>(checked.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (addedAt.present) {
+      map['added_at'] = Variable<DateTime>(addedAt.value);
+    }
+    if (checkedAt.present) {
+      map['checked_at'] = Variable<DateTime>(checkedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ListItemsCompanion(')
+          ..write('id: $id, ')
+          ..write('listId: $listId, ')
+          ..write('body: $body, ')
+          ..write('checked: $checked, ')
+          ..write('position: $position, ')
+          ..write('addedAt: $addedAt, ')
+          ..write('checkedAt: $checkedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5372,6 +6008,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $AssistantActionsTable(this);
   late final $ProposalsTable proposals = $ProposalsTable(this);
   late final $RemindersTable reminders = $RemindersTable(this);
+  late final $ListsTable lists = $ListsTable(this);
+  late final $ListItemsTable listItems = $ListItemsTable(this);
   late final Index tasksScheduleBlockId = Index('tasks_schedule_block_id',
       'CREATE INDEX tasks_schedule_block_id ON tasks (schedule_block_id)');
   late final Index subtasksTaskOrder = Index('subtasks_task_order',
@@ -5401,6 +6039,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       'CREATE INDEX proposals_status ON proposals (status)');
   late final Index remindersStatusFireAt = Index('reminders_status_fire_at',
       'CREATE INDEX reminders_status_fire_at ON reminders (status, fire_at)');
+  late final Index listsNameNocase = Index('lists_name_nocase',
+      'CREATE UNIQUE INDEX lists_name_nocase ON lists (name COLLATE NOCASE)');
+  late final Index listItemsListPosition = Index('list_items_list_position',
+      'CREATE INDEX list_items_list_position ON list_items (list_id, position)');
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5419,6 +6061,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         assistantActions,
         proposals,
         reminders,
+        lists,
+        listItems,
         tasksScheduleBlockId,
         subtasksTaskOrder,
         scheduleBlocksStartTime,
@@ -5431,7 +6075,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         assistantActionsGroup,
         proposalsOpenKey,
         proposalsStatus,
-        remindersStatusFireAt
+        remindersStatusFireAt,
+        listsNameNocase,
+        listItemsListPosition
       ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
@@ -5497,6 +6143,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
                 limitUpdateKind: UpdateKind.delete),
             result: [
               TableUpdate('reminders', kind: UpdateKind.update),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('lists',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('list_items', kind: UpdateKind.delete),
             ],
           ),
         ],
@@ -9732,6 +10385,533 @@ typedef $$RemindersTableProcessedTableManager = ProcessedTableManager<
     (ReminderRow, $$RemindersTableReferences),
     ReminderRow,
     PrefetchHooks Function({bool taskId})>;
+typedef $$ListsTableCreateCompanionBuilder = ListsCompanion Function({
+  Value<int> id,
+  required String name,
+  required ListKind kind,
+  Value<bool> archived,
+});
+typedef $$ListsTableUpdateCompanionBuilder = ListsCompanion Function({
+  Value<int> id,
+  Value<String> name,
+  Value<ListKind> kind,
+  Value<bool> archived,
+});
+
+final class $$ListsTableReferences
+    extends BaseReferences<_$AppDatabase, $ListsTable, ListRow> {
+  $$ListsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$ListItemsTable, List<ListItemRow>>
+      _listItemsRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.listItems,
+              aliasName: 'lists__id__list_items__list_id');
+
+  $$ListItemsTableProcessedTableManager get listItemsRefs {
+    final manager = $$ListItemsTableTableManager($_db, $_db.listItems)
+        .filter((f) => f.listId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_listItemsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$ListsTableFilterComposer extends Composer<_$AppDatabase, $ListsTable> {
+  $$ListsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<ListKind, ListKind, int> get kind =>
+      $composableBuilder(
+          column: $table.kind,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<bool> get archived => $composableBuilder(
+      column: $table.archived, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> listItemsRefs(
+      Expression<bool> Function($$ListItemsTableFilterComposer f) f) {
+    final $$ListItemsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.listItems,
+        getReferencedColumn: (t) => t.listId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ListItemsTableFilterComposer(
+              $db: $db,
+              $table: $db.listItems,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$ListsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ListsTable> {
+  $$ListsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get kind => $composableBuilder(
+      column: $table.kind, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get archived => $composableBuilder(
+      column: $table.archived, builder: (column) => ColumnOrderings(column));
+}
+
+class $$ListsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ListsTable> {
+  $$ListsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<ListKind, int> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<bool> get archived =>
+      $composableBuilder(column: $table.archived, builder: (column) => column);
+
+  Expression<T> listItemsRefs<T extends Object>(
+      Expression<T> Function($$ListItemsTableAnnotationComposer a) f) {
+    final $$ListItemsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.listItems,
+        getReferencedColumn: (t) => t.listId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ListItemsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.listItems,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$ListsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ListsTable,
+    ListRow,
+    $$ListsTableFilterComposer,
+    $$ListsTableOrderingComposer,
+    $$ListsTableAnnotationComposer,
+    $$ListsTableCreateCompanionBuilder,
+    $$ListsTableUpdateCompanionBuilder,
+    (ListRow, $$ListsTableReferences),
+    ListRow,
+    PrefetchHooks Function({bool listItemsRefs})> {
+  $$ListsTableTableManager(_$AppDatabase db, $ListsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ListsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ListsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ListsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<ListKind> kind = const Value.absent(),
+            Value<bool> archived = const Value.absent(),
+          }) =>
+              ListsCompanion(
+            id: id,
+            name: name,
+            kind: kind,
+            archived: archived,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String name,
+            required ListKind kind,
+            Value<bool> archived = const Value.absent(),
+          }) =>
+              ListsCompanion.insert(
+            id: id,
+            name: name,
+            kind: kind,
+            archived: archived,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable<$ListsTable, ListRow>(table),
+                    $$ListsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({listItemsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (listItemsRefs) db.listItems],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (listItemsRefs)
+                    await $_getPrefetchedData<ListRow, $ListsTable,
+                            ListItemRow>(
+                        currentTable: table,
+                        referencedTable:
+                            $$ListsTableReferences._listItemsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$ListsTableReferences(db, table, p0).listItemsRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.listId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$ListsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $ListsTable,
+    ListRow,
+    $$ListsTableFilterComposer,
+    $$ListsTableOrderingComposer,
+    $$ListsTableAnnotationComposer,
+    $$ListsTableCreateCompanionBuilder,
+    $$ListsTableUpdateCompanionBuilder,
+    (ListRow, $$ListsTableReferences),
+    ListRow,
+    PrefetchHooks Function({bool listItemsRefs})>;
+typedef $$ListItemsTableCreateCompanionBuilder = ListItemsCompanion Function({
+  Value<int> id,
+  required int listId,
+  required String body,
+  Value<bool> checked,
+  required int position,
+  required DateTime addedAt,
+  Value<DateTime?> checkedAt,
+});
+typedef $$ListItemsTableUpdateCompanionBuilder = ListItemsCompanion Function({
+  Value<int> id,
+  Value<int> listId,
+  Value<String> body,
+  Value<bool> checked,
+  Value<int> position,
+  Value<DateTime> addedAt,
+  Value<DateTime?> checkedAt,
+});
+
+final class $$ListItemsTableReferences
+    extends BaseReferences<_$AppDatabase, $ListItemsTable, ListItemRow> {
+  $$ListItemsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ListsTable _listIdTable(_$AppDatabase db) =>
+      db.lists.createAlias('list_items__list_id__lists__id');
+
+  $$ListsTableProcessedTableManager get listId {
+    final $_column = $_itemColumn<int>('list_id')!;
+
+    final manager = $$ListsTableTableManager($_db, $_db.lists)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_listIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$ListItemsTableFilterComposer
+    extends Composer<_$AppDatabase, $ListItemsTable> {
+  $$ListItemsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get body => $composableBuilder(
+      column: $table.body, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get checked => $composableBuilder(
+      column: $table.checked, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get position => $composableBuilder(
+      column: $table.position, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get addedAt => $composableBuilder(
+      column: $table.addedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get checkedAt => $composableBuilder(
+      column: $table.checkedAt, builder: (column) => ColumnFilters(column));
+
+  $$ListsTableFilterComposer get listId {
+    final $$ListsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.listId,
+        referencedTable: $db.lists,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ListsTableFilterComposer(
+              $db: $db,
+              $table: $db.lists,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ListItemsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ListItemsTable> {
+  $$ListItemsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get body => $composableBuilder(
+      column: $table.body, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get checked => $composableBuilder(
+      column: $table.checked, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get position => $composableBuilder(
+      column: $table.position, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get addedAt => $composableBuilder(
+      column: $table.addedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get checkedAt => $composableBuilder(
+      column: $table.checkedAt, builder: (column) => ColumnOrderings(column));
+
+  $$ListsTableOrderingComposer get listId {
+    final $$ListsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.listId,
+        referencedTable: $db.lists,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ListsTableOrderingComposer(
+              $db: $db,
+              $table: $db.lists,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ListItemsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ListItemsTable> {
+  $$ListItemsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<bool> get checked =>
+      $composableBuilder(column: $table.checked, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get addedAt =>
+      $composableBuilder(column: $table.addedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get checkedAt =>
+      $composableBuilder(column: $table.checkedAt, builder: (column) => column);
+
+  $$ListsTableAnnotationComposer get listId {
+    final $$ListsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.listId,
+        referencedTable: $db.lists,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ListsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.lists,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ListItemsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ListItemsTable,
+    ListItemRow,
+    $$ListItemsTableFilterComposer,
+    $$ListItemsTableOrderingComposer,
+    $$ListItemsTableAnnotationComposer,
+    $$ListItemsTableCreateCompanionBuilder,
+    $$ListItemsTableUpdateCompanionBuilder,
+    (ListItemRow, $$ListItemsTableReferences),
+    ListItemRow,
+    PrefetchHooks Function({bool listId})> {
+  $$ListItemsTableTableManager(_$AppDatabase db, $ListItemsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ListItemsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ListItemsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ListItemsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> listId = const Value.absent(),
+            Value<String> body = const Value.absent(),
+            Value<bool> checked = const Value.absent(),
+            Value<int> position = const Value.absent(),
+            Value<DateTime> addedAt = const Value.absent(),
+            Value<DateTime?> checkedAt = const Value.absent(),
+          }) =>
+              ListItemsCompanion(
+            id: id,
+            listId: listId,
+            body: body,
+            checked: checked,
+            position: position,
+            addedAt: addedAt,
+            checkedAt: checkedAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required int listId,
+            required String body,
+            Value<bool> checked = const Value.absent(),
+            required int position,
+            required DateTime addedAt,
+            Value<DateTime?> checkedAt = const Value.absent(),
+          }) =>
+              ListItemsCompanion.insert(
+            id: id,
+            listId: listId,
+            body: body,
+            checked: checked,
+            position: position,
+            addedAt: addedAt,
+            checkedAt: checkedAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable<$ListItemsTable, ListItemRow>(table),
+                    $$ListItemsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({listId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (listId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.listId,
+                    referencedTable:
+                        $$ListItemsTableReferences._listIdTable(db),
+                    referencedColumn:
+                        $$ListItemsTableReferences._listIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$ListItemsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $ListItemsTable,
+    ListItemRow,
+    $$ListItemsTableFilterComposer,
+    $$ListItemsTableOrderingComposer,
+    $$ListItemsTableAnnotationComposer,
+    $$ListItemsTableCreateCompanionBuilder,
+    $$ListItemsTableUpdateCompanionBuilder,
+    (ListItemRow, $$ListItemsTableReferences),
+    ListItemRow,
+    PrefetchHooks Function({bool listId})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -9763,4 +10943,8 @@ class $AppDatabaseManager {
       $$ProposalsTableTableManager(_db, _db.proposals);
   $$RemindersTableTableManager get reminders =>
       $$RemindersTableTableManager(_db, _db.reminders);
+  $$ListsTableTableManager get lists =>
+      $$ListsTableTableManager(_db, _db.lists);
+  $$ListItemsTableTableManager get listItems =>
+      $$ListItemsTableTableManager(_db, _db.listItems);
 }
