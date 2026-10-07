@@ -26,6 +26,8 @@ class SettingsHomeScreen extends StatelessWidget {
         children: [
           row(AtomicIcons.ai, l10n.settingsAiProviders,
               l10n.settingsAiProvidersHint, '/settings/ai-providers'),
+          row(AtomicIcons.assist, l10n.settingsAssistant,
+              l10n.settingsAssistantHint, '/settings/assistant'),
           row(AtomicIcons.focus, l10n.settingsFocusTimer,
               l10n.settingsFocusTimerHint, '/settings/focus'),
           row(AtomicIcons.notifications, l10n.settingsNotifications,

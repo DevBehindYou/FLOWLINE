@@ -1616,4 +1616,57 @@ class AppLocalizationsEn extends AppLocalizations {
   String percentValue(int value) {
     return '$value%';
   }
+
+  @override
+  String scanReminderBirthday(String name) {
+    return '$name’s birthday';
+  }
+
+  @override
+  String scanReminderAnniversary(String name) {
+    return '$name’s anniversary';
+  }
+
+  @override
+  String scanReminderDate(String name, String label) {
+    return '$name: $label';
+  }
+
+  @override
+  String get settingsAssistant => 'Assistant';
+
+  @override
+  String get settingsAssistantHint =>
+      'How much AA does on its own, suggestions';
+
+  @override
+  String get assistantSuggestions => 'Suggestions';
+
+  @override
+  String get assistantSuggestionsHint =>
+      'AA looks at your tasks, day and people and suggests things in the Inbox. Nothing runs until you tap.';
+
+  @override
+  String get assistantAutonomy => 'How much AA does on its own';
+
+  @override
+  String get autonomyCareful => 'Careful';
+
+  @override
+  String get autonomyBalanced => 'Balanced';
+
+  @override
+  String get autonomyHandsOff => 'Hands-off';
+
+  @override
+  String get autonomyCarefulHint =>
+      'AA asks before every change, even ones you asked for.';
+
+  @override
+  String get autonomyBalancedHint =>
+      'AA does what you ask, with Undo. What it notices waits in the Inbox.';
+
+  @override
+  String get autonomyHandsOffHint =>
+      'AA also does what it notices, with Undo. Deleting always asks first.';
 }

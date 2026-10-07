@@ -190,6 +190,11 @@ GoRouter appRouter(Ref ref) {
             builder: (context, state) => const NotificationSettingsScreen(),
           ),
           GoRoute(
+            path: 'assistant',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const AssistantSettingsScreen(),
+          ),
+          GoRoute(
             path: 'voice',
             parentNavigatorKey: _rootNavigatorKey,
             builder: (context, state) => const VoiceSettingsScreen(),

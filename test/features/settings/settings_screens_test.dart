@@ -4,6 +4,7 @@ import 'package:atomic_assist/data/local/drift/app_database.dart';
 import 'package:atomic_assist/data/local/secure/secure_key_store.dart';
 import 'package:atomic_assist/data/repositories/app_settings_repository_impl.dart';
 import 'package:atomic_assist/data/repositories/task_repository_impl.dart';
+import 'package:atomic_assist/domain/assistant/autonomy.dart';
 import 'package:atomic_assist/domain/entities/ai_provider_config.dart';
 import 'package:atomic_assist/domain/entities/app_settings.dart';
 import 'package:atomic_assist/domain/entities/task.dart';
@@ -80,6 +81,23 @@ void main() {
     await tester.tap(find.byType(Switch));
     await tester.pumpAndSettle();
     expect((await stored(tester)).keepListening, isTrue);
+  });
+
+  testWidgets('Assistant saves the autonomy preset and the kill switch',
+      (tester) async {
+    await pumpScreen(tester, db: db, child: const AssistantSettingsScreen());
+    expect(
+        find.text('AA does what you ask, with Undo. What it notices waits '
+            'in the Inbox.'),
+        findsOneWidget);
+    await tester.tap(find.text('Hands-off'));
+    await tester.pumpAndSettle();
+    expect((await stored(tester)).autonomy, AutonomyPreset.handsOff);
+    expect(find.textContaining('also does what it notices'), findsOneWidget);
+
+    await tester.tap(find.byType(Switch));
+    await tester.pumpAndSettle();
+    expect((await stored(tester)).suggestions, isFalse);
   });
 
   test('clearAllData empties every table and every saved key', () async {

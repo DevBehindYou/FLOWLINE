@@ -30,6 +30,10 @@ abstract interface class AssistantRepository {
   /// accepted, dismissed or expired already), so a double tap acts once.
   Future<bool> closeProposal(int id, ProposalStatus status);
 
+  /// Which of [keys] any proposal has ever had, whatever its status: a
+  /// scanner never suggests a dismissed (or accepted) thing again.
+  Future<Set<String>> knownProposalKeys(Iterable<String> keys);
+
   /// Marks every open proposal whose expiry has passed as expired.
   Future<int> expireProposals(DateTime now);
 }

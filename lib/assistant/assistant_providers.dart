@@ -11,6 +11,8 @@ import 'assist_chat.dart';
 import 'orchestrator.dart';
 import 'proposal_service.dart';
 import 'reminder_sync.dart';
+import 'scanner_runner.dart';
+import '../l10n/l10n.dart';
 import 'tools/tool_registry.dart';
 
 part 'assistant_providers.g.dart';
@@ -96,6 +98,19 @@ ProposalService proposalService(Ref ref) => ProposalService(
 AssistChat assistChat(Ref ref) => AssistChat(
       ai: ref.watch(aiRepositoryProvider),
       orchestrator: ref.watch(assistantOrchestratorProvider),
+    );
+
+/// The context scanners (docs/05 §5.2), run on app start and resume.
+@Riverpod(keepAlive: true)
+ScannerRunner scannerRunner(Ref ref) => ScannerRunner(
+      tasks: ref.watch(taskRepositoryProvider),
+      schedule: ref.watch(scheduleRepositoryProvider),
+      people: ref.watch(peopleRepositoryProvider),
+      store: ref.watch(assistantRepositoryProvider),
+      settings: ref.watch(appSettingsRepositoryProvider),
+      l10n: deviceLocalizations,
+      registry: ref.watch(toolRegistryProvider),
+      executor: ref.watch(toolExecutorProvider),
     );
 
 @Riverpod(keepAlive: true)

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/async/run_action.dart';
 import '../../../core/providers.dart';
 import '../../../design/atomic.dart';
+import '../../../domain/assistant/autonomy.dart';
 import '../../../domain/entities/app_settings.dart';
 import '../../../shared_widgets/confirm_dialog.dart';
 import '../viewmodel/settings_view_model.dart';
@@ -210,6 +211,69 @@ class NotificationSettingsScreen extends ConsumerWidget {
             value: s.sessionAlerts,
             onChanged: (v) =>
                 _update(context, ref, (c) => c.copyWith(sessionAlerts: v)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// docs/05 §6.2 and §6.6: the autonomy preset and the kill switch for
+/// everything AA does unasked.
+class AssistantSettingsScreen extends ConsumerWidget {
+  const AssistantSettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final s = _settings(ref);
+    const margin = EdgeInsets.symmetric(horizontal: AtomicSpace.screenMargin);
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.settingsAssistant)),
+      body: ListView(
+        padding: const EdgeInsets.symmetric(vertical: AtomicSpace.s),
+        children: [
+          Padding(
+              padding: margin, child: AtomicText.mono(l10n.assistantAutonomy)),
+          const SizedBox(height: AtomicSpace.xs),
+          Padding(
+            padding: margin,
+            child: SegmentedButton<AutonomyPreset>(
+              segments: [
+                ButtonSegment(
+                    value: AutonomyPreset.careful,
+                    label: Text(l10n.autonomyCareful)),
+                ButtonSegment(
+                    value: AutonomyPreset.balanced,
+                    label: Text(l10n.autonomyBalanced)),
+                ButtonSegment(
+                    value: AutonomyPreset.handsOff,
+                    label: Text(l10n.autonomyHandsOff)),
+              ],
+              selected: {s.autonomy},
+              onSelectionChanged: (v) =>
+                  _update(context, ref, (c) => c.copyWith(autonomy: v.first)),
+            ),
+          ),
+          const SizedBox(height: AtomicSpace.xs),
+          Padding(
+            padding: margin,
+            child: AtomicText.body(
+              switch (s.autonomy) {
+                AutonomyPreset.careful => l10n.autonomyCarefulHint,
+                AutonomyPreset.balanced => l10n.autonomyBalancedHint,
+                AutonomyPreset.handsOff => l10n.autonomyHandsOffHint,
+              },
+              style: AtomicType.bodySmall,
+            ),
+          ),
+          const SizedBox(height: AtomicSpace.s),
+          SwitchListTile(
+            title: Text(l10n.assistantSuggestions),
+            subtitle: Text(l10n.assistantSuggestionsHint),
+            value: s.suggestions,
+            onChanged: (v) =>
+                _update(context, ref, (c) => c.copyWith(suggestions: v)),
           ),
         ],
       ),
