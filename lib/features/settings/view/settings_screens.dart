@@ -217,6 +217,77 @@ class NotificationSettingsScreen extends ConsumerWidget {
   }
 }
 
+/// docs/05 §22.4: when AA speaks, how fast, and conversation mode.
+class VoiceSettingsScreen extends ConsumerWidget {
+  const VoiceSettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final s = _settings(ref);
+    const step = 10;
+    final rate = s.speechRatePercent;
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.settingsVoice)),
+      body: ListView(
+        padding: const EdgeInsets.symmetric(vertical: AtomicSpace.s),
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(
+                horizontal: AtomicSpace.screenMargin),
+            child: AtomicText.mono(l10n.voiceSpeakReplies),
+          ),
+          const SizedBox(height: AtomicSpace.xs),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+                horizontal: AtomicSpace.screenMargin),
+            child: SegmentedButton<SpeakReplies>(
+              segments: [
+                ButtonSegment(
+                    value: SpeakReplies.off, label: Text(l10n.speakRepliesOff)),
+                ButtonSegment(
+                    value: SpeakReplies.whenISpoke,
+                    label: Text(l10n.speakRepliesWhenISpoke)),
+                ButtonSegment(
+                    value: SpeakReplies.always,
+                    label: Text(l10n.speakRepliesAlways)),
+              ],
+              selected: {s.speakReplies},
+              onSelectionChanged: (v) => _update(
+                  context, ref, (c) => c.copyWith(speakReplies: v.first)),
+            ),
+          ),
+          const SizedBox(height: AtomicSpace.s),
+          _StepperTile(
+            label: l10n.voiceSpeechRate,
+            valueText: l10n.percentValue(rate),
+            onMinus: rate > AppSettings.minSpeechRatePercent
+                ? () => _update(context, ref,
+                    (c) => c.copyWith(speechRatePercent: rate - step))
+                : null,
+            onPlus: rate < AppSettings.maxSpeechRatePercent
+                ? () => _update(context, ref,
+                    (c) => c.copyWith(speechRatePercent: rate + step))
+                : null,
+          ),
+          SwitchListTile(
+            title: Text(l10n.voiceKeepListening),
+            subtitle: Text(l10n.voiceKeepListeningHint),
+            value: s.keepListening,
+            onChanged: (v) =>
+                _update(context, ref, (c) => c.copyWith(keepListening: v)),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(AtomicSpace.screenMargin),
+            child: AtomicText.body(l10n.voicePrivacyNote,
+                style: AtomicType.bodySmall),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Spec §5.17: where data lives, and clearing it.
 class DataPrivacyScreen extends ConsumerStatefulWidget {
   const DataPrivacyScreen({super.key});

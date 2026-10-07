@@ -65,6 +65,23 @@ void main() {
     expect((await stored(tester)).sessionAlerts, isFalse);
   });
 
+  testWidgets('Voice saves when to speak, the speed and keep listening',
+      (tester) async {
+    await pumpScreen(tester, db: db, child: const VoiceSettingsScreen());
+    await tester.tap(find.text('Always'));
+    await tester.pumpAndSettle();
+    expect((await stored(tester)).speakReplies, SpeakReplies.always);
+
+    expect(findLabel('50%'), findsOneWidget);
+    await tester.tap(find.byTooltip('Increase Speaking speed'));
+    await tester.pumpAndSettle();
+    expect((await stored(tester)).speechRatePercent, 60);
+
+    await tester.tap(find.byType(Switch));
+    await tester.pumpAndSettle();
+    expect((await stored(tester)).keepListening, isTrue);
+  });
+
   test('clearAllData empties every table and every saved key', () async {
     final keys = _FakeKeyStore()..keys[AIProviderId.openai] = 'sk-x';
     final container = ProviderContainer(retry: noAutomaticRetry, overrides: [

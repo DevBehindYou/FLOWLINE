@@ -130,10 +130,12 @@ class AssistantViewModel extends _$AssistantViewModel {
 
   /// One assistant turn: the orchestrator acts through its tools, and the
   /// reply (with the turn's actions under it) lands in the conversation.
-  Future<void> send({
+  /// Returns the turn, so voice can say what happened.
+  Future<TurnResult> send({
     required AIProviderId providerId,
     required int? existingConversationId,
     required String prompt,
+    UtteranceSource source = UtteranceSource.typed,
   }) async {
     state = true;
     final cancel = _cancel = AICancelToken();
@@ -142,9 +144,11 @@ class AssistantViewModel extends _$AssistantViewModel {
           await ref
               .read(aiRepositoryProvider)
               .createConversation(providerId: providerId);
-      final result = await ref
-          .read(assistChatProvider)
-          .send(conversationId: conversationId, text: prompt, cancel: cancel);
+      final result = await ref.read(assistChatProvider).send(
+          conversationId: conversationId,
+          text: prompt,
+          cancel: cancel,
+          source: source);
       final notices = ref.read(assistNoticesProvider.notifier);
       switch (result) {
         case TurnNeedsConfirmation(:final pending):
@@ -154,6 +158,7 @@ class AssistantViewModel extends _$AssistantViewModel {
         case TurnAnswered() || TurnFailed():
           break;
       }
+      return result;
     } finally {
       if (identical(_cancel, cancel)) _cancel = null;
       state = false;
@@ -162,12 +167,13 @@ class AssistantViewModel extends _$AssistantViewModel {
 
   /// A command with no provider: the orchestrator tries the local grammar
   /// and, finding no model, stops there.
-  Future<void> sendLocal(String prompt) async {
+  Future<TurnResult> sendLocal(String prompt,
+      {UtteranceSource source = UtteranceSource.typed}) async {
     state = true;
     try {
-      final result = await ref.read(assistantOrchestratorProvider).handle(
-          Utterance(prompt, source: UtteranceSource.typed),
-          localReads: false);
+      final result = await ref
+          .read(assistantOrchestratorProvider)
+          .handle(Utterance(prompt, source: source), localReads: false);
       final outcome = result is TurnNeedsConfirmation ||
               result.acted.any((a) => a.status == CallStatus.done)
           ? LocalOutcome.acted
@@ -179,6 +185,7 @@ class AssistantViewModel extends _$AssistantViewModel {
       if (result case TurnNeedsConfirmation(:final pending)) {
         ref.read(assistNoticesProvider.notifier).show(AssistConfirm(pending));
       }
+      return result;
     } finally {
       state = false;
     }

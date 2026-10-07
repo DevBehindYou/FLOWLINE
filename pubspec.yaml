@@ -37,6 +37,8 @@ dependencies:
   # (testWidgets' FakeAsync overrides clock.now()). Already resolved
   # transitively at 1.1.2; listed directly because lib/ imports it.
   clock: ^1.1.1
+  speech_to_text: ^7.5.0
+  flutter_tts: ^4.2.5
 
 dev_dependencies:
   integration_test:

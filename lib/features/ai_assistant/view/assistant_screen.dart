@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,6 +15,8 @@ import '../viewmodel/assistant_view_model.dart';
 import '../../../assistant/orchestrator.dart';
 import '../widgets/chat_bubble.dart';
 import '../widgets/turn_actions.dart';
+import '../../voice/view/listening_panel.dart';
+import '../../voice/viewmodel/voice_controller.dart';
 import '../../../l10n/l10n.dart';
 
 class AssistantScreen extends ConsumerWidget {
@@ -105,7 +109,9 @@ class _LocalBodyState extends ConsumerState<_LocalBody> with _Notices {
     if (text.isEmpty || ref.read(assistantViewModelProvider)) return;
     _controller.clear();
     final sent = await runAction(context, () async {
-      await ref.read(assistantViewModelProvider.notifier).sendLocal(text);
+      final result =
+          await ref.read(assistantViewModelProvider.notifier).sendLocal(text);
+      unawaited(ref.read(voiceControllerProvider.notifier).sayTyped(result));
       return true;
     }, failureMessage: context.l10n.assistantSendFailed);
     if (sent != true && mounted && _controller.text.isEmpty) {
@@ -209,11 +215,12 @@ class _ChatBodyState extends ConsumerState<_ChatBody> with _Notices {
     final sent = await runAction(
       context,
       () async {
-        await ref.read(assistantViewModelProvider.notifier).send(
+        final result = await ref.read(assistantViewModelProvider.notifier).send(
               providerId: widget.provider.id,
               existingConversationId: conversationId,
               prompt: text,
             );
+        unawaited(ref.read(voiceControllerProvider.notifier).sayTyped(result));
         return true;
       },
       failureMessage: context.l10n.assistantSendFailed,
@@ -367,6 +374,14 @@ class _Composer extends ConsumerWidget {
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => onSend(),
               ),
+            ),
+            const SizedBox(width: AtomicSpace.xxs),
+            AtomicIconButton(
+              icon: AtomicIcons.mic,
+              semanticLabel: context.l10n.voiceStartListening,
+              style: AtomicIconButtonStyle.ink,
+              onPressed:
+                  isSending ? null : () => showListeningPanel(context, ref),
             ),
             const SizedBox(width: AtomicSpace.xxs),
             // Send, or Stop while a reply is on its way (spec §5.9).
