@@ -275,6 +275,13 @@ class AssistantSettingsScreen extends ConsumerWidget {
             onChanged: (v) =>
                 _update(context, ref, (c) => c.copyWith(suggestions: v)),
           ),
+          SwitchListTile(
+            title: Text(l10n.assistantBriefings),
+            subtitle: Text(l10n.assistantBriefingsHint),
+            value: s.briefings,
+            onChanged: (v) =>
+                _update(context, ref, (c) => c.copyWith(briefings: v)),
+          ),
         ],
       ),
     );

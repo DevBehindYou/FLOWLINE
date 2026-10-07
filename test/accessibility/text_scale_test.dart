@@ -57,6 +57,24 @@ class _QuietNotifications implements NotificationService {
 
   @override
   Future<void> cancelSessionNotification() async {}
+
+  @override
+  Stream<String> get briefingTaps => const Stream.empty();
+
+  @override
+  Future<String?> launchBriefingKind() async => null;
+
+  @override
+  Future<void> scheduleDailyBriefing({
+    required int notificationId,
+    required String kind,
+    required int hour,
+    required int minute,
+    required String title,
+    required String body,
+    required String channelName,
+    required String channelDescription,
+  }) async {}
 }
 
 /// Spec §1 / §9: layouts must survive 200% system font scaling without

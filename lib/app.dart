@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'assistant/assistant_providers.dart';
+import 'assistant/briefing_schedule.dart';
 import 'assistant/reminder_sync.dart';
 import 'core/providers.dart';
 import 'core/router/app_router.dart';
@@ -58,6 +59,19 @@ class _AtomicAssistAppState extends ConsumerState<AtomicAssistApp> {
 
   StreamSubscription<void>? _notificationTaps;
   StreamSubscription<void>? _reminderActions;
+  StreamSubscription<void>? _briefingTaps;
+
+  /// Morning and shutdown notifications, per Settings → Assistant.
+  Future<void> _syncBriefings() async {
+    try {
+      final settings = await ref.read(appSettingsRepositoryProvider).get();
+      final service = await ref.read(notificationServiceProvider.future);
+      await syncBriefingNotifications(service,
+          enabled: settings.briefings, l10n: deviceLocalizations());
+    } catch (_) {
+      // A convenience: the briefings are a screen away anyway.
+    }
+  }
 
   /// Marks what fired while the app was away and schedules the next two
   /// weeks of reminder alerts (docs/05 §13).
@@ -77,6 +91,9 @@ class _AtomicAssistAppState extends ConsumerState<AtomicAssistApp> {
       if (!mounted) return;
       void openFocus() => ref.read(appRouterProvider).go('/focus');
       _notificationTaps = service.taps.listen((_) => openFocus());
+      void openBriefing(String kind) =>
+          ref.read(appRouterProvider).go('/briefing/$kind');
+      _briefingTaps = service.briefingTaps.listen(openBriefing);
       _reminderActions = service.reminderActions.listen((press) async {
         final touched = await applyReminderAction(
           actionId: press.action,
@@ -93,7 +110,13 @@ class _AtomicAssistAppState extends ConsumerState<AtomicAssistApp> {
           }
         }
       });
-      if (await service.launchedFromNotification()) openFocus();
+      final briefing = await service.launchBriefingKind();
+      if (briefing != null) {
+        openBriefing(briefing);
+      } else if (await service.launchedFromNotification()) {
+        openFocus();
+      }
+      await _syncBriefings();
     } catch (_) {
       // Notifications are a convenience; the app works without them.
     }
@@ -117,6 +140,7 @@ class _AtomicAssistAppState extends ConsumerState<AtomicAssistApp> {
   void dispose() {
     unawaited(_notificationTaps?.cancel());
     unawaited(_reminderActions?.cancel());
+    unawaited(_briefingTaps?.cancel());
     _lifecycle.dispose();
     super.dispose();
   }
@@ -124,6 +148,11 @@ class _AtomicAssistAppState extends ConsumerState<AtomicAssistApp> {
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(appSettingsProvider);
+    // Turning briefings on or off schedules or cancels them at once.
+    ref.listen(appSettingsProvider, (prev, next) {
+      final was = prev?.value?.briefings, now = next.value?.briefings;
+      if (was != null && now != null && was != now) unawaited(_syncBriefings());
+    });
     // The native splash stays up until the first frame; until the settings
     // are read (a local query, normally one frame) show the same plain
     // surface, because the router's first location depends on them.

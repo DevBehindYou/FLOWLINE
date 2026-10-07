@@ -14,6 +14,11 @@ abstract interface class AssistantRepository {
 
   Future<List<LedgerEntry>> getGroup(String groupId);
 
+  /// One-shot [watchLedger] (a watch's `.first` never completes under the
+  /// widget tester's clock).
+  Future<List<LedgerEntry>> getLedger(
+      {required DateTime from, required DateTime to});
+
   /// One turn's entries, oldest first, live (an UNDO shows at once).
   Stream<List<LedgerEntry>> watchGroup(String groupId);
 
@@ -25,6 +30,9 @@ abstract interface class AssistantRepository {
 
   /// Open proposals not past their expiry at [now], newest first.
   Stream<List<Proposal>> watchOpenProposals(DateTime now);
+
+  /// How many proposals [watchOpenProposals] would show now.
+  Future<int> countOpenProposals(DateTime now);
 
   /// Moves an open proposal to [status]. False when it wasn't open (it was
   /// accepted, dismissed or expired already), so a double tap acts once.

@@ -17,6 +17,8 @@ import 'package:atomic_assist/features/onboarding/onboarding_screen.dart';
 import 'package:atomic_assist/features/schedule/view/today_screen.dart';
 import 'package:atomic_assist/features/settings/view/settings_home_screen.dart';
 import 'package:atomic_assist/features/task_detail/view/task_detail_screen.dart';
+import 'package:atomic_assist/domain/assistant/briefing.dart';
+import 'package:atomic_assist/features/briefing/view/briefing_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -67,6 +69,24 @@ class _QuietNotifications implements NotificationService {
   Stream<void> get taps => const Stream.empty();
   @override
   Future<void> cancelSessionNotification() async {}
+
+  @override
+  Stream<String> get briefingTaps => const Stream.empty();
+
+  @override
+  Future<String?> launchBriefingKind() async => null;
+
+  @override
+  Future<void> scheduleDailyBriefing({
+    required int notificationId,
+    required String kind,
+    required int hour,
+    required int minute,
+    required String title,
+    required String body,
+    required String channelName,
+    required String channelDescription,
+  }) async {}
 }
 
 // Tuesday 10 March 2026, 9:30: every date on screen is fixed.
@@ -166,6 +186,11 @@ void main() {
     ('focus_paused', seedPausedSession, (_) => const FocusScreen()),
     ('insights', seedWeek, (_) => const InsightsScreen()),
     ('settings', null, (_) => const SettingsHomeScreen()),
+    (
+      'briefing_morning',
+      seedDay,
+      (_) => const BriefingScreen(kind: BriefingKind.morning)
+    ),
     ('onboarding', null, (_) => OnboardingScreen(onFinished: (_) {})),
   ];
 

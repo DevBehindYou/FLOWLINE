@@ -909,6 +909,19 @@ open / total; a list's screen ticks, adds and clears ticked items, and
 every tap there goes through the same tools (`runDirectAction`), so it
 shows in Activity with undo.
 
+**Briefings (H.2).** `lib/domain/assistant/briefing.dart` builds a
+briefing from the day's facts (`BriefingFactsLoader`): the morning has the
+day's load and first block, the top three tasks (overdue, then high
+priority, then soonest due), people's dates this week and the number of
+suggestions; the shutdown has focus done today, what AA did on its own,
+unfinished tasks (due today or earlier), open follow-ups and tomorrow's
+first block. `briefing_text.dart` words it once, for both the screen and
+READ ALOUD. `/briefing/morning` and `/briefing/shutdown` show it with a
+split headline from the data; the shutdown's MOVE UNFINISHED TO TOMORROW
+moves each task to the same time tomorrow through `update_task`, in one
+ledger group with one UNDO. Daily notifications at 07:30 and 18:30 open
+them (Settings → Assistant → Briefings). **UNVERIFIED** on a device.
+
 **Context scanners (H.1).** `lib/domain/assistant/scanners.dart` holds
 pure scanners over a snapshot (tasks, today's blocks, people, dates,
 follow-ups): an upcoming date within 7 days, an overdue task, a free gap

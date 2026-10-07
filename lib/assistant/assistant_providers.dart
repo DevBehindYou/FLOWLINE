@@ -8,6 +8,7 @@ import '../data/assistant/undo_service.dart';
 import '../domain/assistant/tool.dart';
 import '../features/focus_timer/viewmodel/focus_timer_view_model.dart';
 import 'assist_chat.dart';
+import 'briefing_facts.dart';
 import 'orchestrator.dart';
 import 'proposal_service.dart';
 import 'reminder_sync.dart';
@@ -98,6 +99,16 @@ ProposalService proposalService(Ref ref) => ProposalService(
 AssistChat assistChat(Ref ref) => AssistChat(
       ai: ref.watch(aiRepositoryProvider),
       orchestrator: ref.watch(assistantOrchestratorProvider),
+    );
+
+/// What the briefings are built from (docs/05 §21).
+@Riverpod(keepAlive: true)
+BriefingFactsLoader briefingFactsLoader(Ref ref) => BriefingFactsLoader(
+      tasks: ref.watch(taskRepositoryProvider),
+      schedule: ref.watch(scheduleRepositoryProvider),
+      people: ref.watch(peopleRepositoryProvider),
+      store: ref.watch(assistantRepositoryProvider),
+      focus: ref.watch(focusSessionRepositoryProvider),
     );
 
 /// The context scanners (docs/05 §5.2), run on app start and resume.

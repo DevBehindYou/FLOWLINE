@@ -24,6 +24,7 @@ class AppSettings {
     this.speechRatePercent = defaultSpeechRatePercent,
     this.keepListening = false,
     this.suggestions = true,
+    this.briefings = true,
   });
 
   static const defaultSpeechRatePercent = 50;
@@ -67,6 +68,9 @@ class AppSettings {
   /// already stored is lost.
   final bool suggestions;
 
+  /// The morning (07:30) and shutdown (18:30) briefing notifications.
+  final bool briefings;
+
   int minutesFor(FocusSessionType type) => switch (type) {
         FocusSessionType.focus => focusMinutes,
         FocusSessionType.shortBreak => shortBreakMinutes,
@@ -86,6 +90,7 @@ class AppSettings {
     int? speechRatePercent,
     bool? keepListening,
     bool? suggestions,
+    bool? briefings,
   }) {
     return AppSettings(
       themeMode: themeMode ?? this.themeMode,
@@ -103,6 +108,7 @@ class AppSettings {
           _clampRate(speechRatePercent ?? this.speechRatePercent),
       keepListening: keepListening ?? this.keepListening,
       suggestions: suggestions ?? this.suggestions,
+      briefings: briefings ?? this.briefings,
     );
   }
 
@@ -120,6 +126,7 @@ class AppSettings {
   static const _kSpeechRate = 'speech_rate_percent';
   static const _kKeepListening = 'voice_keep_listening';
   static const _kSuggestions = 'proactive_suggestions';
+  static const _kBriefings = 'briefings';
 
   Map<String, String> toStorage() => {
         _kThemeMode: themeMode.name,
@@ -134,6 +141,7 @@ class AppSettings {
         _kSpeechRate: '$speechRatePercent',
         _kKeepListening: '$keepListening',
         _kSuggestions: '$suggestions',
+        _kBriefings: '$briefings',
       };
 
   factory AppSettings.fromStorage(Map<String, String> values) {
@@ -174,6 +182,7 @@ class AppSettings {
           defaults.speechRatePercent),
       keepListening: flag(_kKeepListening, defaults.keepListening),
       suggestions: flag(_kSuggestions, defaults.suggestions),
+      briefings: flag(_kBriefings, defaults.briefings),
     );
   }
 
@@ -195,7 +204,8 @@ class AppSettings {
       other.speakReplies == speakReplies &&
       other.speechRatePercent == speechRatePercent &&
       other.keepListening == keepListening &&
-      other.suggestions == suggestions;
+      other.suggestions == suggestions &&
+      other.briefings == briefings;
 
   @override
   int get hashCode => Object.hash(
@@ -210,5 +220,6 @@ class AppSettings {
       speakReplies,
       speechRatePercent,
       keepListening,
-      suggestions);
+      suggestions,
+      briefings);
 }

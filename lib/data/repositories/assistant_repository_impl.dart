@@ -35,6 +35,17 @@ class AssistantRepositoryImpl implements AssistantRepository {
   }
 
   @override
+  Future<List<LedgerEntry>> getLedger(
+      {required DateTime from, required DateTime to}) async {
+    final rows = await (_db.select(_db.assistantActions)
+          ..where((a) =>
+              a.at.isBiggerOrEqualValue(from) & a.at.isSmallerThanValue(to))
+          ..orderBy([(a) => OrderingTerm.desc(a.id)]))
+        .get();
+    return rows.map(_entry).toList();
+  }
+
+  @override
   Stream<List<LedgerEntry>> watchGroup(String groupId) {
     final query = _db.select(_db.assistantActions)
       ..where((a) => a.groupId.equals(groupId))
@@ -104,6 +115,18 @@ class AssistantRepositoryImpl implements AssistantRepository {
           (p.expiresAt.isNull() | p.expiresAt.isBiggerThanValue(now)))
       ..orderBy([(p) => OrderingTerm.desc(p.id)]);
     return query.watch().map((rows) => rows.map(_proposal).toList());
+  }
+
+  @override
+  Future<int> countOpenProposals(DateTime now) async {
+    final count = _db.proposals.id.count();
+    final row = await (_db.selectOnly(_db.proposals)
+          ..addColumns([count])
+          ..where(_db.proposals.status.equalsValue(ProposalStatus.open) &
+              (_db.proposals.expiresAt.isNull() |
+                  _db.proposals.expiresAt.isBiggerThanValue(now))))
+        .getSingle();
+    return row.read(count) ?? 0;
   }
 
   @override

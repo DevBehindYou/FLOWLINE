@@ -1669,4 +1669,183 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get autonomyHandsOffHint =>
       'AA also does what it notices, with Undo. Deleting always asks first.';
+
+  @override
+  String get briefingMorning => 'Morning';
+
+  @override
+  String get briefingCheckIn => 'Check-in';
+
+  @override
+  String get briefingShutdown => 'Shutdown';
+
+  @override
+  String get briefingWeekly => 'Weekly review';
+
+  @override
+  String briefingEyebrow(String kind, String date) {
+    return '$kind · $date';
+  }
+
+  @override
+  String briefingMorningHeadline(int blocks) {
+    String _temp0 = intl.Intl.pluralLogic(
+      blocks,
+      locale: localeName,
+      other: '$blocks blocks today.',
+      one: 'One block today.',
+      zero: 'A clear day.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String briefingStartWith(String title) {
+    return 'Start with $title.';
+  }
+
+  @override
+  String get briefingNothingDue => 'Nothing due.';
+
+  @override
+  String briefingShutdownHeadline(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes minutes of focus.',
+      one: '1 minute of focus.',
+      zero: 'No focus today.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String briefingTomorrowStarts(String time) {
+    return 'Tomorrow starts at $time.';
+  }
+
+  @override
+  String get briefingTomorrowClear => 'Tomorrow is clear.';
+
+  @override
+  String get briefingFirstUp => 'First up';
+
+  @override
+  String get briefingTopTasks => 'Top tasks';
+
+  @override
+  String get briefingComingUp => 'Coming up';
+
+  @override
+  String get briefingSuggestions => 'Suggestions';
+
+  @override
+  String get briefingDoneToday => 'Done today';
+
+  @override
+  String get briefingDoneByAa => 'Done by AA';
+
+  @override
+  String get briefingUnfinished => 'Unfinished';
+
+  @override
+  String get briefingWaitingOn => 'Waiting on';
+
+  @override
+  String get briefingTomorrow => 'Tomorrow';
+
+  @override
+  String briefingBlocksLine(int count, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count blocks · $minutes min',
+      one: '1 block · $minutes min',
+      zero: 'Nothing scheduled',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String briefingSuggestionsLine(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count suggestions in the Inbox',
+      one: '1 suggestion in the Inbox',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String briefingDoneLine(int sessions, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sessions,
+      locale: localeName,
+      other: '$sessions focus sessions · $minutes min',
+      one: '1 focus session · $minutes min',
+      zero: 'No focus sessions',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String briefingByAaLine(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'AA did $count things on its own. Undo any in Activity.',
+      one: 'AA did 1 thing on its own. Undo it in Activity.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get briefingNothingYet => 'Nothing scheduled yet.';
+
+  @override
+  String get briefingOpenInbox => 'Open Inbox';
+
+  @override
+  String get briefingMoveUnfinished => 'Move unfinished to tomorrow';
+
+  @override
+  String get briefingReadAloud => 'Read aloud';
+
+  @override
+  String briefingMoved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Moved $count tasks to tomorrow',
+      one: 'Moved 1 task to tomorrow',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get briefingNotificationMorning => 'Your morning briefing';
+
+  @override
+  String get briefingNotificationShutdown => 'Time to wrap up the day';
+
+  @override
+  String get briefingNotificationBody => 'Tap to see your day at a glance.';
+
+  @override
+  String get briefingChannel => 'Briefings';
+
+  @override
+  String get briefingChannelDescription =>
+      'The morning and end-of-day briefings';
+
+  @override
+  String get loadingBriefing => 'Loading briefing';
+
+  @override
+  String get assistantBriefings => 'Briefings';
+
+  @override
+  String get assistantBriefingsHint =>
+      'A morning briefing at 07:30 and a shutdown at 18:30.';
 }

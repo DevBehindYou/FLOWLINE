@@ -19,6 +19,14 @@ class NotificationService {
   final _taps = StreamController<void>.broadcast();
   final _reminderActions =
       StreamController<({String action, int reminderId})>.broadcast();
+  final _briefingTaps = StreamController<String>.broadcast();
+
+  /// A briefing notification was tapped while the app ran: its kind's
+  /// name (`morning`, `shutdown`; docs/05 §21).
+  Stream<String> get briefingTaps => _briefingTaps.stream;
+
+  /// The payload of a briefing notification: `briefing:<kind>`.
+  static const briefingPayloadPrefix = 'briefing:';
 
   /// A reminder notification's button, pressed while the app is running
   /// (DONE, SNOOZE 10 MIN, TOMORROW; docs/05 §13).
@@ -32,6 +40,7 @@ class NotificationService {
   static const _sessionNotificationId = 1001;
   static const _channelId = 'focus_session';
   static const _reminderChannelId = 'reminders';
+  static const _briefingChannelId = 'briefings';
 
   /// Set at startup to a top-level function: a button pressed while the
   /// app isn't running runs it in a background isolate.
@@ -64,7 +73,62 @@ class NotificationService {
       _reminderActions.add((action: action, reminderId: reminderId));
       return;
     }
+    if (briefingKindOf(response.payload) case final kind?) {
+      _briefingTaps.add(kind);
+      return;
+    }
     _taps.add(null);
+  }
+
+  /// The briefing kind in a notification payload, or null.
+  static String? briefingKindOf(String? payload) =>
+      payload != null && payload.startsWith(briefingPayloadPrefix)
+          ? payload.substring(briefingPayloadPrefix.length)
+          : null;
+
+  /// The briefing whose notification launched the app, if one did.
+  Future<String?> launchBriefingKind() async {
+    final details = await _plugin.getNotificationAppLaunchDetails();
+    if (!(details?.didNotificationLaunchApp ?? false)) return null;
+    return briefingKindOf(details?.notificationResponse?.payload);
+  }
+
+  /// A briefing every day at [hour]:[minute] local time (docs/05 §21).
+  /// Scheduling the same id again replaces it. Inexact, like the others.
+  Future<void> scheduleDailyBriefing({
+    required int notificationId,
+    required String kind,
+    required int hour,
+    required int minute,
+    required String title,
+    required String body,
+    required String channelName,
+    required String channelDescription,
+  }) {
+    final now = tz.TZDateTime.now(tz.local);
+    var at =
+        tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+    if (!at.isAfter(now)) {
+      // Tomorrow by its calendar fields, not +24 h (R7).
+      at = tz.TZDateTime(
+          tz.local, now.year, now.month, now.day + 1, hour, minute);
+    }
+    return _plugin.zonedSchedule(
+      id: notificationId,
+      title: title,
+      body: body,
+      scheduledDate: at,
+      payload: '$briefingPayloadPrefix$kind',
+      notificationDetails: NotificationDetails(
+        android: AndroidNotificationDetails(
+          _briefingChannelId,
+          channelName,
+          channelDescription: channelDescription,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      matchDateTimeComponents: DateTimeComponents.time,
+    );
   }
 
   /// The reminder id in a notification payload, or null.
