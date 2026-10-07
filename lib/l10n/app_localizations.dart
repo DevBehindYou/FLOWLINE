@@ -2577,6 +2577,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'AA couldn’t do that. Check the name or time and try again.'**
   String get localRejected;
+
+  /// No description provided for @voiceSheetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice'**
+  String get voiceSheetLabel;
+
+  /// No description provided for @voiceListening.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening'**
+  String get voiceListening;
+
+  /// No description provided for @voiceHeard.
+  ///
+  /// In en, this message translates to:
+  /// **'Understood'**
+  String get voiceHeard;
+
+  /// No description provided for @voiceThinking.
+  ///
+  /// In en, this message translates to:
+  /// **'Working on it'**
+  String get voiceThinking;
+
+  /// No description provided for @voiceReviewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Check what AA heard, then do it.'**
+  String get voiceReviewHint;
+
+  /// No description provided for @voiceStartListening.
+  ///
+  /// In en, this message translates to:
+  /// **'Start listening'**
+  String get voiceStartListening;
+
+  /// No description provided for @voiceStopListening.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop listening'**
+  String get voiceStopListening;
+
+  /// No description provided for @voiceTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get voiceTryAgain;
+
+  /// No description provided for @voiceGrantMicrophone.
+  ///
+  /// In en, this message translates to:
+  /// **'Grant microphone'**
+  String get voiceGrantMicrophone;
+
+  /// No description provided for @voiceErrorNoPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'AA needs the microphone to listen.'**
+  String get voiceErrorNoPermission;
+
+  /// No description provided for @voiceErrorNoEngine.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech recognition isn’t available on this phone.'**
+  String get voiceErrorNoEngine;
+
+  /// No description provided for @voiceErrorNoSpeech.
+  ///
+  /// In en, this message translates to:
+  /// **'Didn’t catch that.'**
+  String get voiceErrorNoSpeech;
+
+  /// No description provided for @voiceErrorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech recognition needs a connection right now.'**
+  String get voiceErrorNetwork;
+
+  /// No description provided for @voiceErrorBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'The recogniser is busy. Try again in a moment.'**
+  String get voiceErrorBusy;
+
+  /// No description provided for @voiceErrorModelMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'This language isn’t installed for speech recognition.'**
+  String get voiceErrorModelMissing;
+
+  /// No description provided for @voiceNeedsConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the screen to confirm.'**
+  String get voiceNeedsConfirm;
+
+  /// No description provided for @voiceTurnFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'That didn’t work. Try again, or type it.'**
+  String get voiceTurnFailed;
+
+  /// No description provided for @voiceListeningIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening · {language}'**
+  String voiceListeningIn(String language);
+
+  /// No description provided for @voiceDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get voiceDone;
 }
 
 class _AppLocalizationsDelegate

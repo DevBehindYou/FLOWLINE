@@ -1517,4 +1517,66 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get localRejected =>
       'AA couldn’t do that. Check the name or time and try again.';
+
+  @override
+  String get voiceSheetLabel => 'Voice';
+
+  @override
+  String get voiceListening => 'Listening';
+
+  @override
+  String get voiceHeard => 'Understood';
+
+  @override
+  String get voiceThinking => 'Working on it';
+
+  @override
+  String get voiceReviewHint => 'Check what AA heard, then do it.';
+
+  @override
+  String get voiceStartListening => 'Start listening';
+
+  @override
+  String get voiceStopListening => 'Stop listening';
+
+  @override
+  String get voiceTryAgain => 'Try again';
+
+  @override
+  String get voiceGrantMicrophone => 'Grant microphone';
+
+  @override
+  String get voiceErrorNoPermission => 'AA needs the microphone to listen.';
+
+  @override
+  String get voiceErrorNoEngine =>
+      'Speech recognition isn’t available on this phone.';
+
+  @override
+  String get voiceErrorNoSpeech => 'Didn’t catch that.';
+
+  @override
+  String get voiceErrorNetwork =>
+      'Speech recognition needs a connection right now.';
+
+  @override
+  String get voiceErrorBusy => 'The recogniser is busy. Try again in a moment.';
+
+  @override
+  String get voiceErrorModelMissing =>
+      'This language isn’t installed for speech recognition.';
+
+  @override
+  String get voiceNeedsConfirm => 'Check the screen to confirm.';
+
+  @override
+  String get voiceTurnFailed => 'That didn’t work. Try again, or type it.';
+
+  @override
+  String voiceListeningIn(String language) {
+    return 'Listening · $language';
+  }
+
+  @override
+  String get voiceDone => 'Done';
 }

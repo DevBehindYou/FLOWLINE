@@ -550,7 +550,7 @@ final class AssistantViewModelProvider
 }
 
 String _$assistantViewModelHash() =>
-    r'fdd12136bc7c87f4bcf400584a1de597f019155c';
+    r'4098cd2eb861f750b37fe65dcf244267ea72e39b';
 
 abstract class _$AssistantViewModel extends $Notifier<bool> {
   bool build();

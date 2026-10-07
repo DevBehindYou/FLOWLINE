@@ -13,6 +13,7 @@ import '../viewmodel/assistant_view_model.dart';
 import '../../../assistant/orchestrator.dart';
 import '../widgets/chat_bubble.dart';
 import '../widgets/turn_actions.dart';
+import '../../voice/view/listening_panel.dart';
 import '../../../l10n/l10n.dart';
 
 class AssistantScreen extends ConsumerWidget {
@@ -367,6 +368,14 @@ class _Composer extends ConsumerWidget {
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => onSend(),
               ),
+            ),
+            const SizedBox(width: AtomicSpace.xxs),
+            AtomicIconButton(
+              icon: AtomicIcons.mic,
+              semanticLabel: context.l10n.voiceStartListening,
+              style: AtomicIconButtonStyle.ink,
+              onPressed:
+                  isSending ? null : () => showListeningPanel(context, ref),
             ),
             const SizedBox(width: AtomicSpace.xxs),
             // Send, or Stop while a reply is on its way (spec §5.9).

@@ -1122,6 +1122,18 @@ For each screen: purpose, what it shows, actions, and its state model.
 
 ### 12.8 Assistant — `AssistantScreen`
 - App bar: "AI Providers" icon.
+- **Voice (docs/05 Phase G.1):** a mic button (ink) next to Send opens the
+  listening panel and starts push-to-talk. The loop is a pure reducer
+  (`lib/domain/assistant/voice_state.dart`, table-tested) driven by
+  `VoiceController`: live partials ("LISTENING · EN-IN"), a final at or
+  above 0.6 confidence runs one assistant turn (chat with a provider, the
+  local grammar without one; the utterance is stored as `voice`), a less
+  certain one is shown to edit first, and the reply is shown as a caption
+  and read aloud (`flutter_tts`). Errors are typed (no microphone, no
+  recogniser, nothing heard, network, busy, language missing) with GRANT
+  MICROPHONE / TRY AGAIN. Recognition is Android's own recogniser
+  (`speech_to_text`), which may use the recogniser's online service.
+  Closing the panel stops listening and speech. **UNVERIFIED** on a device.
 - **No active provider (`_LocalBody`, docs/05 Phase F.4):** quick
   commands still work. The field ("Try: remind me at 6pm to call Mum")
   runs the orchestrator, which tries the local grammar and stops there:

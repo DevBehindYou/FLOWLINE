@@ -23,7 +23,20 @@ const manifestPermissions = <String>[
   // flutter_local_notifications >= 16 no longer declares this itself; it
   // lets the plugin restore a pending session-end alert after a reboot.
   'android.permission.RECEIVE_BOOT_COMPLETED',
+  // Push-to-talk (docs/05 §22.1): asked for at runtime on the first tap.
+  'android.permission.RECORD_AUDIO',
 ];
+
+// Android 11+ package visibility: without these, speech_to_text finds no
+// recogniser and flutter_tts no voice, and both fail silently.
+const voiceQueries = '''
+        <intent>
+            <action android:name="android.speech.RecognitionService"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE"/>
+        </intent>
+''';
 
 // flutter_local_notifications >= 16 requires the app to register these
 // for zonedSchedule(); without ScheduledNotificationReceiver the alarm
@@ -218,6 +231,10 @@ String patchManifest(String manifest) {
       out, 'android:fullBackupContent', '@xml/atomic_backup_rules');
   out = _addApplicationAttribute(
       out, 'android:dataExtractionRules', '@xml/atomic_data_extraction_rules');
+
+  if (!out.contains('android.speech.RecognitionService')) {
+    out = _insertBefore(out, '    </queries>', voiceQueries);
+  }
 
   if (!out.contains('ScheduledNotificationReceiver')) {
     // Before the closing tag's own indentation, so both stay aligned.

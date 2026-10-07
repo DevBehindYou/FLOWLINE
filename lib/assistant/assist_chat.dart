@@ -22,6 +22,7 @@ final class AssistChat {
     required int conversationId,
     required String text,
     AICancelToken? cancel,
+    UtteranceSource source = UtteranceSource.typed,
   }) async {
     final history = await ai.chatHistory(conversationId);
     final groupId = 'chat-$conversationId-'
@@ -31,7 +32,7 @@ final class AssistChat {
     TurnResult result;
     try {
       result = await orchestrator.handle(
-        Utterance(text, source: UtteranceSource.typed),
+        Utterance(text, source: source),
         history: history,
         cancel: cancel,
         groupId: groupId,

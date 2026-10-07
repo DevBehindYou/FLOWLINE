@@ -99,6 +99,21 @@ void main() {
       }
     });
 
+    test('lets the app see the speech recogniser and TTS engines', () {
+      final queries = patched.substring(
+          patched.indexOf('<queries>'), patched.indexOf('</queries>'));
+      expect(
+          queries,
+          contains(
+              '<action android:name="android.speech.RecognitionService"/>'));
+      expect(
+          queries,
+          contains(
+              '<action android:name="android.intent.action.TTS_SERVICE"/>'));
+      // The template's own query stays.
+      expect(queries, contains('android.intent.action.PROCESS_TEXT'));
+    });
+
     test('allows cleartext traffic on the <application> tag for Ollama', () {
       final applicationTag = patched.substring(
           patched.indexOf('<application'), patched.indexOf('<activity'));
