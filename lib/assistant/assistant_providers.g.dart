@@ -349,6 +349,52 @@ final class AssistChatProvider
 
 String _$assistChatHash() => r'a3cedf3c9b4330d6d92e61983050c92c62a91170';
 
+/// The context scanners (docs/05 §5.2), run on app start and resume.
+
+@ProviderFor(scannerRunner)
+final scannerRunnerProvider = ScannerRunnerProvider._();
+
+/// The context scanners (docs/05 §5.2), run on app start and resume.
+
+final class ScannerRunnerProvider
+    extends $FunctionalProvider<ScannerRunner, ScannerRunner, ScannerRunner>
+    with $Provider<ScannerRunner> {
+  /// The context scanners (docs/05 §5.2), run on app start and resume.
+  ScannerRunnerProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'scannerRunnerProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$scannerRunnerHash();
+
+  @$internal
+  @override
+  $ProviderElement<ScannerRunner> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  ScannerRunner create(Ref ref) {
+    return scannerRunner(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ScannerRunner value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ScannerRunner>(value),
+    );
+  }
+}
+
+String _$scannerRunnerHash() => r'aaece294486bb1ad94acb1d2b8f502f516f93930';
+
 @ProviderFor(reminderSync)
 final reminderSyncProvider = ReminderSyncProvider._();
 

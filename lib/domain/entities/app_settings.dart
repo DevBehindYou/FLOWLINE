@@ -23,6 +23,7 @@ class AppSettings {
     this.speakReplies = SpeakReplies.whenISpoke,
     this.speechRatePercent = defaultSpeechRatePercent,
     this.keepListening = false,
+    this.suggestions = true,
   });
 
   static const defaultSpeechRatePercent = 50;
@@ -62,6 +63,10 @@ class AppSettings {
   /// Conversation mode (docs/05 §22.1): listen again after each reply.
   final bool keepListening;
 
+  /// The kill switch (docs/05 §6.6): off pauses every scanner; nothing
+  /// already stored is lost.
+  final bool suggestions;
+
   int minutesFor(FocusSessionType type) => switch (type) {
         FocusSessionType.focus => focusMinutes,
         FocusSessionType.shortBreak => shortBreakMinutes,
@@ -80,6 +85,7 @@ class AppSettings {
     SpeakReplies? speakReplies,
     int? speechRatePercent,
     bool? keepListening,
+    bool? suggestions,
   }) {
     return AppSettings(
       themeMode: themeMode ?? this.themeMode,
@@ -96,6 +102,7 @@ class AppSettings {
       speechRatePercent:
           _clampRate(speechRatePercent ?? this.speechRatePercent),
       keepListening: keepListening ?? this.keepListening,
+      suggestions: suggestions ?? this.suggestions,
     );
   }
 
@@ -112,6 +119,7 @@ class AppSettings {
   static const _kSpeakReplies = 'speak_replies';
   static const _kSpeechRate = 'speech_rate_percent';
   static const _kKeepListening = 'voice_keep_listening';
+  static const _kSuggestions = 'proactive_suggestions';
 
   Map<String, String> toStorage() => {
         _kThemeMode: themeMode.name,
@@ -125,6 +133,7 @@ class AppSettings {
         _kSpeakReplies: speakReplies.name,
         _kSpeechRate: '$speechRatePercent',
         _kKeepListening: '$keepListening',
+        _kSuggestions: '$suggestions',
       };
 
   factory AppSettings.fromStorage(Map<String, String> values) {
@@ -164,6 +173,7 @@ class AppSettings {
       speechRatePercent: _clampRate(int.tryParse(values[_kSpeechRate] ?? '') ??
           defaults.speechRatePercent),
       keepListening: flag(_kKeepListening, defaults.keepListening),
+      suggestions: flag(_kSuggestions, defaults.suggestions),
     );
   }
 
@@ -184,7 +194,8 @@ class AppSettings {
       other.autonomy == autonomy &&
       other.speakReplies == speakReplies &&
       other.speechRatePercent == speechRatePercent &&
-      other.keepListening == keepListening;
+      other.keepListening == keepListening &&
+      other.suggestions == suggestions;
 
   @override
   int get hashCode => Object.hash(
@@ -198,5 +209,6 @@ class AppSettings {
       autonomy,
       speakReplies,
       speechRatePercent,
-      keepListening);
+      keepListening,
+      suggestions);
 }

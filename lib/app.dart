@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -35,7 +36,24 @@ class _AtomicAssistAppState extends ConsumerState<AtomicAssistApp> {
       _reconcileFocusSession();
       unawaited(_listenForNotificationTaps());
       unawaited(_topUpReminders());
+      unawaited(_runScanners());
     });
+  }
+
+  DateTime? _lastScan;
+
+  /// The context scanners (docs/05 §9.6): on start and resume, at most
+  /// every 10 minutes. Suggestions are a convenience; a failure is quiet.
+  Future<void> _runScanners() async {
+    final now = clock.now();
+    final last = _lastScan;
+    if (last != null && now.difference(last) < const Duration(minutes: 10)) {
+      return;
+    }
+    _lastScan = now;
+    try {
+      await ref.read(scannerRunnerProvider).run(now);
+    } catch (_) {}
   }
 
   StreamSubscription<void>? _notificationTaps;
@@ -87,6 +105,7 @@ class _AtomicAssistAppState extends ConsumerState<AtomicAssistApp> {
     ref.read(currentDayProvider.notifier).refresh();
     _reconcileFocusSession();
     unawaited(_topUpReminders());
+    unawaited(_runScanners());
   }
 
   void _reconcileFocusSession() {

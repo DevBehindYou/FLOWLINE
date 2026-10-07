@@ -2757,6 +2757,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{value}%'**
   String percentValue(int value);
+
+  /// No description provided for @scanReminderBirthday.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}’s birthday'**
+  String scanReminderBirthday(String name);
+
+  /// No description provided for @scanReminderAnniversary.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}’s anniversary'**
+  String scanReminderAnniversary(String name);
+
+  /// No description provided for @scanReminderDate.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {label}'**
+  String scanReminderDate(String name, String label);
+
+  /// No description provided for @settingsAssistant.
+  ///
+  /// In en, this message translates to:
+  /// **'Assistant'**
+  String get settingsAssistant;
+
+  /// No description provided for @settingsAssistantHint.
+  ///
+  /// In en, this message translates to:
+  /// **'How much AA does on its own, suggestions'**
+  String get settingsAssistantHint;
+
+  /// No description provided for @assistantSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestions'**
+  String get assistantSuggestions;
+
+  /// No description provided for @assistantSuggestionsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'AA looks at your tasks, day and people and suggests things in the Inbox. Nothing runs until you tap.'**
+  String get assistantSuggestionsHint;
+
+  /// No description provided for @assistantAutonomy.
+  ///
+  /// In en, this message translates to:
+  /// **'How much AA does on its own'**
+  String get assistantAutonomy;
+
+  /// No description provided for @autonomyCareful.
+  ///
+  /// In en, this message translates to:
+  /// **'Careful'**
+  String get autonomyCareful;
+
+  /// No description provided for @autonomyBalanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Balanced'**
+  String get autonomyBalanced;
+
+  /// No description provided for @autonomyHandsOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Hands-off'**
+  String get autonomyHandsOff;
+
+  /// No description provided for @autonomyCarefulHint.
+  ///
+  /// In en, this message translates to:
+  /// **'AA asks before every change, even ones you asked for.'**
+  String get autonomyCarefulHint;
+
+  /// No description provided for @autonomyBalancedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'AA does what you ask, with Undo. What it notices waits in the Inbox.'**
+  String get autonomyBalancedHint;
+
+  /// No description provided for @autonomyHandsOffHint.
+  ///
+  /// In en, this message translates to:
+  /// **'AA also does what it notices, with Undo. Deleting always asks first.'**
+  String get autonomyHandsOffHint;
 }
 
 class _AppLocalizationsDelegate

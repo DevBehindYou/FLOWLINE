@@ -16,6 +16,7 @@ void main() {
       speakReplies: SpeakReplies.always,
       speechRatePercent: 70,
       keepListening: true,
+      suggestions: false,
     );
     expect(AppSettings.fromStorage(settings.toStorage()), settings);
   });

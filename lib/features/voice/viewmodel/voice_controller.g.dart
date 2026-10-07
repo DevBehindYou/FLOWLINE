@@ -252,7 +252,7 @@ final class VoiceControllerProvider
   }
 }
 
-String _$voiceControllerHash() => r'28739505a5171918008f699433698a448c69dce6';
+String _$voiceControllerHash() => r'dc2df34627f27f2941eb1cf8e9b6c465b608afc9';
 
 /// The voice loop (docs/05 §22.7): owns the engine session, applies
 /// [reduce], hands what was heard to the assistant and speaks the reply.

@@ -909,6 +909,21 @@ open / total; a list's screen ticks, adds and clears ticked items, and
 every tap there goes through the same tools (`runDirectAction`), so it
 shows in Activity with undo.
 
+**Context scanners (H.1).** `lib/domain/assistant/scanners.dart` holds
+pure scanners over a snapshot (tasks, today's blocks, people, dates,
+follow-ups): an upcoming date within 7 days, an overdue task, a free gap
+of at least 45 minutes today for the oldest high-priority task with no
+block, a follow-up past its wait time, and a day booked to 90% or more of
+09:00–18:00. `ScannerRunner` turns each finding into an Inbox proposal
+for a real tool (`create_reminder` on the morning of the date,
+`update_task` to the same time tomorrow, `schedule_task`,
+`complete_follow_up`, `move_block` to tomorrow), worded by l10n and keyed
+so it is never proposed twice, even after a dismiss. Under HANDS-OFF a
+reversible finding runs at once, with a ledger row and UNDO. It runs on
+app start and resume, at most every 10 minutes, unless Settings →
+Assistant → SUGGESTIONS (the kill switch) is off. Settings → Assistant
+also sets the autonomy preset.
+
 **People, dates and follow-ups (F.3a).** Four tools: `get_person`
 (read), `add_person_date` (a birthday, anniversary or other yearly date;
 adds the person if they aren't known), `create_follow_up` ("chase Ravi

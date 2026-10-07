@@ -953,5 +953,22 @@
   "voiceKeepListeningHint": "After each reply, listen again until you stop or go quiet.",
   "voicePrivacyNote": "Speech is recognised by your phone’s speech service, which may send audio to its provider. Replies are spoken on the phone.",
   "percentValue": "{value}%",
-  "@percentValue": {"placeholders": {"value": {"type": "int"}}}
+  "@percentValue": {"placeholders": {"value": {"type": "int"}}},
+  "scanReminderBirthday": "{name}’s birthday",
+  "@scanReminderBirthday": {"placeholders": {"name": {"type": "String"}}},
+  "scanReminderAnniversary": "{name}’s anniversary",
+  "@scanReminderAnniversary": {"placeholders": {"name": {"type": "String"}}},
+  "scanReminderDate": "{name}: {label}",
+  "@scanReminderDate": {"placeholders": {"name": {"type": "String"}, "label": {"type": "String"}}},
+  "settingsAssistant": "Assistant",
+  "settingsAssistantHint": "How much AA does on its own, suggestions",
+  "assistantSuggestions": "Suggestions",
+  "assistantSuggestionsHint": "AA looks at your tasks, day and people and suggests things in the Inbox. Nothing runs until you tap.",
+  "assistantAutonomy": "How much AA does on its own",
+  "autonomyCareful": "Careful",
+  "autonomyBalanced": "Balanced",
+  "autonomyHandsOff": "Hands-off",
+  "autonomyCarefulHint": "AA asks before every change, even ones you asked for.",
+  "autonomyBalancedHint": "AA does what you ask, with Undo. What it notices waits in the Inbox.",
+  "autonomyHandsOffHint": "AA also does what it notices, with Undo. Deleting always asks first."
 }

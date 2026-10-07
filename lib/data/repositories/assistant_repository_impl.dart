@@ -79,6 +79,17 @@ class AssistantRepositoryImpl implements AssistantRepository {
   }
 
   @override
+  Future<Set<String>> knownProposalKeys(Iterable<String> keys) async {
+    final wanted = keys.toSet();
+    if (wanted.isEmpty) return const {};
+    final rows = await (_db.selectOnly(_db.proposals, distinct: true)
+          ..addColumns([_db.proposals.dedupeKey])
+          ..where(_db.proposals.dedupeKey.isIn(wanted)))
+        .get();
+    return {for (final r in rows) r.read(_db.proposals.dedupeKey)!};
+  }
+
+  @override
   Future<Proposal?> getProposal(int id) async {
     final row = await (_db.select(_db.proposals)..where((p) => p.id.equals(id)))
         .getSingleOrNull();
