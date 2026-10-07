@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../assistant/orchestrator.dart';
@@ -44,6 +45,24 @@ Future<TurnResult> Function(String text) voiceTurnRunner(Ref ref) =>
         source: UtteranceSource.voice,
       );
     };
+
+/// Set when the app was opened to listen (the Quick Settings tile or the
+/// launcher shortcut, through `atomicassist://app/assistant?listen=1`);
+/// the Assist screen takes it and opens the listening panel once.
+@Riverpod(keepAlive: true)
+class PendingListen extends _$PendingListen {
+  @override
+  bool build() => false;
+
+  void request() => state = true;
+
+  /// Whether listening was asked for; clears the request.
+  bool take() {
+    final asked = state;
+    state = false;
+    return asked;
+  }
+}
 
 /// What AA says back after a spoken command (and shows as the caption).
 String spokenReply(AppLocalizations l10n, TurnResult result) {
@@ -127,8 +146,10 @@ class VoiceController extends _$VoiceController {
     state = next;
     switch (next) {
       case VoiceListening() when before is! VoiceListening:
+        _cue(listening: true);
         _listen();
       case VoiceThinking(:final text):
+        _cue(listening: false);
         _closeSession();
         unawaited(_think(text));
       case VoiceSpeaking(:final reply, spoken: true):
@@ -140,6 +161,23 @@ class VoiceController extends _$VoiceController {
         }
       default:
     }
+  }
+
+  /// A haptic tick and a short click mark the start and end of listening
+  /// (docs/05 §22.4), so it's clear without looking. Never fatal.
+  void _cue({required bool listening}) {
+    Future<void> safely(Future<void> Function() cue) async {
+      try {
+        await cue();
+      } on Object {
+        // No platform (a unit test) or no vibrator: carry on.
+      }
+    }
+
+    unawaited(safely(listening
+        ? HapticFeedback.mediumImpact
+        : HapticFeedback.selectionClick));
+    unawaited(safely(() => SystemSound.play(SystemSoundType.click)));
   }
 
   void _listen() {

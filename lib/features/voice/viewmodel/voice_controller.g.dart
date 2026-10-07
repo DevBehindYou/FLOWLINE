@@ -144,6 +144,66 @@ final class VoiceTurnRunnerProvider extends $FunctionalProvider<
 
 String _$voiceTurnRunnerHash() => r'84bb5d5f9b148043c2280fbfef72654b0077cf72';
 
+/// Set when the app was opened to listen (the Quick Settings tile or the
+/// launcher shortcut, through `atomicassist://app/assistant?listen=1`);
+/// the Assist screen takes it and opens the listening panel once.
+
+@ProviderFor(PendingListen)
+final pendingListenProvider = PendingListenProvider._();
+
+/// Set when the app was opened to listen (the Quick Settings tile or the
+/// launcher shortcut, through `atomicassist://app/assistant?listen=1`);
+/// the Assist screen takes it and opens the listening panel once.
+final class PendingListenProvider
+    extends $NotifierProvider<PendingListen, bool> {
+  /// Set when the app was opened to listen (the Quick Settings tile or the
+  /// launcher shortcut, through `atomicassist://app/assistant?listen=1`);
+  /// the Assist screen takes it and opens the listening panel once.
+  PendingListenProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'pendingListenProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$pendingListenHash();
+
+  @$internal
+  @override
+  PendingListen create() => PendingListen();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$pendingListenHash() => r'f61b48f0476485d0163498b1c4a2b7a0e65ffea4';
+
+/// Set when the app was opened to listen (the Quick Settings tile or the
+/// launcher shortcut, through `atomicassist://app/assistant?listen=1`);
+/// the Assist screen takes it and opens the listening panel once.
+
+abstract class _$PendingListen extends $Notifier<bool> {
+  bool build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<bool, bool>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<bool, bool>, bool, Object?, Object?>;
+    return element.handleCreate(ref, build);
+  }
+}
+
 /// The voice loop (docs/05 §22.7): owns the engine session, applies
 /// [reduce], hands what was heard to the assistant and speaks the reply.
 /// The UI only watches this state.

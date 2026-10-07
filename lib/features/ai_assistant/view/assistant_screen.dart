@@ -19,11 +19,31 @@ import '../../voice/view/listening_panel.dart';
 import '../../voice/viewmodel/voice_controller.dart';
 import '../../../l10n/l10n.dart';
 
-class AssistantScreen extends ConsumerWidget {
+class AssistantScreen extends ConsumerStatefulWidget {
   const AssistantScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AssistantScreen> createState() => _AssistantScreenState();
+}
+
+class _AssistantScreenState extends ConsumerState<AssistantScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Opened to listen (the tile, the shortcut) before this screen existed.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _listenIfAsked());
+  }
+
+  void _listenIfAsked() {
+    if (!mounted || !ref.read(pendingListenProvider.notifier).take()) return;
+    unawaited(showListeningPanel(context, ref));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen(pendingListenProvider, (_, asked) {
+      if (asked) _listenIfAsked();
+    });
     final activeProviderAsync = ref.watch(activeAiProviderProvider);
 
     return Scaffold(

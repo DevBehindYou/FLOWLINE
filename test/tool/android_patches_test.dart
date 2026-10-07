@@ -114,6 +114,28 @@ void main() {
       expect(queries, contains('android.intent.action.PROCESS_TEXT'));
     });
 
+    test('MainActivity opens the listen deep link and has the shortcut', () {
+      final activity = patched.substring(
+          patched.indexOf('<activity'), patched.indexOf('</activity>'));
+      expect(activity, contains('android:scheme="atomicassist"'));
+      expect(activity, contains('android:host="app"'));
+      expect(activity, contains('android.intent.action.VIEW'));
+      expect(activity, contains('android:resource="@xml/atomic_shortcuts"'));
+      // The launcher filter is still there, before it.
+      expect(activity.indexOf('android.intent.category.LAUNCHER'),
+          lessThan(activity.indexOf('android:scheme')));
+    });
+
+    test('registers the Quick Settings tile inside <application>', () {
+      final applicationBody = patched.substring(
+          patched.indexOf('<application'), patched.indexOf('</application>'));
+      expect(applicationBody, contains('android:name=".ListenTileService"'));
+      expect(applicationBody,
+          contains('android.permission.BIND_QUICK_SETTINGS_TILE'));
+      expect(applicationBody,
+          contains('android.service.quicksettings.action.QS_TILE'));
+    });
+
     test('allows cleartext traffic on the <application> tag for Ollama', () {
       final applicationTag = patched.substring(
           patched.indexOf('<application'), patched.indexOf('<activity'));
@@ -302,6 +324,44 @@ void main() {
         expect(xml, contains('name="LaunchTheme"'));
         expect(xml, contains('parent="@android:style/$parent"'));
         expect(xml, contains('android:windowSplashScreenBackground'));
+      }
+    });
+  });
+
+  group('voice shortcuts', () {
+    test('the tile service is in the generated Kotlin package', () {
+      final kt = voiceShortcutFiles[
+          'app/src/main/kotlin/com/devbehindyou/atomic_assist/ListenTileService.kt']!;
+      expect(kt, contains('package com.devbehindyou.atomic_assist'));
+      expect(kt, contains('class ListenTileService : TileService()'));
+      expect(kt, contains('"atomicassist://app/assistant?listen=1"'));
+      expect(kt, contains('startActivityAndCollapse'));
+    });
+
+    test('the launcher shortcut targets the store id and MainActivity', () {
+      final xml =
+          voiceShortcutFiles['app/src/main/res/xml/atomic_shortcuts.xml']!;
+      expect(xml,
+          contains('android:targetPackage="com.devbehindyou.atomicassist"'));
+      expect(
+          xml,
+          contains(
+              'android:targetClass="com.devbehindyou.atomic_assist.MainActivity"'));
+      expect(xml,
+          contains('android:data="atomicassist://app/assistant?listen=1"'));
+    });
+
+    test('every resource the manifest and shortcut name exists', () {
+      final files = voiceShortcutFiles.keys;
+      expect(files, contains('app/src/main/res/drawable/atomic_ic_mic.xml'));
+      final strings =
+          voiceShortcutFiles['app/src/main/res/values/atomic_strings.xml']!;
+      expect(strings, contains('name="atomic_listen_tile"'));
+      expect(strings, contains('name="atomic_listen_short"'));
+      for (final entry in voiceShortcutFiles.entries) {
+        if (!entry.key.endsWith('.xml')) continue;
+        expect(entry.value, startsWith('<?xml'), reason: entry.key);
+        expect(entry.value.trim(), endsWith('>'), reason: entry.key);
       }
     });
   });
