@@ -157,6 +157,110 @@ Map<String, String> get splashResourceFiles => {
           _launchThemeV31('@android:style/Theme.Black.NoTitleBar'),
     };
 
+// Voice shortcuts (docs/05 §22.1): a Quick Settings tile and a launcher
+// shortcut both open `atomicassist://app/assistant?listen=1`; Flutter's
+// deep linking hands it to go_router, which opens Assist and listens.
+const listenDeepLinkScheme = 'atomicassist';
+const listenDeepLinkHost = 'app';
+const listenDeepLink = '$listenDeepLinkScheme://$listenDeepLinkHost'
+    '/assistant?listen=1';
+
+// The Kotlin package flutter create generates (--org com.devbehindyou, the
+// pubspec name atomic_assist). It differs from the application id.
+const kotlinPackage = 'com.devbehindyou.atomic_assist';
+
+const _deepLinkFilter = '''
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="$listenDeepLinkScheme" android:host="$listenDeepLinkHost"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/atomic_shortcuts"/>
+''';
+
+const _listenTileService = '''
+        <service
+            android:name=".ListenTileService"
+            android:exported="true"
+            android:icon="@drawable/atomic_ic_mic"
+            android:label="@string/atomic_listen_tile"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE"/>
+            </intent-filter>
+        </service>
+''';
+
+const _listenTileKotlin = '''
+package $kotlinPackage
+
+import android.app.PendingIntent
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.service.quicksettings.TileService
+
+/// The "Talk to Atomic Assist" Quick Settings tile: opens the app on the
+/// listening panel. Written by tool/ci/android_patches.dart.
+class ListenTileService : TileService() {
+    override fun onClick() {
+        super.onClick()
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("$listenDeepLink"),
+            this, MainActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        if (Build.VERSION.SDK_INT >= 34) {
+            startActivityAndCollapse(PendingIntent.getActivity(this, 0, intent,
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT))
+        } else {
+            @Suppress("DEPRECATION", "StartActivityAndCollapseDeprecated")
+            startActivityAndCollapse(intent)
+        }
+    }
+}
+''';
+
+const _shortcutsXml = '<?xml version="1.0" encoding="utf-8"?>\n'
+    '<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">\n'
+    '    <shortcut\n'
+    '        android:shortcutId="listen"\n'
+    '        android:enabled="true"\n'
+    '        android:icon="@drawable/atomic_ic_mic"\n'
+    '        android:shortcutShortLabel="@string/atomic_listen_short">\n'
+    '        <intent\n'
+    '            android:action="android.intent.action.VIEW"\n'
+    '            android:targetPackage="$applicationId"\n'
+    '            android:targetClass="$kotlinPackage.MainActivity"\n'
+    '            android:data="$listenDeepLink"/>\n'
+    '    </shortcut>\n'
+    '</shortcuts>\n';
+
+// Material Symbols "mic", outlined (design system §7.1), in ink.
+const _micDrawableXml = '<?xml version="1.0" encoding="utf-8"?>\n'
+    '<vector xmlns:android="http://schemas.android.com/apk/res/android"\n'
+    '    android:width="24dp" android:height="24dp"\n'
+    '    android:viewportWidth="24" android:viewportHeight="24">\n'
+    '    <path android:fillColor="#FF15171B"\n'
+    '        android:pathData="M12,14c1.66,0 3,-1.34 3,-3V5c0,-1.66 -1.34,-3 -3,-3S9,3.34 9,5v6C9,12.66 10.34,14 12,14zM11,5c0,-0.55 0.45,-1 1,-1s1,0.45 1,1v6c0,0.55 -0.45,1 -1,1s-1,-0.45 -1,-1V5zM17,11c0,2.76 -2.24,5 -5,5s-5,-2.24 -5,-5H5c0,3.53 2.61,6.43 6,6.92V21h2v-3.08c3.39,-0.49 6,-3.39 6,-6.92H17z"/>\n'
+    '</vector>\n';
+
+const _voiceStringsXml = '<?xml version="1.0" encoding="utf-8"?>\n'
+    '<resources>\n'
+    '    <string name="atomic_listen_tile">Talk to Atomic Assist</string>\n'
+    '    <string name="atomic_listen_short">Talk</string>\n'
+    '</resources>\n';
+
+/// Keyed by path relative to the android/ directory.
+Map<String, String> get voiceShortcutFiles => {
+      'app/src/main/kotlin/${kotlinPackage.replaceAll('.', '/')}/'
+          'ListenTileService.kt': _listenTileKotlin,
+      'app/src/main/res/xml/atomic_shortcuts.xml': _shortcutsXml,
+      'app/src/main/res/drawable/atomic_ic_mic.xml': _micDrawableXml,
+      'app/src/main/res/values/atomic_strings.xml': _voiceStringsXml,
+    };
+
 // Release signing. The template signs release builds with the debug key,
 // and every CI runner generates a fresh debug keystore, so each build had
 // a different signature: Android refuses to install it over the previous
@@ -234,6 +338,15 @@ String patchManifest(String manifest) {
 
   if (!out.contains('android.speech.RecognitionService')) {
     out = _insertBefore(out, '    </queries>', voiceQueries);
+  }
+
+  if (!out.contains('android:scheme="$listenDeepLinkScheme"')) {
+    // Inside MainActivity, after its launcher filter.
+    out =
+        _insertBefore(out, '        </activity>', _deepLinkFilter, first: true);
+  }
+  if (!out.contains('.ListenTileService')) {
+    out = _insertBefore(out, '    </application>', _listenTileService);
   }
 
   if (!out.contains('ScheduledNotificationReceiver')) {

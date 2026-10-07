@@ -1139,6 +1139,14 @@ For each screen: purpose, what it shows, actions, and its state model.
   10, 50 normal), and keep listening (conversation mode: after each reply
   AA listens again, until silence or STOP). Stored as `speak_replies`,
   `speech_rate_percent`, `voice_keep_listening`.
+- **Start listening from outside the app (G.3):** the Quick Settings tile
+  "Talk to Atomic Assist" (`ListenTileService.kt`) and the launcher
+  shortcut "Talk" open `atomicassist://app/assistant?listen=1`. The
+  `/assistant` route's redirect records a one-time `pendingListenProvider`
+  request and drops the query; the Assist screen takes it and opens the
+  listening panel. A haptic tick and a click mark the start and end of
+  listening. **UNVERIFIED** on a device; the owner's check is
+  `docs/voice-device-check.md`.
 - **No active provider (`_LocalBody`, docs/05 Phase F.4):** quick
   commands still work. The field ("Try: remind me at 6pm to call Mum")
   runs the orchestrator, which tries the local grammar and stops there:

@@ -9,6 +9,7 @@ import '../providers.dart';
 import '../../features/ai_assistant/view/assistant_screen.dart';
 import '../../features/focus_timer/view/focus_screen.dart';
 import '../../features/inbox/view/activity_screen.dart';
+import '../../features/voice/viewmodel/voice_controller.dart';
 import '../../features/inbox/view/inbox_screen.dart';
 import '../../features/insights/view/insights_screen.dart';
 import '../../features/library/view/library_screen.dart';
@@ -96,6 +97,15 @@ GoRouter appRouter(Ref ref) {
             routes: [
               GoRoute(
                 path: '/assistant',
+                // ?listen=1 (the QS tile, the launcher shortcut): open Assist
+                // and listen, without keeping the query in the location.
+                redirect: (context, state) {
+                  if (!state.uri.queryParameters.containsKey('listen')) {
+                    return null;
+                  }
+                  ref.read(pendingListenProvider.notifier).request();
+                  return '/assistant';
+                },
                 builder: (context, state) => const AssistantScreen(),
               ),
             ],
