@@ -40,7 +40,8 @@ final class FakeTts implements TextToSpeech {
   int stops = 0;
 
   @override
-  Future<void> speak(String text, {required String languageTag}) async =>
+  Future<void> speak(String text,
+          {required String languageTag, double rate = 0.5}) async =>
       spoken.add(text);
 
   @override

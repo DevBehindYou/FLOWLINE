@@ -13,6 +13,9 @@ void main() {
       sessionAlerts: false,
       onboardingDone: true,
       autonomy: AutonomyPreset.careful,
+      speakReplies: SpeakReplies.always,
+      speechRatePercent: 70,
+      keepListening: true,
     );
     expect(AppSettings.fromStorage(settings.toStorage()), settings);
   });
@@ -30,7 +33,13 @@ void main() {
       'long_break_every': '-4',
       'session_alerts': 'maybe',
       'autonomy_preset': 'yolo',
+      'speak_replies': 'shout',
+      'speech_rate_percent': '400',
+      'voice_keep_listening': '1',
     });
+    expect(s.speakReplies, SpeakReplies.whenISpoke);
+    expect(s.speechRatePercent, AppSettings.maxSpeechRatePercent);
+    expect(s.keepListening, isFalse);
     expect(s.themeMode, AppThemeMode.system);
     expect(s.focusMinutes, AppSettings.defaultFocusMinutes);
     expect(s.shortBreakMinutes, AppSettings.minMinutes);

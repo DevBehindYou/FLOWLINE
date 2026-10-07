@@ -1579,4 +1579,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get voiceDone => 'Done';
+
+  @override
+  String get settingsVoice => 'Voice';
+
+  @override
+  String get settingsVoiceHint => 'Speaking replies, speed, keep listening';
+
+  @override
+  String get voiceSpeakReplies => 'Speak replies';
+
+  @override
+  String get speakRepliesOff => 'Off';
+
+  @override
+  String get speakRepliesWhenISpoke => 'When I spoke';
+
+  @override
+  String get speakRepliesAlways => 'Always';
+
+  @override
+  String get voiceSpeechRate => 'Speaking speed';
+
+  @override
+  String get voiceKeepListening => 'Keep listening';
+
+  @override
+  String get voiceKeepListeningHint =>
+      'After each reply, listen again until you stop or go quiet.';
+
+  @override
+  String get voicePrivacyNote =>
+      'Speech is recognised by your phone’s speech service, which may send audio to its provider. Replies are spoken on the phone.';
+
+  @override
+  String percentValue(int value) {
+    return '$value%';
+  }
 }

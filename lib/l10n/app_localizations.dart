@@ -2691,6 +2691,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Done'**
   String get voiceDone;
+
+  /// No description provided for @settingsVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice'**
+  String get settingsVoice;
+
+  /// No description provided for @settingsVoiceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Speaking replies, speed, keep listening'**
+  String get settingsVoiceHint;
+
+  /// No description provided for @voiceSpeakReplies.
+  ///
+  /// In en, this message translates to:
+  /// **'Speak replies'**
+  String get voiceSpeakReplies;
+
+  /// No description provided for @speakRepliesOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get speakRepliesOff;
+
+  /// No description provided for @speakRepliesWhenISpoke.
+  ///
+  /// In en, this message translates to:
+  /// **'When I spoke'**
+  String get speakRepliesWhenISpoke;
+
+  /// No description provided for @speakRepliesAlways.
+  ///
+  /// In en, this message translates to:
+  /// **'Always'**
+  String get speakRepliesAlways;
+
+  /// No description provided for @voiceSpeechRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Speaking speed'**
+  String get voiceSpeechRate;
+
+  /// No description provided for @voiceKeepListening.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep listening'**
+  String get voiceKeepListening;
+
+  /// No description provided for @voiceKeepListeningHint.
+  ///
+  /// In en, this message translates to:
+  /// **'After each reply, listen again until you stop or go quiet.'**
+  String get voiceKeepListeningHint;
+
+  /// No description provided for @voicePrivacyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech is recognised by your phone’s speech service, which may send audio to its provider. Replies are spoken on the phone.'**
+  String get voicePrivacyNote;
+
+  /// No description provided for @percentValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}%'**
+  String percentValue(int value);
 }
 
 class _AppLocalizationsDelegate

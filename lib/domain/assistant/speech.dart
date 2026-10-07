@@ -50,7 +50,9 @@ abstract interface class SpeechEngine {
 
 abstract interface class TextToSpeech {
   /// Completes when the text has been spoken (or [stop] cut it short).
-  Future<void> speak(String text, {required String languageTag});
+  /// [rate] is the platform's 0.2–1.0, 0.5 normal.
+  Future<void> speak(String text,
+      {required String languageTag, double rate = 0.5});
 
   Future<void> stop();
 }

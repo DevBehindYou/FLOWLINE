@@ -30,6 +30,8 @@ class SettingsHomeScreen extends StatelessWidget {
               l10n.settingsFocusTimerHint, '/settings/focus'),
           row(AtomicIcons.notifications, l10n.settingsNotifications,
               l10n.notificationsSessionAlerts, '/settings/notifications'),
+          row(AtomicIcons.mic, l10n.settingsVoice, l10n.settingsVoiceHint,
+              '/settings/voice'),
           row(AtomicIcons.appearance, l10n.settingsAppearance,
               l10n.settingsAppearanceHint, '/settings/appearance'),
           row(AtomicIcons.privacy, l10n.settingsDataPrivacy,

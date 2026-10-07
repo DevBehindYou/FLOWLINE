@@ -11,13 +11,15 @@ final class PlatformTts implements TextToSpeech {
   bool _configured = false;
 
   @override
-  Future<void> speak(String text, {required String languageTag}) async {
+  Future<void> speak(String text,
+      {required String languageTag, double rate = 0.5}) async {
     if (!_configured) {
       // speak() then completes when the utterance ends, not when it starts.
       await _tts.awaitSpeakCompletion(true);
       _configured = true;
     }
     await _tts.setLanguage(languageTag);
+    await _tts.setSpeechRate(rate);
     await _tts.speak(text);
   }
 

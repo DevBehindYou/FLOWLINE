@@ -1,4 +1,8 @@
 import 'package:atomic_assist/assistant/orchestrator.dart';
+import 'package:atomic_assist/core/providers.dart';
+import 'package:atomic_assist/data/local/drift/app_database.dart';
+import 'package:atomic_assist/data/repositories/app_settings_repository_impl.dart';
+import 'package:atomic_assist/domain/entities/app_settings.dart';
 import 'package:atomic_assist/assistant/tools/tool_registry.dart';
 import 'package:atomic_assist/domain/ai/ai_contract.dart';
 import 'package:atomic_assist/data/voice/platform_speech_engine.dart';
@@ -13,12 +17,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/fake_voice.dart';
+import '../../support/test_database.dart';
 
 void main() {
   late FakeSpeechEngine engine;
   late FakeTts tts;
   late List<String> heard;
   late ProviderContainer container;
+  late AppDatabase db;
+  setUp(() => db = createTestDatabase());
 
   ProviderContainer make(List<List<SpeechEvent>> sessions,
       {TurnResult Function(String)? turn}) {
@@ -26,6 +33,7 @@ void main() {
     tts = FakeTts();
     heard = [];
     return ProviderContainer(overrides: [
+      appDatabaseProvider.overrideWith((ref) => db),
       speechEngineProvider.overrideWithValue(engine),
       textToSpeechProvider.overrideWithValue(tts),
       voiceTurnRunnerProvider.overrideWithValue((text) async {
@@ -35,7 +43,10 @@ void main() {
     ]);
   }
 
-  tearDown(() => container.dispose());
+  tearDown(() async {
+    container.dispose();
+    await db.close();
+  });
 
   Future<void> pumpEvents() async {
     for (var i = 0; i < 20; i++) {
@@ -59,6 +70,39 @@ void main() {
     final s = container.read(voiceControllerProvider);
     expect(s, isA<VoiceSpeaking>());
     expect((s as VoiceSpeaking).reply, 'Done.');
+  });
+
+  test('speak replies OFF: the reply is shown, not spoken', () async {
+    container = make([
+      [const SpeechFinal('add milk to shopping')],
+    ]);
+    await AppSettingsRepositoryImpl(container.read(appDatabaseProvider))
+        .save(const AppSettings(speakReplies: SpeakReplies.off));
+    final voice = container.read(voiceControllerProvider.notifier);
+    container.listen(voiceControllerProvider, (a, b) {});
+    await voice.start();
+    await pumpEvents();
+    expect(tts.spoken, isEmpty);
+    expect(container.read(voiceControllerProvider),
+        isA<VoiceSpeaking>().having((s) => s.spoken, 'spoken', isFalse));
+  });
+
+  test('keep listening: after the reply, AA listens again', () async {
+    container = make([
+      [const SpeechFinal('add milk to shopping')],
+      [const SpeechFinal('add eggs to shopping')],
+      [const SpeechSilence()],
+    ]);
+    await AppSettingsRepositoryImpl(container.read(appDatabaseProvider))
+        .save(const AppSettings(keepListening: true));
+    final voice = container.read(voiceControllerProvider.notifier);
+    container.listen(voiceControllerProvider, (a, b) {});
+    await voice.start();
+    await pumpEvents();
+    expect(heard, ['add milk to shopping', 'add eggs to shopping']);
+    // Silence ends the conversation.
+    expect(container.read(voiceControllerProvider), isA<VoiceIdle>());
+    expect(engine.listens, 3);
   });
 
   test('an unsure final waits for the edit, then acts on it', () async {

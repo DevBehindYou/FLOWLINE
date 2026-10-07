@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../assistant/orchestrator.dart';
+import '../../../core/providers.dart';
+import '../../../domain/entities/app_settings.dart';
 import '../../../data/voice/platform_speech_engine.dart';
 import '../../../data/voice/platform_tts.dart';
 import '../../../domain/assistant/speech.dart';
@@ -76,9 +78,17 @@ class VoiceController extends _$VoiceController {
     return const VoiceIdle();
   }
 
+  AppSettings _settings = const AppSettings();
+
   /// The mic button: listen (or, while AA speaks, stop it and listen).
-  Future<void> start([VoiceMode mode = VoiceMode.pushToTalk]) async {
+  /// Without a [mode], Settings → Voice decides (keep listening or not).
+  Future<void> start([VoiceMode? mode]) async {
     if (state is VoiceThinking || state is VoiceListening) return;
+    _settings = await ref.read(appSettingsRepositoryProvider).get();
+    final chosen = mode ??
+        (_settings.keepListening
+            ? VoiceMode.conversation
+            : VoiceMode.pushToTalk);
     await ref.read(textToSpeechProvider).stop();
     final engine = ref.read(speechEngineProvider);
     if (!await engine.ensurePermission()) {
@@ -89,7 +99,17 @@ class VoiceController extends _$VoiceController {
       state = const VoiceError(VoiceErrorKind.noEngine);
       return;
     }
-    _apply(VoiceStart(mode));
+    _apply(VoiceStart(chosen));
+  }
+
+  /// A typed reply, read aloud when Settings → Voice says ALWAYS.
+  Future<void> sayTyped(TurnResult result) async {
+    final settings = await ref.read(appSettingsRepositoryProvider).get();
+    if (settings.speakReplies != SpeakReplies.always) return;
+    await ref.read(textToSpeechProvider).speak(
+        spokenReply(deviceLocalizations(), result),
+        languageTag: voiceLanguageTag,
+        rate: settings.speechRatePercent / 100);
   }
 
   /// The edited transcript from the review step.
@@ -154,14 +174,16 @@ class VoiceController extends _$VoiceController {
     }
     // Stopped while AA was working: the turn still ran, but say nothing.
     if (state is! VoiceThinking) return;
-    _apply(VoiceReply(reply, speak: true));
+    // The user spoke, so "when I spoke" and "always" both read it out.
+    _apply(
+        VoiceReply(reply, speak: _settings.speakReplies != SpeakReplies.off));
   }
 
   Future<void> _speak(String reply) async {
     try {
-      await ref
-          .read(textToSpeechProvider)
-          .speak(reply, languageTag: voiceLanguageTag);
+      await ref.read(textToSpeechProvider).speak(reply,
+          languageTag: voiceLanguageTag,
+          rate: _settings.speechRatePercent / 100);
     } on Object {
       // A missing voice leaves the caption; the loop goes on.
     }

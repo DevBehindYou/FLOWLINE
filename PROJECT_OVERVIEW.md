@@ -1134,6 +1134,11 @@ For each screen: purpose, what it shows, actions, and its state model.
   MICROPHONE / TRY AGAIN. Recognition is Android's own recogniser
   (`speech_to_text`), which may use the recogniser's online service.
   Closing the panel stops listening and speech. **UNVERIFIED** on a device.
+- **Settings → Voice (G.2):** speak replies OFF / WHEN I SPOKE (default) /
+  ALWAYS (typed replies are read too), speaking speed 20–100% (steps of
+  10, 50 normal), and keep listening (conversation mode: after each reply
+  AA listens again, until silence or STOP). Stored as `speak_replies`,
+  `speech_rate_percent`, `voice_keep_listening`.
 - **No active provider (`_LocalBody`, docs/05 Phase F.4):** quick
   commands still work. The field ("Try: remind me at 6pm to call Mum")
   runs the orchestrator, which tries the local grammar and stops there:
