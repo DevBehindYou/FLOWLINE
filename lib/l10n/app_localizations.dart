@@ -3063,6 +3063,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A morning briefing at 07:30 and a shutdown at 18:30.'**
   String get assistantBriefingsHint;
+
+  /// No description provided for @planMyDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan my day'**
+  String get planMyDay;
+
+  /// No description provided for @planIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'AA puts your open tasks into today\'s free time, most urgent first. Nothing changes until you apply it.'**
+  String get planIntro;
+
+  /// No description provided for @planNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to plan: every open task already has a block, or today has no free time left.'**
+  String get planNothing;
+
+  /// No description provided for @planApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply plan'**
+  String get planApply;
+
+  /// No description provided for @planDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Planned 1 task} other{Planned {count} tasks}}'**
+  String planDone(int count);
+
+  /// No description provided for @loadingPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Planning'**
+  String get loadingPlan;
+
+  /// No description provided for @reasonBlockEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'A block ended with this still open'**
+  String get reasonBlockEnded;
 }
 
 class _AppLocalizationsDelegate

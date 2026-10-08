@@ -150,6 +150,12 @@ final class ScannerRunner {
         return draft('complete_follow_up', {'follow_up_id': followUp.id},
             ProposalReason.followUpDue,
             why: {'person': person.name});
+      case BlockEndedFinding(:final task, :final start, :final minutes):
+        return draft(
+            'schedule_task',
+            {'task_id': task.id, 'start': isoLocal(start), 'minutes': minutes},
+            ProposalReason.blockEnded,
+            expiresAt: start);
       case DayOverbookedFinding(:final move):
         final tomorrow = addDays(move.startTime, 1);
         final start = DateTime(tomorrow.year, tomorrow.month, tomorrow.day,

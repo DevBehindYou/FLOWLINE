@@ -909,6 +909,17 @@ open / total; a list's screen ticks, adds and clears ticked items, and
 every tap there goes through the same tools (`runDirectAction`), so it
 shows in Activity with undo.
 
+**Plan my day (H.3).** `lib/domain/assistant/day_planner.dart` places
+open tasks that have no block into today's free time: due soonest, then
+priority, then oldest; 30 minutes each (tasks keep no estimate yet); from
+the next quarter hour to 18:00, leaving 10 minutes after each existing
+block; never past a task's due time unless it is already overdue; at
+most 8. PLAN MY DAY (the sparkle in Today's app bar, and the morning
+briefing's primary) shows the plan in a sheet; APPLY runs `schedule_task`
+for each item in one ledger group, so one UNDO takes the whole plan back.
+When a block ends with tasks still open in it, the `blockEndedWithOpenTasks`
+scanner proposes moving the first one to the next free gap.
+
 **Briefings (H.2).** `lib/domain/assistant/briefing.dart` builds a
 briefing from the day's facts (`BriefingFactsLoader`): the morning has the
 day's load and first block, the top three tasks (overdue, then high

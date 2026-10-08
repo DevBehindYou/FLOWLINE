@@ -9,6 +9,7 @@ import '../../../domain/time/calendar_day.dart';
 import '../../../shared_widgets/empty_state.dart';
 import '../../../shared_widgets/error_view.dart';
 import '../../../shared_widgets/settings_action.dart';
+import '../../plan/view/plan_day_sheet.dart';
 import '../../schedule_block_form/view/schedule_block_flow.dart';
 import '../../task_form/view/add_edit_task_sheet.dart';
 import '../viewmodel/today_view_model.dart';
@@ -30,7 +31,15 @@ class TodayScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.appTitle),
-        actions: const [SettingsAction()],
+        actions: [
+          if (isSameDay(selectedDate, ref.watch(currentDayProvider)))
+            AtomicIconButton(
+              icon: AtomicIcons.ai,
+              semanticLabel: l10n.planMyDay,
+              onPressed: () => showPlanDaySheet(context),
+            ),
+          const SettingsAction(),
+        ],
       ),
       body: Column(
         children: [

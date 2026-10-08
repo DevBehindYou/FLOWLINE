@@ -95,6 +95,23 @@ final class DayOverbookedFinding extends ScanFinding {
   String get key => 'dayOverbooked:${_iso(day)}';
 }
 
+/// A block ended today with [task] still open in it; [start] is the next
+/// free gap that fits it (§12.4, re-plan when the day slips).
+final class BlockEndedFinding extends ScanFinding {
+  const BlockEndedFinding(
+      {required this.block,
+      required this.task,
+      required this.start,
+      required this.minutes});
+  final ScheduleBlock block;
+  final Task task;
+  final DateTime start;
+  final int minutes;
+
+  @override
+  String get key => 'blockEnded:${block.id}:${task.id}';
+}
+
 /// How far ahead a person's date is mentioned.
 const upcomingDateDays = 7;
 
@@ -115,6 +132,7 @@ List<ScanFinding> runScanners(ScanSnapshot s) => [
       ...freeGapForTasks(s),
       ...followUpsDue(s),
       ...dayOverbooked(s),
+      ...blockEndedWithOpenTasks(s),
     ];
 
 List<UpcomingDateFinding> upcomingDates(ScanSnapshot s) => [
@@ -205,6 +223,40 @@ List<DayOverbookedFinding> dayOverbooked(ScanSnapshot s) {
   ]..sort((a, b) => a.startTime.compareTo(b.startTime));
   if (movable.isEmpty) return const [];
   return [DayOverbookedFinding(day: day, move: movable.last)];
+}
+
+/// The latest block today that ended with open tasks: the first of them
+/// goes to the next free gap, as long as the block was (at most 60 min,
+/// at least [freeGapMinutes] free).
+List<BlockEndedFinding> blockEndedWithOpenTasks(ScanSnapshot s) {
+  final ended = [
+    for (final b in s.blocksToday)
+      if (!b.endTime.isAfter(s.now) && b.id > 0) b,
+  ]..sort((a, b) => b.endTime.compareTo(a.endTime));
+  for (final b in ended) {
+    final open = [
+      for (final t in s.openTasks)
+        if (t.scheduleBlockId == b.id && t.status != TaskStatus.done) t,
+    ]..sort((x, y) => x.id.compareTo(y.id));
+    if (open.isEmpty) continue;
+    final day = startOfDay(s.now);
+    final end = DateTime(day.year, day.month, day.day, workdayEndHour);
+    final q = s.now.add(Duration(minutes: 15 - s.now.minute % 15));
+    final from = DateTime(q.year, q.month, q.day, q.hour, q.minute);
+    final length = b.endTime.difference(b.startTime).inMinutes;
+    final want = length < freeGapMinutes
+        ? freeGapMinutes
+        : (length > freeGapSuggestMinutes ? freeGapSuggestMinutes : length);
+    final slot = findFreeSlots(
+            blocks: s.blocksToday, from: from, to: end, minutes: want, limit: 1)
+        .firstOrNull;
+    if (slot == null) return const [];
+    return [
+      BlockEndedFinding(
+          block: b, task: open.first, start: slot.start, minutes: want),
+    ];
+  }
+  return const [];
 }
 
 String _iso(DateTime d) => '${d.year.toString().padLeft(4, '0')}-'
