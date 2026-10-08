@@ -95,9 +95,14 @@ void main() {
     expect((await stored(tester)).autonomy, AutonomyPreset.handsOff);
     expect(find.textContaining('also does what it notices'), findsOneWidget);
 
-    await tester.tap(find.byType(Switch));
+    await tester.tap(find.byType(Switch).first);
     await tester.pumpAndSettle();
     expect((await stored(tester)).suggestions, isFalse);
+
+    await tester.ensureVisible(find.text('Briefings'));
+    await tester.tap(find.text('Briefings'));
+    await tester.pumpAndSettle();
+    expect((await stored(tester)).briefings, isFalse);
   });
 
   test('clearAllData empties every table and every saved key', () async {

@@ -349,6 +349,55 @@ final class AssistChatProvider
 
 String _$assistChatHash() => r'a3cedf3c9b4330d6d92e61983050c92c62a91170';
 
+/// What the briefings are built from (docs/05 §21).
+
+@ProviderFor(briefingFactsLoader)
+final briefingFactsLoaderProvider = BriefingFactsLoaderProvider._();
+
+/// What the briefings are built from (docs/05 §21).
+
+final class BriefingFactsLoaderProvider extends $FunctionalProvider<
+    BriefingFactsLoader,
+    BriefingFactsLoader,
+    BriefingFactsLoader> with $Provider<BriefingFactsLoader> {
+  /// What the briefings are built from (docs/05 §21).
+  BriefingFactsLoaderProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'briefingFactsLoaderProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$briefingFactsLoaderHash();
+
+  @$internal
+  @override
+  $ProviderElement<BriefingFactsLoader> $createElement(
+          $ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  BriefingFactsLoader create(Ref ref) {
+    return briefingFactsLoader(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(BriefingFactsLoader value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<BriefingFactsLoader>(value),
+    );
+  }
+}
+
+String _$briefingFactsLoaderHash() =>
+    r'89f7367efb026ef1b172c452990992d0e9a00214';
+
 /// The context scanners (docs/05 §5.2), run on app start and resume.
 
 @ProviderFor(scannerRunner)

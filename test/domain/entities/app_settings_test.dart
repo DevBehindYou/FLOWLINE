@@ -17,6 +17,7 @@ void main() {
       speechRatePercent: 70,
       keepListening: true,
       suggestions: false,
+      briefings: false,
     );
     expect(AppSettings.fromStorage(settings.toStorage()), settings);
   });

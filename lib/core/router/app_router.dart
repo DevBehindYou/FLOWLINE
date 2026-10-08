@@ -8,6 +8,8 @@ import '../providers.dart';
 
 import '../../features/ai_assistant/view/assistant_screen.dart';
 import '../../features/focus_timer/view/focus_screen.dart';
+import '../../domain/assistant/briefing.dart';
+import '../../features/briefing/view/briefing_screen.dart';
 import '../../features/inbox/view/activity_screen.dart';
 import '../../features/voice/viewmodel/voice_controller.dart';
 import '../../features/inbox/view/inbox_screen.dart';
@@ -44,6 +46,16 @@ GoRouter appRouter(Ref ref) {
     navigatorKey: _rootNavigatorKey,
     initialLocation: onboardingDone ? '/today' : '/onboarding',
     routes: [
+      // A briefing opened from its notification (docs/05 §21).
+      GoRoute(
+        path: '/briefing/:kind',
+        builder: (context, state) => BriefingScreen(
+          kind: BriefingKind.values
+                  .where((k) => k.name == state.pathParameters['kind'])
+                  .firstOrNull ??
+              BriefingKind.morning,
+        ),
+      ),
       GoRoute(
         path: '/onboarding',
         builder: (context, state) => OnboardingScreen(

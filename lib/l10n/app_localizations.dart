@@ -2841,6 +2841,228 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'AA also does what it notices, with Undo. Deleting always asks first.'**
   String get autonomyHandsOffHint;
+
+  /// No description provided for @briefingMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning'**
+  String get briefingMorning;
+
+  /// No description provided for @briefingCheckIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in'**
+  String get briefingCheckIn;
+
+  /// No description provided for @briefingShutdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Shutdown'**
+  String get briefingShutdown;
+
+  /// No description provided for @briefingWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly review'**
+  String get briefingWeekly;
+
+  /// No description provided for @briefingEyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind} · {date}'**
+  String briefingEyebrow(String kind, String date);
+
+  /// No description provided for @briefingMorningHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'{blocks, plural, =0{A clear day.} =1{One block today.} other{{blocks} blocks today.}}'**
+  String briefingMorningHeadline(int blocks);
+
+  /// No description provided for @briefingStartWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with {title}.'**
+  String briefingStartWith(String title);
+
+  /// No description provided for @briefingNothingDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing due.'**
+  String get briefingNothingDue;
+
+  /// No description provided for @briefingShutdownHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, =0{No focus today.} =1{1 minute of focus.} other{{minutes} minutes of focus.}}'**
+  String briefingShutdownHeadline(int minutes);
+
+  /// No description provided for @briefingTomorrowStarts.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow starts at {time}.'**
+  String briefingTomorrowStarts(String time);
+
+  /// No description provided for @briefingTomorrowClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow is clear.'**
+  String get briefingTomorrowClear;
+
+  /// No description provided for @briefingFirstUp.
+  ///
+  /// In en, this message translates to:
+  /// **'First up'**
+  String get briefingFirstUp;
+
+  /// No description provided for @briefingTopTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Top tasks'**
+  String get briefingTopTasks;
+
+  /// No description provided for @briefingComingUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming up'**
+  String get briefingComingUp;
+
+  /// No description provided for @briefingSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestions'**
+  String get briefingSuggestions;
+
+  /// No description provided for @briefingDoneToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Done today'**
+  String get briefingDoneToday;
+
+  /// No description provided for @briefingDoneByAa.
+  ///
+  /// In en, this message translates to:
+  /// **'Done by AA'**
+  String get briefingDoneByAa;
+
+  /// No description provided for @briefingUnfinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Unfinished'**
+  String get briefingUnfinished;
+
+  /// No description provided for @briefingWaitingOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting on'**
+  String get briefingWaitingOn;
+
+  /// No description provided for @briefingTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get briefingTomorrow;
+
+  /// No description provided for @briefingBlocksLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing scheduled} =1{1 block · {minutes} min} other{{count} blocks · {minutes} min}}'**
+  String briefingBlocksLine(int count, int minutes);
+
+  /// No description provided for @briefingSuggestionsLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 suggestion in the Inbox} other{{count} suggestions in the Inbox}}'**
+  String briefingSuggestionsLine(int count);
+
+  /// No description provided for @briefingDoneLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{sessions, plural, =0{No focus sessions} =1{1 focus session · {minutes} min} other{{sessions} focus sessions · {minutes} min}}'**
+  String briefingDoneLine(int sessions, int minutes);
+
+  /// No description provided for @briefingByAaLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{AA did 1 thing on its own. Undo it in Activity.} other{AA did {count} things on its own. Undo any in Activity.}}'**
+  String briefingByAaLine(int count);
+
+  /// No description provided for @briefingNothingYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing scheduled yet.'**
+  String get briefingNothingYet;
+
+  /// No description provided for @briefingOpenInbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Inbox'**
+  String get briefingOpenInbox;
+
+  /// No description provided for @briefingMoveUnfinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Move unfinished to tomorrow'**
+  String get briefingMoveUnfinished;
+
+  /// No description provided for @briefingReadAloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Read aloud'**
+  String get briefingReadAloud;
+
+  /// No description provided for @briefingMoved.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Moved 1 task to tomorrow} other{Moved {count} tasks to tomorrow}}'**
+  String briefingMoved(int count);
+
+  /// No description provided for @briefingNotificationMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Your morning briefing'**
+  String get briefingNotificationMorning;
+
+  /// No description provided for @briefingNotificationShutdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Time to wrap up the day'**
+  String get briefingNotificationShutdown;
+
+  /// No description provided for @briefingNotificationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to see your day at a glance.'**
+  String get briefingNotificationBody;
+
+  /// No description provided for @briefingChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Briefings'**
+  String get briefingChannel;
+
+  /// No description provided for @briefingChannelDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'The morning and end-of-day briefings'**
+  String get briefingChannelDescription;
+
+  /// No description provided for @loadingBriefing.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading briefing'**
+  String get loadingBriefing;
+
+  /// No description provided for @assistantBriefings.
+  ///
+  /// In en, this message translates to:
+  /// **'Briefings'**
+  String get assistantBriefings;
+
+  /// No description provided for @assistantBriefingsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A morning briefing at 07:30 and a shutdown at 18:30.'**
+  String get assistantBriefingsHint;
 }
 
 class _AppLocalizationsDelegate

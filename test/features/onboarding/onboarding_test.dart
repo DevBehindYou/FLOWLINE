@@ -62,6 +62,24 @@ class _FakeNotificationService implements NotificationService {
 
   @override
   Future<void> cancelSessionNotification() async {}
+
+  @override
+  Stream<String> get briefingTaps => const Stream.empty();
+
+  @override
+  Future<String?> launchBriefingKind() async => null;
+
+  @override
+  Future<void> scheduleDailyBriefing({
+    required int notificationId,
+    required String kind,
+    required int hour,
+    required int minute,
+    required String title,
+    required String body,
+    required String channelName,
+    required String channelDescription,
+  }) async {}
 }
 
 void main() {
