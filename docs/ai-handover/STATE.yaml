@@ -1,0 +1,70 @@
+protocol: AI-HANDOVER/V2
+updated: 2026-10-08
+project: atomic-assist   # repo DevBehindYou/FLOWLINE (was "Flowline")
+objective: build docs/05 phases E–J autonomously; one PR per slice; auto-merge when CI green and mergeable
+
+repo:
+  remote: DevBehindYou/FLOWLINE
+  branch: claude/fervent-shannon-79dcim   # the only branch the agent may push to
+  base: main
+  main_head: ddf13fc   # merge of PR #9 (H.2)
+  handover_commit: see `git log -1 -- docs/ai-handover`
+  open_prs: none at time of writing
+
+stack:
+  - flutter 3.47.5 (pinned in .github/workflows/ci.yml FLUTTER_VERSION)
+  - dart 3.13
+  - riverpod 3 (codegen)
+  - drift 2.35 / sqlite (schemaVersion 14)
+  - go_router (StatefulShellRoute, 5 tabs)
+  - android only (android/ generated in CI, patched by tool/ci/android_patches.dart)
+
+status:
+  ci_main: VERIFIED          # run 37670886998 green on PR #9 head 4119647
+  unit_widget_tests: VERIFIED  # 1188 pass locally + CI at H.2
+  emulator_integration: VERIFIED  # CI job "Integration tests (Android emulator)"
+  release_apk: VERIFIED      # builds; signed with throwaway key unless ANDROID_* secrets set
+  device_behaviour: UNKNOWN  # nothing run on a physical phone
+  h3_plan_my_day: IMPLEMENTED_UNTESTED  # targeted tests pass; full suite not run; see CURRENT_STATE
+
+phases:   # docs/05 §36
+  A_design_foundation: VERIFIED
+  B_components: VERIFIED
+  C_screen_migration: VERIFIED
+  D_ai_contract_v3: VERIFIED   # real vendor round trip on device still owed
+  E_assistant_core: VERIFIED
+  F_reminders_lists_people: VERIFIED  # PR #2–#5
+  G_voice_1: IMPLEMENTED       # PR #6–#7; device gate (docs/voice-device-check.md) owed by owner
+  H_proactive: PARTIAL         # H.1 PR #8, H.2 PR #9 merged; H.3 local; H.4 not started
+  I_memory_money_travel_docs: NOT_IMPLEMENTED
+  J_voice_2: NOT_IMPLEMENTED
+  progress_estimate: "~66% overall (A–F done, G code-done, H ~70%)"
+
+constraints:
+  - CLAUDE.md rules R1 (enums append-only), R2 (migration+test), R7/R8 (no DateTime.now / Duration(days:) in lib), R11, R12, R14, R16
+  - lib/domain imports no Flutter/Drift/Riverpod; returns typed results, no English
+  - no user-facing string literals in widgets (ARB + context.l10n)
+  - API keys only in SecureKeyStore
+  - android/ never committed; patches + tests in tool/ci/android_patches.dart
+  - commit "type(scope): summary" + why + trailers (see PROJECT_CONTEXT.md)
+  - no model identifiers in commits/PRs
+  - never push to another branch
+
+critical_files:
+  - CLAUDE.md
+  - docs/05-atomic-assist-plan.md        # forward plan; §36 status checklist
+  - PROJECT_OVERVIEW.md                  # as-built
+  - .github/workflows/ci.yml
+  - tool/ci/android_patches.dart
+  - lib/data/local/drift/app_database.dart
+  - lib/assistant/tools/tool_registry.dart
+  - lib/assistant/orchestrator.dart
+  - lib/assistant/scanner_runner.dart
+  - lib/domain/assistant/scanners.dart
+  - lib/domain/assistant/day_planner.dart   # H.3, uncommitted at handover start
+
+next:
+  - TASK-001 finish H.3 (full suite + NY, commit, PR, merge)
+  - TASK-002 H.4 phone calendar + focus DND + flexible blocks
+  - TASK-003 Phase H exit gate
+confidence: HIGH

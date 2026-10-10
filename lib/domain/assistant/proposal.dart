@@ -24,6 +24,9 @@ enum ProposalReason {
 
   /// A repeated manual edit (§5.3).
   pattern,
+
+  /// A block ended with tasks still open in it (§12.4).
+  blockEnded,
 }
 
 final class Proposal {

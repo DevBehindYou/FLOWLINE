@@ -10,6 +10,7 @@ import '../../../domain/assistant/briefing.dart';
 import '../../../domain/assistant/quick_parse.dart' show isoDate;
 import '../../../l10n/l10n.dart';
 import '../../../shared_widgets/error_view.dart';
+import '../../plan/view/plan_day_sheet.dart';
 import '../viewmodel/briefing_view_model.dart';
 import 'briefing_text.dart';
 
@@ -75,9 +76,9 @@ class _BodyState extends ConsumerState<_Body> {
 
     final primary = switch (b.kind) {
       BriefingKind.morning || BriefingKind.checkIn => AtomicButton(
-          label: l10n.briefingOpenInbox,
+          label: l10n.planMyDay,
           expand: true,
-          onPressed: () => context.go('/inbox'),
+          onPressed: () => showPlanDaySheet(context),
         ),
       BriefingKind.shutdown || BriefingKind.weekly => unfinished == null
           ? null
@@ -130,6 +131,16 @@ class _BodyState extends ConsumerState<_Body> {
               .read(briefingActionsProvider.notifier)
               .readAloud(l10n.briefingScript(b))),
         ),
+        if (b.kind == BriefingKind.morning ||
+            b.kind == BriefingKind.checkIn) ...[
+          const SizedBox(height: AtomicSpace.xs),
+          AtomicButton(
+            label: l10n.briefingOpenInbox,
+            variant: AtomicButtonVariant.ghost,
+            expand: true,
+            onPressed: () => context.go('/inbox'),
+          ),
+        ],
         if (primary != null) ...[
           const SizedBox(height: AtomicSpace.xs),
           primary,

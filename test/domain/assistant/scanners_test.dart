@@ -227,4 +227,35 @@ void main() {
     expect(all.map((f) => f.runtimeType),
         containsAll([UpcomingDateFinding, OverdueTaskFinding]));
   });
+
+  group('blockEndedWithOpenTasks', () {
+    test('a block that ended with an open task: the next free gap', () {
+      final found = blockEndedWithOpenTasks(ScanSnapshot(
+        now: now, // 10:20
+        openTasks: [
+          task(5, block: 1),
+          task(6, block: 1, status: TaskStatus.done),
+        ],
+        blocksToday: [block(1, 9, 10), block(2, 10, 11, locked: true)],
+      ));
+      final f = found.single;
+      expect(f.task.id, 5);
+      expect(f.start, DateTime(2026, 10, 5, 11));
+      expect(f.minutes, 60);
+      expect(f.key, 'blockEnded:1:5');
+    });
+
+    test('a block still running, or with nothing open: nothing', () {
+      expect(
+          blockEndedWithOpenTasks(ScanSnapshot(
+              now: now,
+              openTasks: [task(5, block: 1)],
+              blocksToday: [block(1, 10, 11)])),
+          isEmpty);
+      expect(
+          blockEndedWithOpenTasks(
+              ScanSnapshot(now: now, blocksToday: [block(1, 9, 10)])),
+          isEmpty);
+    });
+  });
 }

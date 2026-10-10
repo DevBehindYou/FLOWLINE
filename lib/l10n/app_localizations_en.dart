@@ -1848,4 +1848,35 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get assistantBriefingsHint =>
       'A morning briefing at 07:30 and a shutdown at 18:30.';
+
+  @override
+  String get planMyDay => 'Plan my day';
+
+  @override
+  String get planIntro =>
+      'AA puts your open tasks into today\'s free time, most urgent first. Nothing changes until you apply it.';
+
+  @override
+  String get planNothing =>
+      'Nothing to plan: every open task already has a block, or today has no free time left.';
+
+  @override
+  String get planApply => 'Apply plan';
+
+  @override
+  String planDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Planned $count tasks',
+      one: 'Planned 1 task',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get loadingPlan => 'Planning';
+
+  @override
+  String get reasonBlockEnded => 'A block ended with this still open';
 }

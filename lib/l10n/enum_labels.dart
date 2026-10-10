@@ -39,6 +39,7 @@ extension L10nAssistantLabels on AppLocalizations {
         ProposalReason.followUpDue => reasonFollowUpDue,
         ProposalReason.documentExpiring => reasonDocumentExpiring,
         ProposalReason.pattern => reasonPattern,
+        ProposalReason.blockEnded => reasonBlockEnded,
       };
 
   String originName(ActionOrigin o) => switch (o) {

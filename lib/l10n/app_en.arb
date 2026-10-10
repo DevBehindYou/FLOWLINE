@@ -1017,5 +1017,13 @@
   "briefingChannelDescription": "The morning and end-of-day briefings",
   "loadingBriefing": "Loading briefing",
   "assistantBriefings": "Briefings",
-  "assistantBriefingsHint": "A morning briefing at 07:30 and a shutdown at 18:30."
+  "assistantBriefingsHint": "A morning briefing at 07:30 and a shutdown at 18:30.",
+  "planMyDay": "Plan my day",
+  "planIntro": "AA puts your open tasks into today's free time, most urgent first. Nothing changes until you apply it.",
+  "planNothing": "Nothing to plan: every open task already has a block, or today has no free time left.",
+  "planApply": "Apply plan",
+  "planDone": "{count, plural, =1{Planned 1 task} other{Planned {count} tasks}}",
+  "@planDone": {"placeholders": {"count": {"type": "int"}}},
+  "loadingPlan": "Planning",
+  "reasonBlockEnded": "A block ended with this still open"
 }
