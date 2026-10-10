@@ -11,6 +11,19 @@ import '../../domain/services/focus_stats_calculator.dart';
 /// output, this depends directly on the `pdf` package's widget API, so
 /// it belongs with the other data-layer, package-specific concerns
 /// rather than pretending to be framework-free.
+///
+/// The document embeds the app's own body font (Hanken Grotesk, passed in as [PdfFonts])
+/// instead of the PDF built-in Helvetica, which only covers Latin-1 and
+/// drew dashes and non-Latin text as empty boxes (B25).
+/// The TrueType fonts a PDF is set in. Loaded by the caller (from the
+/// asset bundle in the app, from disk in tests).
+class PdfFonts {
+  const PdfFonts({required this.regular, required this.bold});
+
+  final pw.Font regular;
+  final pw.Font bold;
+}
+
 class WeeklyPdfExporter {
   const WeeklyPdfExporter();
 
@@ -19,8 +32,11 @@ class WeeklyPdfExporter {
     required DateTime rangeEnd,
     required List<FocusSession> sessions,
     required int streak,
+    required PdfFonts fonts,
   }) async {
-    final doc = pw.Document();
+    final doc = pw.Document(
+      theme: pw.ThemeData.withFont(base: fonts.regular, bold: fonts.bold),
+    );
     final dailyTotals =
         const FocusStatsCalculator().dailyTotals(sessions, days: 7);
     final weekTotalSeconds =
@@ -38,11 +54,12 @@ class WeeklyPdfExporter {
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Text(
-              'Flowline \u2014 Weekly Focus Summary',
-              style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+              'Atomic Assist — Weekly Focus Summary',
+              style: const pw.TextStyle(
+                  fontSize: 20, fontWeight: pw.FontWeight.bold),
             ),
             pw.SizedBox(height: 4),
-            pw.Text('${_fmtDate(rangeStart)} \u2013 ${_fmtDate(rangeEnd)}'),
+            pw.Text('${_fmtDate(rangeStart)} – ${_fmtDate(rangeEnd)}'),
             pw.SizedBox(height: 16),
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -54,8 +71,8 @@ class WeeklyPdfExporter {
             ),
             pw.SizedBox(height: 20),
             pw.Text('Daily Breakdown',
-                style:
-                    pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                style: const pw.TextStyle(
+                    fontSize: 14, fontWeight: pw.FontWeight.bold)),
             pw.SizedBox(height: 8),
             pw.TableHelper.fromTextArray(
               headers: ['Date', 'Focus Time', 'Sessions'],
@@ -70,8 +87,8 @@ class WeeklyPdfExporter {
             ),
             pw.SizedBox(height: 20),
             pw.Text('Session Log',
-                style:
-                    pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                style: const pw.TextStyle(
+                    fontSize: 14, fontWeight: pw.FontWeight.bold)),
             pw.SizedBox(height: 8),
             if (focusSessions.isEmpty)
               pw.Text('No focus sessions logged this week.',
@@ -86,7 +103,7 @@ class WeeklyPdfExporter {
                       _fmtTime(session.startedAt),
                       '${(session.plannedDurationSec / 60).round()}m',
                       session.actualDurationSec == null
-                          ? '\u2014'
+                          ? '—'
                           : '${(session.actualDurationSec! / 60).round()}m',
                       session.completedAt == null
                           ? 'In progress'
@@ -96,7 +113,7 @@ class WeeklyPdfExporter {
               ),
             pw.SizedBox(height: 20),
             pw.Text(
-              'Generated on-device by Flowline. Nothing is sent anywhere to produce this file.',
+              'Generated on-device by Atomic Assist. Nothing is sent anywhere to produce this file.',
               style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
             ),
           ],
@@ -112,7 +129,8 @@ class WeeklyPdfExporter {
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.Text(value,
-            style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+            style: const pw.TextStyle(
+                fontSize: 18, fontWeight: pw.FontWeight.bold)),
         pw.Text(label,
             style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
       ],

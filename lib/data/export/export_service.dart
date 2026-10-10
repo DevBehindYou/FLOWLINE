@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -28,12 +30,20 @@ class ExportService {
       rangeEnd: rangeEnd,
       sessions: sessions,
       streak: streak,
+      fonts: await _pdfFonts(),
     );
     await Printing.sharePdf(
       bytes: bytes,
-      filename: 'flowline-focus-${_fileStamp(rangeStart, rangeEnd)}.pdf',
+      filename: 'atomic-assist-focus-${_fileStamp(rangeStart, rangeEnd)}.pdf',
     );
   }
+
+  static Future<PdfFonts> _pdfFonts() async => PdfFonts(
+        regular: pw.Font.ttf(
+            await rootBundle.load('assets/fonts/HankenGrotesk-Regular.ttf')),
+        bold: pw.Font.ttf(
+            await rootBundle.load('assets/fonts/HankenGrotesk-Bold.ttf')),
+      );
 
   Future<void> shareCsv(
     List<FocusSession> sessions, {
@@ -43,7 +53,7 @@ class ExportService {
     final csv = const ExportFormatter().toCsv(sessions);
     return _shareText(
       content: csv,
-      filename: 'flowline-focus-${_fileStamp(rangeStart, rangeEnd)}.csv',
+      filename: 'atomic-assist-focus-${_fileStamp(rangeStart, rangeEnd)}.csv',
     );
   }
 
@@ -56,7 +66,7 @@ class ExportService {
         .toJson(sessions, rangeStart: rangeStart, rangeEnd: rangeEnd);
     return _shareText(
       content: json,
-      filename: 'flowline-focus-${_fileStamp(rangeStart, rangeEnd)}.json',
+      filename: 'atomic-assist-focus-${_fileStamp(rangeStart, rangeEnd)}.json',
     );
   }
 
@@ -65,7 +75,9 @@ class ExportService {
     final dir = await getTemporaryDirectory();
     final file = File('${dir.path}/$filename');
     await file.writeAsString(content);
-    await Share.shareXFiles([XFile(file.path)], subject: 'Flowline export');
+    await SharePlus.instance.share(
+      ShareParams(files: [XFile(file.path)], subject: 'Atomic Assist export'),
+    );
   }
 
   String _fileStamp(DateTime start, DateTime end) {

@@ -1,3 +1,5 @@
+import '../recurrence/recurrence_rule.dart';
+
 enum TaskPriority { low, medium, high }
 
 enum TaskStatus { todo, inProgress, done }
@@ -12,6 +14,7 @@ class Task {
     this.scheduleBlockId,
     this.dueAt,
     required this.createdAt,
+    this.repeat,
   });
 
   final int id;
@@ -23,13 +26,21 @@ class Task {
   final DateTime? dueAt;
   final DateTime createdAt;
 
+  /// How the task repeats; it then always has a [dueAt].
+  final RecurrenceRule? repeat;
+
+  /// Nullable fields take a function so they can be cleared, not only
+  /// changed: `copyWith(scheduleBlockId: () => null)` unschedules a task,
+  /// while omitting the argument keeps the current value. (A plain
+  /// `int? scheduleBlockId` can't tell "set to null" from "not given".)
   Task copyWith({
     String? title,
     String? notes,
     TaskPriority? priority,
     TaskStatus? status,
-    int? scheduleBlockId,
-    DateTime? dueAt,
+    int? Function()? scheduleBlockId,
+    DateTime? Function()? dueAt,
+    RecurrenceRule? Function()? repeat,
   }) {
     return Task(
       id: id,
@@ -37,9 +48,11 @@ class Task {
       notes: notes ?? this.notes,
       priority: priority ?? this.priority,
       status: status ?? this.status,
-      scheduleBlockId: scheduleBlockId ?? this.scheduleBlockId,
-      dueAt: dueAt ?? this.dueAt,
+      scheduleBlockId:
+          scheduleBlockId != null ? scheduleBlockId() : this.scheduleBlockId,
+      dueAt: dueAt != null ? dueAt() : this.dueAt,
       createdAt: createdAt,
+      repeat: repeat != null ? repeat() : this.repeat,
     );
   }
 }

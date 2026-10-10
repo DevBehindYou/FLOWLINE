@@ -1,105 +1,183 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
-import '../../../domain/entities/schedule_block.dart';
+import '../../../design/atomic.dart';
+import '../../../domain/entities/planned_block.dart';
 import '../../../domain/entities/task.dart';
 import '../../../domain/services/schedule_conflict_checker.dart';
+import '../../schedule_block_form/view/schedule_block_flow.dart';
 import '../../task_form/view/add_edit_task_sheet.dart';
 import '../viewmodel/today_view_model.dart';
 import 'task_card.dart';
+import '../../../l10n/l10n.dart';
 
-class DayTimeline extends StatelessWidget {
+class DayTimeline extends ConsumerWidget {
   const DayTimeline({
     super.key,
-    required this.blocks,
-    required this.unscheduledTasks,
+    required this.plan,
+    required this.openBacklog,
     required this.onAddBlock,
   });
 
-  final List<ScheduleBlock> blocks;
-  final List<Task> unscheduledTasks;
+  final List<PlannedBlock> plan;
+
+  /// As read by [openBacklogProvider]: one more than the page size when
+  /// there are more to show.
+  final List<Task> openBacklog;
   final VoidCallback onAddBlock;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     // Cheap to compute here (a handful of blocks per day) rather than a
     // provider of its own — this is the same pure checker used to gate
     // saving a new block, just run over what's already on screen so a
     // "Save anyway" overlap doesn't quietly disappear from view.
-    final conflictingIds =
-        const ScheduleConflictChecker().findConflictingBlockIds(blocks);
+    final conflictingIds = const ScheduleConflictChecker()
+        .findConflictingBlockIds([for (final p in plan) p.block]);
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-      children: [
-        for (final block in blocks)
-          _ScheduleBlockSection(
-              block: block, isConflicting: conflictingIds.contains(block.id)),
-        OutlinedButton.icon(
-          onPressed: onAddBlock,
-          icon: const Icon(Icons.add),
-          label: const Text('Add schedule block'),
-        ),
-        if (unscheduledTasks.isNotEmpty) ...[
-          const SizedBox(height: 24),
-          Text('Unscheduled', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          for (final task in unscheduledTasks) TaskCard(task: task),
-        ],
-      ],
+    final limit = ref.watch(backlogLimitProvider);
+    final hasMore = openBacklog.length > limit;
+    final open = hasMore ? openBacklog.take(limit).toList() : openBacklog;
+    final doneCount = ref.watch(completedBacklogCountProvider).value ?? 0;
+    final showDone = ref.watch(showCompletedBacklogProvider);
+    final done = showDone
+        ? ref.watch(completedBacklogProvider).value ?? const <Task>[]
+        : const <Task>[];
+
+    // Rows are built lazily by ListView.builder: only what's on screen
+    // is laid out, however long the backlog gets (B21).
+    final rows = <Widget Function()>[
+      for (final p in plan)
+        () => _ScheduleBlockSection(
+            planned: p, isConflicting: conflictingIds.contains(p.block.id)),
+      () => AtomicButton(
+            label: l10n.addScheduleBlock,
+            icon: AtomicIcons.add,
+            variant: AtomicButtonVariant.ghost,
+            expand: true,
+            onPressed: onAddBlock,
+          ),
+      if (open.isNotEmpty || doneCount > 0)
+        () => Padding(
+              padding: const EdgeInsets.only(
+                  top: AtomicSpace.xl, bottom: AtomicSpace.s),
+              child: AtomicSectionLabel(l10n.unscheduled),
+            ),
+      for (final task in open) () => TaskCard(task: task),
+      if (hasMore)
+        () => AtomicButton(
+              label: l10n.showMore,
+              variant: AtomicButtonVariant.text,
+              onPressed: ref.read(backlogLimitProvider.notifier).showMore,
+            ),
+      if (doneCount > 0)
+        () => Align(
+              alignment: Alignment.centerLeft,
+              child: AtomicButton(
+                label: showDone
+                    ? l10n.hideCompleted(doneCount)
+                    : l10n.showCompleted(doneCount),
+                icon:
+                    showDone ? AtomicIcons.expandLess : AtomicIcons.expandMore,
+                variant: AtomicButtonVariant.text,
+                onPressed:
+                    ref.read(showCompletedBacklogProvider.notifier).toggle,
+              ),
+            ),
+      for (final task in done) () => TaskCard(task: task),
+    ];
+
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(
+          AtomicSpace.screenMargin,
+          AtomicSpace.xs,
+          AtomicSpace.screenMargin,
+          AtomicSize.floatingActionClearance),
+      itemCount: rows.length,
+      itemBuilder: (context, index) => rows[index](),
     );
   }
 }
 
+enum _BlockAction { edit, delete }
+
+/// A time block: mono times, Display title, its tasks. An overlapping
+/// block gets the danger priority border and says so in words.
 class _ScheduleBlockSection extends ConsumerWidget {
   const _ScheduleBlockSection(
-      {required this.block, required this.isConflicting});
+      {required this.planned, required this.isConflicting});
 
-  final ScheduleBlock block;
+  final PlannedBlock planned;
   final bool isConflicting;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tasksAsync = ref.watch(tasksForBlockProvider(block.id));
+    final block = planned.block;
+    final tasks = planned.tasks;
+    final l10n = context.l10n;
+    final p = context.atomic.palette;
     final timeLabel =
-        '${DateFormat.jm().format(block.startTime)} \u2013 ${DateFormat.jm().format(block.endTime)}';
-    final scheme = Theme.of(context).colorScheme;
+        l10n.timeRange(l10n.time(block.startTime), l10n.time(block.endTime));
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: isConflicting
-          ? RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: BorderSide(color: scheme.error, width: 1.5),
-            )
-          : null,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+    Widget marker(IconData icon, {String? label, Color? color}) => Padding(
+          padding: const EdgeInsets.only(right: AtomicSpace.iconLabelGap),
+          child: Icon(icon,
+              size: AtomicSize.iconTiny,
+              color: color ?? p.textMuted,
+              semanticLabel: label),
+        );
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AtomicSpace.m),
+      child: AtomicCard(
+        priorityColor: isConflicting ? p.danger : null,
+        padding: const EdgeInsets.fromLTRB(
+            AtomicSpace.m, AtomicSpace.xxs, AtomicSpace.xxs, AtomicSpace.m),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                if (block.isLocked)
-                  const Padding(
-                    padding: EdgeInsets.only(right: 6),
-                    child: Icon(Icons.lock_outline, size: 16),
-                  ),
-                if (isConflicting)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 6),
-                    child: Icon(Icons.warning_amber_rounded,
-                        size: 16, color: scheme.error),
-                  ),
+                if (block.isLocked) marker(AtomicIcons.lock),
+                if (block.isOccurrence)
+                  marker(AtomicIcons.repeat, label: l10n.repeatingBlock),
+                if (isConflicting) marker(AtomicIcons.warning, color: p.danger),
                 Expanded(
-                  child: Text(timeLabel,
-                      style: Theme.of(context).textTheme.bodySmall),
+                  child: AtomicText.mono(timeLabel, style: AtomicType.caption),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.add, size: 20),
-                  tooltip: 'Add task to this block',
-                  onPressed: () => showModalBottomSheet(
+                if (!block.isLocked)
+                  PopupMenuButton<_BlockAction>(
+                    tooltip: l10n.blockOptions,
+                    icon: Icon(AtomicIcons.more,
+                        size: AtomicSize.iconSmall, color: p.text),
+                    onSelected: (action) => switch (action) {
+                      _BlockAction.edit => openScheduleBlockEditor(context,
+                          day: block.startTime, existing: block),
+                      _BlockAction.delete =>
+                        confirmAndDeleteScheduleBlock(context, ref, block),
+                    },
+                    itemBuilder: (_) => [
+                      PopupMenuItem(
+                        value: _BlockAction.edit,
+                        child: ListTile(
+                          leading: const Icon(AtomicIcons.edit),
+                          title: Text(l10n.editBlock),
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: _BlockAction.delete,
+                        child: ListTile(
+                          leading: Icon(AtomicIcons.delete, color: p.danger),
+                          title: Text(l10n.deleteBlock),
+                        ),
+                      ),
+                    ],
+                  ),
+                AtomicIconButton(
+                  icon: AtomicIcons.add,
+                  semanticLabel: l10n.addTaskToBlock,
+                  onPressed: () => showModalBottomSheet<void>(
                     context: context,
                     isScrollControlled: true,
                     builder: (_) => AddEditTaskSheet(scheduleBlockId: block.id),
@@ -107,29 +185,24 @@ class _ScheduleBlockSection extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 4),
-            Text(block.title, style: Theme.of(context).textTheme.titleMedium),
+            Padding(
+              padding: const EdgeInsets.only(right: AtomicSpace.s),
+              child:
+                  AtomicText.display(block.title, style: AtomicType.rowTitle),
+            ),
             if (isConflicting) ...[
-              const SizedBox(height: 2),
-              Text(
-                'Overlaps another block',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: scheme.error),
-              ),
+              const SizedBox(height: AtomicSpace.xxs),
+              AtomicText.body(l10n.overlapsAnotherBlock,
+                  style: AtomicType.bodySmall.copyWith(color: p.danger)),
             ],
-            const SizedBox(height: 12),
-            tasksAsync.when(
-              loading: () => const SizedBox.shrink(),
-              error: (error, _) => Text("Couldn't load tasks: $error"),
-              data: (tasks) => tasks.isEmpty
-                  ? Text(
-                      'No tasks in this block yet.',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    )
+            const SizedBox(height: AtomicSpace.s),
+            Padding(
+              padding: const EdgeInsets.only(right: AtomicSpace.s),
+              child: tasks.isEmpty
+                  ? AtomicText.body(l10n.blockEmpty,
+                      style: AtomicType.bodySmall.copyWith(color: p.textMuted))
                   : Column(children: [
-                      for (final task in tasks) TaskCard(task: task)
+                      for (final task in tasks) TaskCard(task: task),
                     ]),
             ),
           ],

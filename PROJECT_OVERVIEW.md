@@ -1,17 +1,25 @@
-# Flowline — Project Overview
+# Atomic Assist (AA) — Project Overview
 
-> **What this is:** a single, current, as-built description of the Flowline
+> **What this is:** a single, current, as-built description of the Atomic Assist
 > codebase — architecture, data flow, data model, every screen, widget,
 > provider and key function, the UI/UX system, the build/CI pipeline, and
 > an honest list of known gaps.
 >
-> **Snapshot:** commit `1d66c1c` on `main`, 2026-09-27. Status lines marked
-> **VERIFIED** come from CI run `36192781020`; anything not exercised by CI
-> is marked **UNVERIFIED**.
+> **Snapshot:** originally written at commit `1d66c1c` (2026-09-27).
+> Status sections (§2, §18–§20, §22) refreshed on 2026-10-01 for branch
+> `claude/eloquent-pasteur-3lciys` after Phase 0 and the first part of
+> Phase 1 of `docs/04-build-and-optimization-plan.md`. Status lines marked
+> **VERIFIED** come from CI run `36849191025` (#10) or the local Flutter
+> 3.35.7 run noted beside them; anything not exercised by either is marked
+> **UNVERIFIED**.
 >
 > **How it relates to the other docs:** `docs/01-architecture.md`,
 > `docs/02-ux-ui-spec.md` and `docs/03-scope-architecture-dfd-v2.md` are
-> the original *plans*. `README.md` is the phase-by-phase build log. This
+> the original *plans*. `docs/history.md` is the phase-by-phase build log
+(it used to be `README.md`). `docs/05-atomic-assist-plan.md` is the
+> forward plan (the personal assistant and the Atomic UI rebuild);
+> `docs/04-build-and-optimization-plan.md` keeps the rules R1–R21, the
+> defect register (B1–B31) and the finished phases. This
 > file describes what the code *actually does today* and records where it
 > differs from the plans (see [§17 Documentation drift](#17-documentation-drift)).
 
@@ -46,7 +54,7 @@
 
 ## 1. Product summary
 
-Flowline is an **Android-first, phone-first, local-first** productivity app
+Atomic Assist (AA; called Flowline until 2026-10-04) is an **Android-first, phone-first, local-first** productivity app
 built with Flutter. It combines three things in one calm, focus-first UI:
 
 - **Time-blocked planning** — tasks, subtasks and named schedule blocks on a
@@ -58,7 +66,7 @@ built with Flutter. It combines three things in one calm, focus-first UI:
   Gemini or a local Ollama server, plus AI-assisted resolution of schedule
   conflicts.
 
-There is **no Flowline backend, no account, no telemetry**. All data lives
+There is **no Atomic Assist backend, no account, no telemetry**. All data lives
 in an on-device SQLite database; API keys live in the Android Keystore; AI
 requests go directly from the device to the vendor the user chose.
 
@@ -71,16 +79,17 @@ requests go directly from the device to the vendor the user chose.
 | Dependencies resolve (`flutter pub get`) | **VERIFIED** | CI |
 | Code generation (`build_runner`, Drift + Riverpod) | **VERIFIED** | CI |
 | Static analysis (`flutter analyze`) | **VERIFIED — no issues** | CI |
-| Formatting (`dart format`) | **FAILED** — only files added in the latest commit; CI uploaded the exact fix as the `format-patch` artifact | CI |
-| Unit + widget + repository tests | **86 passed, 1 failed** | CI |
-| Android release APK (`--split-per-abi`) | **VERIFIED — builds** | CI artifact `flowline-release-apks-<sha>` |
-| Emulator / integration tests | **NOT RUN** — no emulator job yet | — |
+| Formatting (`dart format`) | **VERIFIED — clean** | CI #10 |
+| Unit + widget + repository tests | **VERIFIED — all pass** (125 in CI #10; 176 locally with the uncommitted-at-the-time Phase 1 work) | CI + local |
+| Android release APK (`--split-per-abi`) | **VERIFIED — builds, signed through the release signing path**, versionCode from the run number | CI artifact `flowline-release-apks-<sha>` |
+| Release signing with the stable key | **UNVERIFIED** — needs the `ANDROID_*` repository secrets; until then CI signs with a throwaway key and warns | README › Release signing |
+| Emulator / integration tests | **VERIFIED in CI** — `integration_test/app_flow_test.dart` on an API 34 emulator: onboarding, a task, a focus session, then an Assist command with no provider → Activity → UNDO | CI job "Integration tests (Android emulator)" |
 | Behaviour on a physical phone | **UNVERIFIED** | see [§21](#21-physical-device-verification-checklist) |
 
-The single failing test is
-`test/features/focus_timer/focus_screen_test.dart` → *"a running session
-shows wall-clock remaining time on first frame"*. It was added in the latest
-commit and has not been diagnosed yet.
+The previously failing first-frame Focus test was fixed in `3fc2115` (a
+leaked Riverpod ticker). A separate timing flake in the per-second
+countdown tests (sub-second clock offset vs. Drift's second precision) was
+fixed by aligning the fake clock in the test.
 
 > History worth knowing: the project was originally written without a
 > compiler ("written blind", per `README.md`). The first CI runs showed it
@@ -95,16 +104,16 @@ commit and has not been diagnosed yet.
 
 | Module (from `03-scope…` §1) | Status | Notes |
 |---|---|---|
-| Task & schedule management | **Built, partial** | Tasks, subtasks, blocks, day switcher, unscheduled backlog, swipe complete/delete. **No UI to edit or delete a schedule block** (the repository supports both). No drag-and-drop timeline, no recurrence, no due-date picker. |
-| Focus timer | **Built** | 25/5/15 presets, start/pause/resume/end/+5 min, task/subtask linking, sprint credit, local notification. No Skip, no custom duration, no Session Summary sheet. |
+| Task & schedule management | **Built, partial** | Tasks, subtasks, blocks (create, edit, delete), day switcher, unscheduled backlog, swipe complete/delete with Undo, long-press action sheet, due dates with overdue state, block picker in the task form. Repeating blocks (every day, weekdays, chosen weekdays) with edit/delete of one day or the whole series. No drag-and-drop timeline. |
+| Focus timer | **Built** | Configurable focus/break lengths, start/pause/resume/end/+5 min, Skip for breaks, task/subtask linking, sprint credit, local notification (tap opens Focus). Session Summary sheet suggests the next session (long break every N focus sessions); completion haptic. No last-10-seconds emphasis yet. |
 | AI assistant | **Built, partial** | Four vendors behind one strategy interface, one thread per provider, error bubbles. No streaming, no markdown, no conversation history screen, no Task Breakdown Engine, no "Add to Today". |
 | Schedule intelligence | **Built, partial** | Overlap detection on save, conflict sheet, one-shot AI time suggestion, overlap flagging on Today. No drift analysis, no manual timeline adjuster. |
 | Calendar sync (Google, read-only) | **Not built** | Deliberately deferred (needs the owner's OAuth client + release-key SHA-1). `ScheduleBlockSource.externalCalendar` and `isLocked` exist in the model already. |
 | Insights | **Built, partial** | Today / streak / week stat cards, 7-day bar chart. No monthly view, no heatmap, no adherence %. |
 | Export | **Built** | PDF, CSV, JSON of the last 7 days via the system share sheet. |
 | AI Monitoring (voice) | **Not built** | Designed in `03-scope…` §6 only. No microphone code or permission exists. |
-| Settings | **Built, partial** | Settings home + AI Providers only. No Notifications, Appearance/Theme, Data & Privacy, or AI Monitoring screens. |
-| Onboarding / splash | **Not built** | App opens straight to Today; Android's native launch screen is the only splash. |
+| Settings | **Built** | Settings home (reachable from every tab), AI Providers, Focus timer lengths, Notifications (session alerts on/off), Appearance (System/Light/Dark), Data & Privacy (clear all data). Stored in the `app_settings` table (schema v5). No AI Monitoring screen (voice isn't built). |
+| Onboarding / splash | **Built** | First launch opens a 3-step skippable onboarding (value, notification permission with rationale, optional AI provider); `onboarding_done` setting. The native launch screen uses the app's surface colour, light and dark (CI writes the resources, see `tool/ci/android_patches.dart`). |
 
 ---
 
@@ -115,22 +124,24 @@ just the caret constraints in `pubspec.yaml`.
 
 | Concern | Package | Resolved | Notes |
 |---|---|---|---|
-| SDK | Flutter / Dart | **3.35.7 / 3.9.2** | Pinned in CI. Newer Flutter (3.38+, Dart 3.10) crashes the pinned `analyzer` 7.x — see [§18](#18-build-ci-and-android-packaging). |
-| State management | `flutter_riverpod`, `riverpod_annotation`, `riverpod_generator` | 2.6.1 / 2.6.1 / 2.6.5 | Code-generated providers. |
-| Routing | `go_router` | 14.8.1 | `StatefulShellRoute.indexedStack` for the 4 tabs. |
-| Database | `drift`, `drift_dev`, `sqlite3_flutter_libs` | 2.28.2 / 2.28.0 / 0.5.42 | SQLite via FFI. |
-| Secure storage | `flutter_secure_storage` | 9.2.4 | `encryptedSharedPreferences: true` (Keystore-backed). |
-| HTTP | `dio` | 5.11.1 | One shared instance, **no timeouts configured**. |
-| Notifications | `flutter_local_notifications`, `timezone`, `flutter_timezone` | 17.2.4 / 0.9.4 / 5.1.0 | Inexact `zonedSchedule`. |
-| Charts | `fl_chart` | 0.69.2 | Insights bar chart. |
-| Export | `pdf`, `printing`, `share_plus`, `path_provider` | 3.13.1 / 5.15.1 / 10.1.4 / 2.1.6 | |
-| Formatting | `intl` | 0.19.0 | Date/time labels. |
-| Lints | `flutter_lints` | 4.0.0 | Included via `package:flutter_lints/flutter.yaml`. |
-| Codegen runner | `build_runner` | 2.5.4 | |
+| SDK | Flutter / Dart | **3.47.5 / 3.13.4** | Pinned in CI; move it only together with the codegen stack (rule R19). The project's language version is still 3.4, so the formatter output didn't change. |
+| State management | `flutter_riverpod`, `riverpod_annotation`, `riverpod_generator` | 3.4.3 / 4.0.7 / 4.0.9 | Code-generated providers. Automatic retry off (`noAutomaticRetry`); action notifiers are keepAlive. |
+| Routing | `go_router` | 18.0.2 | `StatefulShellRoute.indexedStack` for the 4 tabs. |
+| Database | `drift`, `drift_dev`, `sqlite3` | 2.35.1 / 2.35.1 / 3.7.0 | SQLite bundled through Dart build hooks (no `sqlite3_flutter_libs`). Schema v4. |
+| Secure storage | `flutter_secure_storage` | 10.3.4 (held) | Migrates 9.x Jetpack Security data to its own cipher on first read, with backup. Stay on 10.x until every install has run it. |
+| HTTP | `dio` | 5.11.1 | One shared instance; connect 15 s / send 30 s / receive 120 s timeouts. |
+| Notifications | `flutter_local_notifications`, `timezone`, `flutter_timezone` | 22.3.1 / 0.11.1 / 5.1.0 | Inexact `zonedSchedule`; UTC fallback for unknown zones. |
+| Charts | `fl_chart` | 1.2.0 | Insights bar chart. |
+| Export | `pdf`, `printing`, `share_plus`, `path_provider` | 3.13.1 / 5.15.1 / 13.3.0 / 2.1.6 | PDF embeds the bundled Hanken Grotesk, so dashes and Latin/Greek/Cyrillic text render (B25). |
+| Formatting | `intl` | 0.20.3 | Date/time labels, through locale-aware skeletons in `lib/l10n/formats.dart`. |
+| Localization | `flutter_localizations` + gen-l10n | SDK | All UI text in `lib/l10n/app_en.arb` (English only so far); `context.l10n`. Generated Dart is committed. |
+| Lints | `flutter_lints` + strict analyzer settings | 6.0.0 | See `analysis_options.yaml` (rule R15). |
+| Codegen runner | `build_runner` | 2.16.1 | |
 
-Android toolchain (from the Flutter 3.35.7 template CI generates):
-AGP 8.9.1, Gradle 8.12, Kotlin 2.1.0, `compileSdk` 36, `targetSdk` 36,
-`minSdk` 24, JDK 17, application id `com.devbehindyou.flowline`.
+Android toolchain (from the Flutter 3.47.5 template CI generates):
+AGP 9.1.0, Gradle 9.3.1, Kotlin 2.4.0 (`kotlin { compilerOptions }`),
+`compileSdk` 36, `targetSdk` 36, `minSdk` 24, Java 17, application id
+`com.devbehindyou.flowline`.
 
 ---
 
@@ -138,7 +149,7 @@ AGP 8.9.1, Gradle 8.12, Kotlin 2.1.0, `compileSdk` 36, `targetSdk` 36,
 
 ### 5.1 Layering
 
-Flowline follows the MVVM-flavoured *Presentation → Domain → Data* layering
+Atomic Assist follows the MVVM-flavoured *Presentation → Domain → Data* layering
 from `docs/01-architecture.md`, **minus the Use Case layer** (intentionally
 dropped — see [§17](#17-documentation-drift)). View models call repository
 interfaces directly; the one place that genuinely spans two repositories
@@ -152,7 +163,7 @@ flowchart TB
     end
 
     subgraph Domain["Domain (lib/domain) — pure Dart, no Flutter / Drift imports"]
-        E["Entities<br/>Task, Subtask, ScheduleBlock, FocusSession,<br/>AIProviderConfig, AIConversation, AIMessage, AIResponse"]
+        E["Entities<br/>Task, Subtask, ScheduleBlock, FocusSession,<br/>AIProviderConfig, AIConversation, AIMessage,<br/>AI contract (AIRequest, AIEvent, AIFailure)"]
         RI["Repository interfaces<br/>TaskRepository, ScheduleRepository,<br/>FocusSessionRepository, AIRepository, AIClient"]
         S["Pure services<br/>ScheduleConflictChecker, FocusStatsCalculator,<br/>ExportFormatter, conflict_resolution_ai"]
     end
@@ -168,7 +179,6 @@ flowchart TB
     subgraph Core["Core (lib/core)"]
         P["providers.dart — DI via Riverpod"]
         RT["app_router.dart — go_router"]
-        TH["app_theme.dart — tokens → ThemeData"]
         NS["NotificationService"]
     end
 
@@ -196,12 +206,16 @@ Flutter. Verified by grep — no `package:flutter` import exists under
 ```text
 lib/
 ├── main.dart                     ProviderScope + runApp (no async init)
-├── app.dart                      FlowlineApp: MaterialApp.router, theme,
+├── app.dart                      AtomicAssistApp: MaterialApp.router, theme,
 │                                 focus-session reconciliation on start/resume
+├── design/                     Atomic design system (docs/05 Part VI)
+│   ├── tokens/                   colours, palette roles, spacing/radius/stroke/shadow, type, motion
+│   ├── theme/atomic_theme.dart   AtomicTheme.light()/dark() + AtomicThemeData (context.atomic)
+│   ├── foundation/               AtomicText, AtomicIcons
+│   └── components/               AtomicTag (more in Phase B)
 ├── core/
 │   ├── providers.dart            App-wide singletons (DB, repos, Dio, AI, export, notifications)
 │   ├── router/app_router.dart    Routes + 4-branch shell
-│   ├── theme/app_theme.dart      FlowlineSemanticColors + AppTheme.light()/dark()
 │   └── notifications/notification_service.dart
 ├── domain/
 │   ├── entities/                 9 plain Dart classes/enums
@@ -214,7 +228,7 @@ lib/
 │   ├── repositories/             4 Drift-backed implementations
 │   └── export/                   ExportService, WeeklyPdfExporter
 ├── features/                     one folder per feature: view/ viewmodel/ [widgets/]
-│   ├── shell/                    AppShell (bottom navigation)
+│   ├── shell/                    AppShell (bottom bar or rail by window size)
 │   ├── schedule/                 Today screen, DayTimeline, TaskCard
 │   ├── task_form/                Add/Edit Task sheet
 │   ├── task_detail/              Task Detail screen
@@ -269,7 +283,7 @@ first time a focus session starts, not at app launch.
 ```mermaid
 flowchart TB
     User((User))
-    App["Flowline<br/>Flutter Android app"]
+    App["Atomic Assist<br/>Flutter Android app"]
     AI[("AI vendors<br/>api.anthropic.com • api.openai.com •<br/>generativelanguage.googleapis.com • Ollama on LAN")]
     OS[("Android OS<br/>AlarmManager notifications •<br/>Keystore • share sheet")]
     Share[("Share targets<br/>any app accepting PDF/CSV/JSON")]
@@ -365,7 +379,7 @@ sequenceDiagram
     participant R as FocusSessionRepositoryImpl
     participant DB as Drift
     participant N as NotificationService
-    participant App as FlowlineApp (lifecycle)
+    participant App as AtomicAssistApp (lifecycle)
 
     U->>F: Start (type, optional linked task/subtask)
     F->>VM: startSession(type, taskId?, subtaskId?)
@@ -428,17 +442,21 @@ sequenceDiagram
     alt key required but missing
         R->>DB: INSERT assistant error bubble
     else
-        R->>C: sendMessage(config, key, prompt, history)
-        C-->>R: AIResponse(text) or AIResponse.error(message)
-        R->>DB: INSERT assistant message (isError flag)
+        R->>C: send(AIRequest, cancel?)
+        C-->>R: AITextDelta… then AIDone(stopReason, usage) or AIFailure(kind, status)
+        R->>DB: UPDATE the pending reply (text, or error kind + status)
     end
     DB-->>A: messages stream re-emits
     VM->>VM: state = false
 ```
 
-Errors never throw out of a client: every failure becomes an
-`AIResponse.error` with a plain-language message (see
-[§15.6](#156-ai-error-mapping)).
+Errors never throw out of a client: every failure is an `AIFailure`
+event with a kind (invalid key, rate limited, server error + status,
+unreachable, empty response, model not pulled, missing key, cancelled,
+interrupted, unknown). The reply row stores the kind and status (schema
+v7), and the chat words it in the user's language
+(`lib/l10n/ai_failure_text.dart`). Error rows from before v7 keep their
+English text.
 
 ### 6.6 Schedule block save with conflict resolution
 
@@ -577,8 +595,21 @@ erDiagram
 - **Foreign keys are enforced** — `PRAGMA foreign_keys = ON` runs in
   `beforeOpen` on every connection. (Before commit `1f5d597` it didn't, so
   every `onDelete` rule was silently ignored.)
-- **`tasks.scheduleBlockId` is not a foreign key.** `ScheduleRepositoryImpl.deleteBlock`
-  therefore un-schedules the block's tasks in the same transaction.
+- **`tasks.scheduleBlockId` is a foreign key `ON DELETE SET NULL`** (since
+  v4); `ScheduleRepositoryImpl.deleteBlock` also un-schedules the block's
+  tasks explicitly in the same transaction.
+- **Recurring blocks (v6).** A `schedule_blocks` row is a plain block, a
+  *series* (`recurrence` set: an RRULE subset, `FREQ=DAILY` or
+  `FREQ=WEEKLY;BYDAY=…`; a template that is never shown itself), or a
+  *stored occurrence* (`series_id` + `occurrence_date`; at most one per
+  series and day, unique index). Days are expanded in
+  `domain/recurrence/occurrences.dart` at read time, at wall-clock times
+  (DST-safe). A computed occurrence has a negative stand-in id that
+  encodes its series and day; it is stored as a real row when it's edited
+  alone or gets a task. "Delete this day" adds a row to
+  `schedule_block_exceptions`; "this day and all after" sets
+  `recurrence_until`. CHECKs keep `series_id` and `occurrence_date` set
+  together, and a stored occurrence is never itself a series.
 - **At most one active focus session** (`completedAt IS NULL`).
   `startSession` closes any dangling one first.
 - **Completion is idempotent** — `completeSession` updates only
@@ -595,15 +626,50 @@ erDiagram
 
 ### 7.3 Migrations
 
-`AppDatabase.schemaVersion = 3`, additive only:
+`AppDatabase.schemaVersion = 14`. Snapshots of v3 (what every APK
+before Phase 3 shipped) to v14 live in `drift_schemas/`; `test/drift/`
+verifies the upgrade schema and data. Upgrades run **step by step**
+through the generated `app_database.steps.dart`, so each step sees its
+own version's tables. Run `dart run drift_dev make-migrations` after each
+bump, then add the new `fromNToM` step.
 
 | From → to | Change |
 |---|---|
 | 1 → 2 | `createTable(focusSessions)` (Phase 2) |
 | 2 → 3 | `createTable(aiProviderConfigs, aiConversations, aiMessages)` (Phase 3) |
+| 3 → 4 | Repair data, then: unique partial index (one active session), `CHECK(end_time > start_time)`, `tasks.schedule_block_id` FK `ON DELETE SET NULL`, five performance indexes, `ai_messages.is_pending` |
+| 4 → 5 | `createTable(app_settings)` (Phase 3) |
+| 5 → 6 | `schedule_blocks` rebuilt with `recurrence`, `recurrence_until`, `series_id` (FK, cascade), `occurrence_date` and two CHECKs; `createTable(schedule_block_exceptions)`; unique index on `(series_id, occurrence_date)` (Phase 3) |
+| 6 → 7 | `ai_messages.error_kind`, `ai_messages.error_status` (typed AI errors, Phase 4) |
+| 7 → 8 | `createTable(utterances, assistant_actions, proposals)` and their indexes, including the partial unique `proposals_open_key` (one open proposal per dedupe key). New tables only (docs/05 Phase E.2) |
+| 8 → 9 | `ai_messages.stop_reason` (why a reply ended; B18: a reply that hit the length limit shows "Cut off") |
+| 9 → 10 | `assistant_actions.preview_json` (what an action did, worded later even if its target is gone) and `ai_messages.turn_group_id` (the assistant turn a chat reply belongs to) |
+| 10 → 11 | `createTable(reminders)`: title (1–200 chars), `fire_at`, kind, status, `snooze_count ≥ 0`, `task_id` FK `ON DELETE SET NULL`; index on `(status, fire_at)` (docs/05 Phase F.1) |
+| 11 → 12 | `createTable(lists, list_items)`: list names 1–60 chars and unique ignoring case (`lists_name_nocase`), items 1–200 chars, FK `ON DELETE CASCADE`, index on `(list_id, position)`; seeds Shopping, Errands, Packing (also on a fresh install) (docs/05 Phase F.2) |
+| 12 → 13 | `createTable(people, person_dates, follow_ups)`: names 1–120 chars and unique ignoring case (`people_name_nocase`), month 1–12 / day 1–31, `about` 1–200 chars; dates and follow-ups deleted with their person, `follow_ups.reminder_id` FK `ON DELETE SET NULL` (docs/05 Phase F.3a) |
+| 13 → 14 | `tasks` rebuilt (`alterTable`, foreign keys off) with `recurrence` (the blocks' RRULE subset) and `CHECK (recurrence IS NULL OR due_at IS NOT NULL)` (docs/05 Phase F.3b) |
 
-No schema-verification tests exist yet (Drift's `SchemaVerifier` is not set
-up). No build of the app has shipped, so there is no user data to migrate.
+**Assistant tables (v8).** Written by the assistant core (§9.4–§9.5),
+which no screen calls yet (E.5):
+
+| Table | Holds | Invariants in SQL |
+|---|---|---|
+| `utterances` | What the user said or typed: `body`, `source` (`UtteranceSource`), `language`, `confidence` | `body` non-empty; `confidence` in 0..1 |
+| `assistant_actions` | The ledger: `group_id` (one UNDO per turn), `tool_name`, `args_json`, `origin`, `decision`, `status` (`LedgerStatus`), `undo_json` (`encodeUndoRecipe`), `utterance_id` | `tool_name`, `group_id` non-empty; `utterance_id` FK `ON DELETE SET NULL` |
+| `proposals` | Suggestions for the Inbox: tool + args, `origin`, `reason` (`ProposalReason`), `reason_json`, `source_text`, `dedupe_key`, `status`, `expires_at` | One open row per `dedupe_key`; `expires_at > created_at`; `dedupe_key` non-empty |
+
+The enum columns have no range CHECK on purpose: the enums are
+append-only (R1), and a CHECK would force a table rebuild each time one
+grows. Undo recipes (`lib/domain/assistant/ledger.dart`) are JSON with
+table *names*, and `decodeUndoRecipe` returns null for anything it can't
+read, so an unreadable recipe makes one entry un-undoable instead of
+breaking the Activity list.
+
+Schema verification uses Drift's `SchemaVerifier` (generated tests plus a
+data-integrity tests: a v3 database full of edge cases, v5 → v6
+keeping blocks and their tasks, and v7 → v8 keeping tasks and chat
+history). `test/data/local/assistant_tables_test.dart` pins the v8 SQL
+invariants.
 
 ---
 
@@ -623,18 +689,18 @@ Riverpod.
 | `AIProviderConfig` | `id, displayName, defaultModel, baseUrl?, isActive` | `requiresApiKey` (false for Ollama) |
 | `AIConversation` | `id, providerId, title, createdAt` | — |
 | `AIMessage` | `id, conversationId, role, content, isError, sentAt` | — |
-| `AIResponse` | `content, isError` | `AIResponse(text)` / `AIResponse.error(text)` — errors are values, not exceptions |
+| AI contract (`domain/ai/ai_contract.dart`) | `AIRequest` (config, key, system, history, prompt, maxOutputTokens, format), `AIEvent` = `AITextDelta` / `AIDone(stopReason, usage)` / `AIFailure(kind, status)`, `AICancelToken`, `AIModelInfo`, `AICompletion` = `AIText` / `AIError` | Errors are values, never exceptions; `collect()` turns a stream into one `AICompletion` |
 | `ExportFormat` | `pdf, csv, json` | — |
 
 ### 8.2 Repository contracts
 
 | Interface | Reads (streams) | Writes |
 |---|---|---|
-| `TaskRepository` | `watchTasksForBlock`, `watchUnscheduledTasks`, `watchTask`, `watchSubtasks` | `createTask`, `updateTask`, `deleteTask`, `setTaskStatus`, `createSubtask`, `setSubtaskStatus`, `deleteSubtask`, `incrementSubtaskCompletedSprints` |
-| `ScheduleRepository` | `watchBlocksForDay` | `createBlock`, `updateBlock`, `deleteBlock` |
+| `TaskRepository` | `watchTasksForBlock`, `watchUnscheduledTasks({done, limit})`, `watchUnscheduledDoneCount`, `watchTask`, `watchSubtasks` | `createTask`, `updateTask`, `deleteTask`, `setTaskStatus`, `createSubtask`, `setSubtaskStatus`, `deleteSubtask`, `incrementSubtaskCompletedSprints` |
+| `ScheduleRepository` | `watchBlocksForDay`, `getBlocksForDay`, `watchDayPlan` (blocks joined with their tasks, one query) | `createBlock`, `updateBlock`, `deleteBlock` |
 | `FocusSessionRepository` | `watchActiveSession`, `getActiveSession`, `watchSessionsForTask`, `watchTodaysSessions`, `watchSessionsInRange` | `startSession`, `pauseSession`, `resumeSession`, `extendSession`, `completeSession → bool` |
 | `AIRepository` | `watchProviders`, `watchActiveProvider`, `watchConversations`, `watchMessages`, `hasKey` | `saveProviderKey`, `setActiveProvider`, `removeProviderKey`, `createConversation`, `deleteConversation`, `sendMessage`, `completeOnce` |
-| `AIClient` (strategy) | — | `sendMessage(config, apiKey, prompt, history) → AIResponse` |
+| `AIClient` (strategy, v2) | `listModels(config, apiKey)` | `send(AIRequest, {cancel}) → Stream<AIEvent>` |
 
 ### 8.3 Pure services
 
@@ -658,20 +724,50 @@ Details of each algorithm are in [§15](#15-key-algorithms-and-functions).
 | `TaskRepositoryImpl` | Straight Drift CRUD. Subtasks ordered by `orderIndex` (always 0 today — no reordering UI). |
 | `ScheduleRepositoryImpl` | `watchBlocksForDay` = blocks whose **start** falls in `[day, day+1)`, ordered by start. `deleteBlock` un-schedules tasks first, in one transaction. |
 | `FocusSessionRepositoryImpl` | Wall-clock timer persistence, self-heal, natural-end completion, extension grows `plannedDurationSec`. See [§15.1](#151-wall-clock-focus-timer). |
-| `AIRepositoryImpl` | Seeds providers, keeps the "exactly one active" rule in a transaction, orchestrates a chat send, and `completeOnce` for no-history one-shot prompts. |
+| `AIRepositoryImpl` | Seeds providers, keeps the "exactly one active" rule in a transaction, orchestrates a chat send, `completeOnce` for no-history one-shot prompts, and `completeWithTools` (one round with tools; falls back to a JSON plan when the model refuses tools). |
 
 ### 9.2 AI vendor clients
 
-All four implement `AIClient`, share the app's single `Dio` instance,
-send the full conversation history each time (**unbounded**), and are
-**non-streaming**.
+All four extend `HttpAIClient` (`data/remote/ai_clients/http_ai_client.dart`),
+which owns the HTTP call, cancellation, failure mapping and the contract's
+event order; a vendor only builds its call and reads its reply and model
+list. They share the app's single `Dio` instance, send a **windowed**
+history (the last ten completed exchanges or ~24,000 characters,
+`windowHistory`, K10), and **stream**
+(Phase 4.3): server-sent events for the hosted vendors, NDJSON for
+Ollama. The reply row fills in as text arrives (written at most every
+120 ms); the chat's send button becomes **Stop**, and a stopped or
+dropped reply keeps the text that arrived. They
+send the system prompt the vendor's way, ask for JSON when requested
+(OpenAI `response_format`, Gemini `responseMimeType`, Ollama `format`,
+an instruction for Anthropic), and read stop reason (cut-off = B18) and
+token usage.
+
+**Tool calling (AI contract v3, docs/05 Phase D).** A request may carry
+`tools` (`AIToolSpec`: name, description, a JSON Schema in the portable
+subset checked by `unsupportedSchemaKeywords`), a `toolChoice` and the
+`continuation` of earlier rounds (the model's calls and the app's
+results). Each vendor maps them to its own format: Anthropic `tools` +
+`tool_use`/`tool_result` blocks, OpenAI `tools` + `tool_calls`/`tool`
+messages, Gemini `functionDeclarations` + `functionCall`/
+`functionResponse` parts, Ollama the OpenAI shape with object arguments.
+`HttpAIClient` assembles streamed argument fragments and emits each call
+once, complete, after the text (`AIToolCall`, with the arguments as raw
+JSON for the caller to validate, R16); a call cut off by a dropped stream
+is never emitted. A 400 whose body talks about tools becomes
+`toolsUnsupported`, and `completeWithTools` then asks the same model for a
+JSON plan (`json_plan.dart`) whose actions become the same calls.
+Pinned by `tool_calls_contract_test.dart` (one call, two calls, text then
+a call, raw arguments, a drop mid-call, a 400 about tools vs. other 400s,
+request encoding) for all four vendors. Not yet used by any screen: the
+orchestrator that does is Phase E.
 
 | Client | Endpoint | Auth | Request shape | Notes |
 |---|---|---|---|---|
-| `AnthropicClient` | `POST https://api.anthropic.com/v1/messages` | `x-api-key`, `anthropic-version: 2023-06-01` | `messages[]`, `max_tokens: 1024` | Joins all `text` content blocks |
-| `OpenAIClient` | `POST https://api.openai.com/v1/chat/completions` | `Authorization: Bearer` | `messages[]` | `choices[0].message.content` |
-| `GeminiClient` | `POST …/v1beta/models/{model}:generateContent` | `x-goog-api-key` header (never a URL query parameter) | `contents[]` with `user` / `model` roles | Joins `candidates[0].content.parts[].text` |
-| `OllamaClient` | `POST {baseUrl}/api/chat` (default `http://localhost:11434`) | none | `messages[]`, `stream: false` | Tailored errors: LAN-IP hint on connection failure; "ollama pull" hint on 404 |
+| `AnthropicClient` | `POST https://api.anthropic.com/v1/messages`; models `GET /v1/models` | `x-api-key`, `anthropic-version: 2023-06-01` | `system`, `messages[]`, `max_tokens` | Joins all `text` content blocks |
+| `OpenAIClient` | `POST https://api.openai.com/v1/chat/completions`; models `GET /v1/models` | `Authorization: Bearer` | `system` message, `messages[]`, `max_completion_tokens` | `choices[0].message.content` |
+| `GeminiClient` | `POST …/v1beta/models/{model}:generateContent`; models `GET …/v1beta/models` (chat-capable only) | `x-goog-api-key` header (never a URL query parameter) | `systemInstruction`, `contents[]` with `user` / `model` roles, `generationConfig` | Joins `candidates[0].content.parts[].text` |
+| `OllamaClient` | `POST {baseUrl}/api/chat` (default `http://localhost:11434`); models `GET /api/tags` | none | `system` message, `messages[]`, `stream: false`, `options.num_predict` | 404 = model not pulled; the chat adds the LAN-IP hint when unreachable |
 
 Seeded default models (editable per provider in Settings):
 `claude-3-5-sonnet-20241022`, `gpt-4o-mini`, `gemini-1.5-flash`, `llama3.2`.
@@ -687,6 +783,199 @@ retired; see [§20](#20-known-issues-and-gaps).
 | `ExportService` | `sharePdf` (via `Printing.sharePdf`), `shareCsv` / `shareJson` (temp file + `Share.shareXFiles`). File names: `flowline-focus-YYYYMMDD-YYYYMMDD.<ext>`. |
 | `WeeklyPdfExporter` | One A4 page: stat row, daily breakdown table, focus-session log (`pw.TableHelper.fromTextArray`). |
 
+### 9.4 Assistant tools, executor and undo (docs/05 Phase E.3)
+
+**Not wired to any screen or provider yet** — the orchestrator that calls
+them is E.4. Everything below is exercised by tests only.
+
+A tool (`lib/domain/assistant/tool.dart`) has a name, a model-facing
+description, a JSON Schema in the portable subset, a risk class, and four
+steps: `parse` (shape; throws `ToolArgumentError`), `validate` (against
+the current state, read fresh; returns `Valid` or `Invalid(reason,
+detail)`), `preview` (a typed `ActionPreview` the UI words with l10n) and
+`run` (returns the result JSON for the model, an `UndoRecipe`, and
+after-commit effects). `ToolRegistry.prepare` turns a name plus raw JSON
+into a `PreparedCall` and never throws: an unknown name is `UnknownTool`,
+so "pay" or "send" simply don't exist.
+
+The 14 tools (`lib/assistant/tools/`):
+
+| Tool | Risk | Undo |
+|---|---|---|
+| `get_agenda`, `find_free_time`, `search_tasks`, `get_task` | read | — (no ledger row) |
+| `create_task` | reversible | delete the row |
+| `update_task`, `complete_task` | reversible | restore the changed columns, only if unchanged since |
+| `schedule_task` | reversible | restore the task's block, delete the new block |
+| `break_down_task` | reversible | delete the new subtasks |
+| `create_block` | reversible | delete the row |
+| `move_block` | reversible | restore the times; for a computed occurrence of a series, delete the stored copy so the computed one returns |
+| `start_focus` | reversible | under a minute: delete the session; longer: end it early; already ended: refuse |
+| `delete_task` | destructive | restore the task, its subtasks and the focus-session links |
+| `delete_block` | destructive | restore the block and its tasks' links (one-off blocks only) |
+
+Tasks can be named by `task_id` or by `task` (title), because the local
+grammar only has titles: an exact case-insensitive match wins, then a
+unique partial match; otherwise `notFound` or `ambiguous` with the
+candidates, for the model to resolve. Block tools refuse locked blocks
+and series templates; every new time range is checked for order, the
+past (one minute's grace), length (≤ 24 h) and overlap, locked blocks
+included.
+
+`ToolExecutor` (`lib/data/assistant/`) validates again and runs the tool
+inside one transaction together with its `assistant_actions` row, then
+runs after-commit effects (a started session's alert), whose failures are
+swallowed. A tool that throws rolls back and leaves a `failed` row.
+`UndoService.undoGroup` reverses a whole turn in one transaction, newest
+first; if any step finds the user changed the data since, nothing is
+undone (`changedSince`). `StoredRows` does the raw row access and only
+ever builds SQL from schema-known table and column names.
+
+### 9.5 Orchestrator and proposals (docs/05 Phase E.4)
+
+**Wired as keepAlive providers (`lib/assistant/assistant_providers.dart`).**
+The Assist chat calls it (E.5a, below); Inbox and Activity read and act on the same ledger (E.5b).
+
+**The acting chat (E.5a).** Every message in Assist is one orchestrator
+turn (`AssistChat`): the prompt and a pending reply are written first
+(the reply carries the turn's ledger group), recent completed exchanges
+go along as history, and the reply is filled with the model's text, an
+empty text (the turn's actions say it all), or a typed failure. Under the
+reply, `TurnActions` shows a card per action (the stored preview, worded
+by `lib/l10n/action_text.dart`: "CREATED TASK · buy milk") and one UNDO
+for the whole turn, live from the ledger. A held call (a delete, or
+anything under "careful") opens the confirm sheet, which states exactly
+what goes. In the chat, a read the grammar recognises goes to the model,
+which answers in words. Trade-off: replies in the chat are no longer
+streamed token by token (tool rounds are collected); Stop still cancels
+and keeps what arrived.
+
+`AssistantOrchestrator.handle(utterance)` records the utterance, then:
+
+1. **Local grammar first.** If `quickParse` produces a call to a
+   registered tool, it is validated, decided and run with no model call.
+   If the grammar's call is rejected (an ambiguous title), the model gets
+   a go; if no model is reachable, the rejection is the answer.
+2. **Model rounds** via `AIRepository.completeWithTools` with every tool
+   spec and a bounded system prompt (`AssistantContextBuilder`: rules,
+   now with weekday and UTC offset, today's and tomorrow's blocks and up
+   to 20 open tasks, all with ids, titles redacted for phone numbers,
+   emails and card numbers). At most 4 rounds, 8 calls per turn (a reply
+   with more runs none of them) and 30 s per round (the request is
+   cancelled). Unknown tools, bad arguments and invalid targets go back
+   to the model as error results; results are capped at 4,000 chars.
+3. **Policy per call** (`decide`, origin `said`, the user's autonomy
+   preset from Settings, default `balanced`): reads and hand-offs run;
+   reversible actions run with undo, or ask first under `careful`;
+   destructive ones always stop the turn with a `PendingConfirmation`
+   (typed preview) and nothing after them runs. `confirm()` re-checks the
+   state and runs it as `confirm` in the same group, so one UNDO still
+   reverses the turn.
+
+The result is `TurnAnswered` (model text, or empty for the grammar),
+`TurnNeedsConfirmation`, `TurnFailed(AIFailureKind)` or
+`TurnStopped(rounds|calls|timeout)`, each with the `ActedCall`s.
+
+`ProposalService.accept` re-validates a proposal against the state now
+and runs it as `said` (a tap is consent); a gone target or an expired
+proposal becomes `noLongerPossible` and is closed as expired; a second tap
+does nothing. `AssistantRepository.createProposal` refuses a second open
+proposal with the same dedupe key. Nothing creates proposals yet: the
+scanners and commitment detector are Phase H.
+
+**Reminders (F.1).** `create_reminder`, `snooze_reminder` and
+`complete_reminder` are tools like any other (ledger row, undo; 17 tools
+now). "Remind me to call Mum at 7" is handled by the local grammar with no
+model call. After each commit a `ReminderTouched` effect makes
+`ReminderSync` schedule, move or cancel that reminder's notification
+(stable id `100000 + id`, inexact, so it may be a few minutes late). On
+start and resume, missed reminders are marked fired and the next 14 days
+(at most 64) are scheduled again. The notification's buttons — Done,
+Snooze 10 min, Tomorrow (same time of day, calendar math) — map through
+the pure `reminderActionCall` to the same tool calls and run through the
+executor, so they show in Activity with undo. With the app closed, the
+background isolate opens the database itself and does the same
+(**UNVERIFIED** on a device). Library → Reminders lists open ones, with a
+"Missed" label, and the same three buttons. Notification permission is
+asked when the first reminder is scheduled.
+
+**Lists (F.2).** Four tools: `list_items` (read), `add_list_items`
+(skips items already open on the list, ignoring case, and repeats in the
+same request), `check_list_item`, and `clear_checked` (destructive: always
+confirmed; undo puts the items back). Lists are named by name, ignoring
+case; an unknown name isn't created silently: the model is told the lists
+that exist. "Add milk, eggs and bread to shopping" (or the Hinglish form)
+is handled by the local grammar. Library → Lists shows each list with
+open / total; a list's screen ticks, adds and clears ticked items, and
+every tap there goes through the same tools (`runDirectAction`), so it
+shows in Activity with undo.
+
+**Plan my day (H.3).** `lib/domain/assistant/day_planner.dart` places
+open tasks that have no block into today's free time: due soonest, then
+priority, then oldest; 30 minutes each (tasks keep no estimate yet); from
+the next quarter hour to 18:00, leaving 10 minutes after each existing
+block; never past a task's due time unless it is already overdue; at
+most 8. PLAN MY DAY (the sparkle in Today's app bar, and the morning
+briefing's primary) shows the plan in a sheet; APPLY runs `schedule_task`
+for each item in one ledger group, so one UNDO takes the whole plan back.
+When a block ends with tasks still open in it, the `blockEndedWithOpenTasks`
+scanner proposes moving the first one to the next free gap.
+
+**Briefings (H.2).** `lib/domain/assistant/briefing.dart` builds a
+briefing from the day's facts (`BriefingFactsLoader`): the morning has the
+day's load and first block, the top three tasks (overdue, then high
+priority, then soonest due), people's dates this week and the number of
+suggestions; the shutdown has focus done today, what AA did on its own,
+unfinished tasks (due today or earlier), open follow-ups and tomorrow's
+first block. `briefing_text.dart` words it once, for both the screen and
+READ ALOUD. `/briefing/morning` and `/briefing/shutdown` show it with a
+split headline from the data; the shutdown's MOVE UNFINISHED TO TOMORROW
+moves each task to the same time tomorrow through `update_task`, in one
+ledger group with one UNDO. Daily notifications at 07:30 and 18:30 open
+them (Settings → Assistant → Briefings). **UNVERIFIED** on a device.
+
+**Context scanners (H.1).** `lib/domain/assistant/scanners.dart` holds
+pure scanners over a snapshot (tasks, today's blocks, people, dates,
+follow-ups): an upcoming date within 7 days, an overdue task, a free gap
+of at least 45 minutes today for the oldest high-priority task with no
+block, a follow-up past its wait time, and a day booked to 90% or more of
+09:00–18:00. `ScannerRunner` turns each finding into an Inbox proposal
+for a real tool (`create_reminder` on the morning of the date,
+`update_task` to the same time tomorrow, `schedule_task`,
+`complete_follow_up`, `move_block` to tomorrow), worded by l10n and keyed
+so it is never proposed twice, even after a dismiss. Under HANDS-OFF a
+reversible finding runs at once, with a ledger row and UNDO. It runs on
+app start and resume, at most every 10 minutes, unless Settings →
+Assistant → SUGGESTIONS (the kill switch) is off. Settings → Assistant
+also sets the autonomy preset.
+
+**People, dates and follow-ups (F.3a).** Four tools: `get_person`
+(read), `add_person_date` (a birthday, anniversary or other yearly date;
+adds the person if they aren't known), `create_follow_up` ("chase Ravi
+about the invoice on Friday": a follow-up plus a reminder of kind
+follow-up), and `complete_follow_up` (marks it replied and the reminder
+done). People are matched by exact name, ignoring case, then by a unique
+partial match; an ambiguous name goes back to the model. Feb 29 falls on
+Feb 28 in other years (`person_dates.dart`). Library → People lists
+everyone with their next date; a person's screen shows dates ("in 5
+days", "turns 30") and open follow-ups, and ticking one goes through the
+same tool. 25 tools in all. Not yet: a reminder ahead of a date (Phase H
+scanner), contacts import, a tool to rename or delete a person.
+
+**Repeating tasks (F.3b).** A task can repeat daily, on weekdays or on
+chosen days (`tasks.recurrence`, schema v14); it then always has a due
+time (a CHECK). Completing one (`complete_task`, or ticking it on Today,
+which runs the same tool) keeps it open with `due_at` moved to the next
+day it repeats on after both its due day and today, at the same time of
+day (`repeat_due.dart`), and adds a done copy as the record, in one
+transaction; undo deletes the copy and restores the due time.
+`create_task` and `update_task` take `repeat` (`daily`, `weekdays`,
+`mon,thu`); the task form shows Repeat once a due time is set, and the
+task screen says how it repeats.
+
+A session started by `start_focus` gets the normal end-of-session alert
+(`FocusTimerViewModel.alertForStartedSession`), and undoing it cancels
+the alert.
+
 ---
 
 ## 10. State management: provider catalog
@@ -700,7 +989,7 @@ true)`. "Auto" = auto-dispose.
 | `taskRepositoryProvider` / `scheduleRepositoryProvider` / `focusSessionRepositoryProvider` / `aiRepositoryProvider` | repository | keepAlive | DB (+ Dio, key store) | view models |
 | `notificationServiceProvider` | `Future<NotificationService>` | keepAlive, lazy | `init()` | `FocusTimerViewModel` |
 | `dioProvider`, `secureKeyStoreProvider`, `exportServiceProvider` | singleton | keepAlive | — | AI repo, export |
-| `appRouterProvider` | `GoRouter` | keepAlive | route table | `FlowlineApp` |
+| `appRouterProvider` | `GoRouter` | keepAlive | route table | `AtomicAssistApp` |
 | `selectedDateProvider` | `Notifier<DateTime>` | auto | today, `nextDay / previousDay / goToToday` | Today |
 | `scheduleBlocksForSelectedDateProvider` | `Stream<List<ScheduleBlock>>` | auto | watches `selectedDateProvider` | Today |
 | `tasksForBlockProvider(blockId)` | `Stream<List<Task>>` family | auto | repo | block cards |
@@ -715,7 +1004,7 @@ true)`. "Auto" = auto-dispose.
 | `todaysFocusSummaryProvider` | `Stream<(totalSeconds, sessionCount)>` | auto | sessions started today | Focus footer, Insights "Today" |
 | `selectedSessionTypeProvider` | `Notifier<FocusSessionType>` | auto | — | Focus idle view |
 | `pendingFocusLinkProvider` | `Notifier<(taskId, subtaskId?, label)?>` | auto | set from Today / Task Detail | Focus idle view |
-| `focusTimerViewModelProvider` | action notifier | auto | start/pause/resume/extend/complete/`completeIfElapsed` | Focus, `FlowlineApp` |
+| `focusTimerViewModelProvider` | action notifier | auto | start/pause/resume/extend/complete/`completeIfElapsed` | Focus, `AtomicAssistApp` |
 | `recentFocusSessionsProvider` | `Stream<List<FocusSession>>` | auto | last 30 days by `startedAt` | Insights stats |
 | `weeklyFocusTotalsProvider` | `AsyncValue<List<DailyFocusTotal>>` | auto | derived synchronously | Insights |
 | `currentStreakProvider` | `AsyncValue<int>` | auto | derived synchronously | Insights |
@@ -741,15 +1030,20 @@ Rebuild notes:
 ## 11. Navigation
 
 `go_router` with a `StatefulShellRoute.indexedStack`: each tab keeps its own
-navigator and state; the four tab subtrees stay mounted.
+navigator and state; the five tab subtrees stay mounted. Since E.5b the
+tabs are TODAY · INBOX · ASSISTANT · FOCUS · LIBRARY (docs/05 §28), with
+an open-proposal count badge on Inbox.
 
 | Path | Screen | Navigator | How it's reached |
 |---|---|---|---|
 | `/today` *(initial)* | `TodayScreen` | shell branch 0 | bottom nav |
 | `/today/task/:taskId` | `TaskDetailScreen` | **root** (full screen over the shell) | tap a task card |
-| `/focus` | `FocusScreen` | shell branch 1 | bottom nav; ▶ on a task or subtask (`context.go`) |
+| `/inbox` | `InboxScreen` (suggestions, today's actions) | shell branch 1 | bottom nav |
+| `/inbox/activity` | `ActivityScreen` (30 days of the ledger) | root | "All activity" on Inbox |
 | `/assistant` | `AssistantScreen` | shell branch 2 | bottom nav |
-| `/insights` | `InsightsScreen` | shell branch 3 | bottom nav |
+| `/focus` | `FocusScreen` | shell branch 3 | bottom nav; ▶ on a task or subtask (`context.go`) |
+| `/library` | `LibraryScreen` (hub) | shell branch 4 | bottom nav |
+| `/library/review` | `InsightsScreen`, titled "Review" | root | Library → Review |
 | `/settings` | `SettingsHomeScreen` | root | gear icon on Today's app bar |
 | `/settings/ai-providers` | `AiProvidersScreen` | root | Settings list; icon/CTA on Assistant |
 
@@ -787,19 +1081,25 @@ Bottom-nav tap on the already-selected tab resets that branch to its root
 For each screen: purpose, what it shows, actions, and its state model.
 
 ### 12.1 App shell — `AppShell`
-- `Scaffold` with the shell body and an M3 `NavigationBar`: **Today**
-  (calendar icon), **Focus** (hourglass), **Assistant** (sparkle), **Insights**
-  (bar chart). Outlined icon when inactive, filled when selected.
+- Four destinations: **Today** (calendar icon), **Focus** (hourglass),
+  **Assistant** (sparkle), **Insights** (bar chart). Outlined icon when
+  inactive, filled when selected.
+- Adapts by Material window size class (`core/layout/window_size.dart`):
+  compact (< 600dp) uses a bottom `NavigationBar`; medium uses a labelled
+  `NavigationRail`; expanded (≥ 840dp) uses an extended rail.
 
 ### 12.2 Today — `TodayScreen`
-- **App bar:** title "Flowline", settings icon (tooltip "Settings").
+- **App bar:** title "Atomic Assist", settings icon (tooltip "Settings").
 - **Date header (`_DateHeader`):** previous/next day chevrons, date as
-  "EEEE, MMM d", and a "Jump to today" button only when another day is shown.
+  the locale's long day format ("Tuesday, March 10"), and a "Jump to today" button only when another day is shown.
 - **Body:** `DayTimeline` — one card per schedule block (time range,
   title, lock icon if locked, warning icon + red outline + "Overlaps another
   block" if it overlaps another block that day, "+" to add a task into
   it, nested task cards), an "Add schedule block" button, then an
-  "Unscheduled" section.
+  "Unscheduled" section. Built lazily (`ListView.builder`) from one joined
+  query for the day (`dayPlanProvider`). The backlog lists open tasks, 50
+  at a time with "Show more"; completed ones sit behind "Show completed
+  (N)".
 - **FAB:** extended "Add Task".
 - **Task card actions:** tap → Task Detail; leading circle → toggle done;
   swipe right → toggle done; swipe left → "Delete task?" dialog; ▶ → go to
@@ -832,11 +1132,15 @@ For each screen: purpose, what it shows, actions, and its state model.
 ### 12.6 Task Detail — `TaskDetailScreen` (full screen)
 - App bar: edit (opens task sheet), delete (confirmation dialog, then pops).
 - Priority + status chips, title, notes, **Start Focus Session**.
+- Due date (overdue in the overdue colour).
 - Subtasks: checkbox list (strike-through when done), "N of M pomodoros
   logged", ▶ per subtask (links the focus session to the subtask), ✕ to
-  delete (no confirmation), "Add subtask" dialog.
+  delete (with confirmation), a drag handle to reorder (screen readers
+  get ReorderableListView's move actions), "Add subtask" dialog. New
+  subtasks go last; order is stored in `subtasks.order_index`.
+- Focus history: "N sessions · M min total", then each focus session
+  (date, time, minutes, "ended early").
 - States: loading, error, "This task no longer exists."
-- Not present vs. spec: the task's focus-session history.
 
 ### 12.7 Focus — `FocusScreen`
 - **Idle (`_IdleView`):** optional linked-task chip (dismissible),
@@ -848,14 +1152,49 @@ For each screen: purpose, what it shows, actions, and its state model.
   or PAUSED, three round controls — **End** (early), **Pause/Resume**,
   **+5 min** — and the footer.
 - Completion at zero is triggered from the screen and, independently, from
-  `FlowlineApp` after the first frame and on every resume.
-- Not present vs. spec: Skip, custom duration, Session Summary sheet,
-  last-10-seconds emphasis, haptics.
+  `AtomicAssistApp` after the first frame and on every resume.
+- Ending or finishing a session opens the Session Summary sheet
+  (`session_summary_sheet.dart`): minutes logged, today's focus count,
+  and a button for the suggested next session. Breaks show **Skip**
+  instead of End. A heavy haptic fires on completion (not on End).
+- Not present vs. spec: last-10-seconds emphasis.
 
 ### 12.8 Assistant — `AssistantScreen`
 - App bar: "AI Providers" icon.
-- **No active provider:** empty state "Connect an AI provider" with a
-  "Go to AI Providers" button.
+- **Voice (docs/05 Phase G.1):** a mic button (ink) next to Send opens the
+  listening panel and starts push-to-talk. The loop is a pure reducer
+  (`lib/domain/assistant/voice_state.dart`, table-tested) driven by
+  `VoiceController`: live partials ("LISTENING · EN-IN"), a final at or
+  above 0.6 confidence runs one assistant turn (chat with a provider, the
+  local grammar without one; the utterance is stored as `voice`), a less
+  certain one is shown to edit first, and the reply is shown as a caption
+  and read aloud (`flutter_tts`). Errors are typed (no microphone, no
+  recogniser, nothing heard, network, busy, language missing) with GRANT
+  MICROPHONE / TRY AGAIN. Recognition is Android's own recogniser
+  (`speech_to_text`), which may use the recogniser's online service.
+  Closing the panel stops listening and speech. **UNVERIFIED** on a device.
+- **Settings → Voice (G.2):** speak replies OFF / WHEN I SPOKE (default) /
+  ALWAYS (typed replies are read too), speaking speed 20–100% (steps of
+  10, 50 normal), and keep listening (conversation mode: after each reply
+  AA listens again, until silence or STOP). Stored as `speak_replies`,
+  `speech_rate_percent`, `voice_keep_listening`.
+- **Start listening from outside the app (G.3):** the Quick Settings tile
+  "Talk to Atomic Assist" (`ListenTileService.kt`) and the launcher
+  shortcut "Talk" open `atomicassist://app/assistant?listen=1`. The
+  `/assistant` route's redirect records a one-time `pendingListenProvider`
+  request and drops the query; the Assist screen takes it and opens the
+  listening panel. A haptic tick and a click mark the start and end of
+  listening. **UNVERIFIED** on a device; the owner's check is
+  `docs/voice-device-check.md`.
+- **No active provider (`_LocalBody`, docs/05 Phase F.4):** quick
+  commands still work. The field ("Try: remind me at 6pm to call Mum")
+  runs the orchestrator, which tries the local grammar and stops there:
+  what it did shows under the command with UNDO (and in Activity); a
+  rejected command says to check the name or time; anything else says it
+  needs an AI provider. Held in memory for the session (no conversation
+  without a provider). With nothing typed yet: the empty state "Connect
+  an AI provider", which names two quick commands, and "Go to AI
+  Providers".
 - **Active provider (`_ChatBody`):** chip "<Provider> • <model>", message
   list (`ListView.builder`, reversed, newest at the bottom), a 2 px
   progress bar while sending, input field (1–4 lines, send on enter) and a
@@ -903,7 +1242,7 @@ For each screen: purpose, what it shows, actions, and its state model.
 
 | Widget | File | Type | Role |
 |---|---|---|---|
-| `FlowlineApp` | `app.dart` | ConsumerStatefulWidget | Root `MaterialApp.router`, themes, lifecycle reconciliation |
+| `AtomicAssistApp` | `app.dart` | ConsumerStatefulWidget | Root `MaterialApp.router`, themes, lifecycle reconciliation |
 | `AppShell` | `features/shell/app_shell.dart` | StatelessWidget | Bottom navigation shell |
 | `TodayScreen`, `_DateHeader` | `features/schedule/view/today_screen.dart` | Consumer | Today tab, date switcher |
 | `DayTimeline`, `_ScheduleBlockSection` | `features/schedule/widgets/day_timeline.dart` | Stateless / Consumer | Timeline of blocks + unscheduled |
@@ -913,7 +1252,7 @@ For each screen: purpose, what it shows, actions, and its state model.
 | `ConflictWarningSheet`, `_SuggestionCard`, `_RawAiTextCard`, `_ErrorCard` | `features/schedule_intelligence/view/` | ConsumerStateful / Stateless | Conflict resolution |
 | `TaskDetailScreen`, `_SubtaskList` | `features/task_detail/view/` | Consumer | Task detail + subtasks |
 | `FocusScreen`, `_IdleView`, `_RunningView`, `_LinkedTaskChip`, `_ControlButton`, `_TodaysFocusFooter` | `features/focus_timer/view/focus_screen.dart` | Consumer / Stateless | Focus tab |
-| `TimerRing` | `features/focus_timer/widgets/timer_ring.dart` | StatelessWidget | 240×240 countdown ring |
+| `TimerRing` | `features/focus_timer/widgets/timer_ring.dart` | StatelessWidget | Countdown ring sized from the window (160–360dp), tabular digits |
 | `AssistantScreen`, `_ChatBody`, `_MessageList` | `features/ai_assistant/view/` | Consumer / ConsumerStateful | Chat |
 | `ChatBubble` | `features/ai_assistant/widgets/chat_bubble.dart` | StatelessWidget | One message |
 | `InsightsScreen`, `_StatCard`, `_WeeklyBarChart` | `features/insights/view/` | Consumer / Stateless | Insights |
@@ -937,7 +1276,7 @@ For each screen: purpose, what it shows, actions, and its state model.
 | Task Card/Row | `TaskCard` | No overdue state, no long-press menu |
 | Schedule Block Card | `_ScheduleBlockSection` | No current/past/future styling |
 | Day Timeline | `DayTimeline` | Eager `ListView(children:)`, not lazily built |
-| Timer Ring | `TimerRing` | No last-10 s emphasis, no semantics label, fixed 240 px |
+| Timer Ring | `TimerRing` | No last-10 s emphasis yet; one semantics label; scales with the window |
 | Session Type Selector | `SegmentedButton` | Hidden while running rather than disabled |
 | Session Controls | `_ControlButton` ×3 | No Skip |
 | Chat Bubble | `ChatBubble` | No streaming, retry or markdown |
@@ -972,65 +1311,72 @@ For each screen: purpose, what it shows, actions, and its state model.
 - **Local-first** — no pull-to-refresh anywhere; Drift streams update the UI
   reactively.
 
-### 14.2 Theme implementation (`core/theme/app_theme.dart`)
+### 14.2 Theme implementation (`lib/design/`, Phase A)
 
-Both themes are `ColorScheme.fromSeed(primary)` with a handful of token
-overrides, fed into one shared `_buildTheme`:
+The app is themed by the **Atomic Design System**
+(`docs/design-system/atomic-design-system.md`); the Flowline token files
+in `docs/history/design-tokens/` no longer apply. Everything visual comes from
+`lib/design/tokens/`:
 
-| Token role | Light | Dark | Source token |
-|---|---|---|---|
-| `primary` (seed) | `#3525CD` | `#6366F1` | light `primary`; dark uses `semantic-session-focus`, **not** the dark file's `primary` `#C0C1FF` |
-| `onPrimary` | white | white | — |
-| `surface` / scaffold | `#FAF8FF` | `#0F1117` | light `surface`; dark `surface-canvas` |
-| `onSurface` | `#131B2E` | `#F1F5F9` | light `on-surface`; dark `text-primary` |
-| `outlineVariant`, card border, divider | `#C7C4D8` | `#282E3E` | dark `surface-border`; light value ≠ light `surface-border` `#E2E8F0` |
-| `surfaceContainerHigh` (cards, inputs, sheets) | seed-derived | seed-derived | tokens define `#E2E8F0` / `#1F2430`, not applied |
-
-Component theming:
-
-| Component | Setting |
+| Token file | Contents |
 |---|---|
-| Card | `surfaceContainerHigh`, elevation 0, radius **16**, 1 px border |
-| Input | filled `surfaceContainerHigh`, radius **8**, focused border `primary` 1.5 px |
-| ElevatedButton | `primary` / `onPrimary`, min height **48**, full width, radius **12** |
-| Bottom sheet | `surfaceContainerHigh`, top radius **24** |
-| NavigationBar | `surface` background, indicator `primary` at 16% opacity |
-| AppBar | `surface`, elevation 0, no surface tint |
+| `atomic_colors.dart` | Raw palette: ink `#15171B`, paper `#F4F5F1`, white, surface `#EDEEE8`, Signal `#3A2FF0` and its family, slate, line, error, energy colours, dark-theme cards `#1E2026` |
+| `atomic_palette.dart` | Semantic roles per theme (background, card, panel, text, textMuted, rule, hairline, accent, accentText, danger, shadow, inverse, track). Widgets read roles via `context.atomic.palette` |
+| `atomic_metrics.dart` | Spacing (4/8/12/16/22/24/32/44/56/74), radius (3/4/6/8/28/pill), strokes (1/1.5/2/4), hard offset shadows (0 blur), fixed sizes (48 dp targets) |
+| `atomic_type.dart` | Bebas Neue (display), Hanken Grotesk (body), JetBrains Mono (labels, ≥ 12 sp) |
+| `atomic_motion.dart` | 120/150/200/350/500 ms, ease; `AtomicMotion.of(context)` drops transforms under reduced motion |
 
-Radii map onto the token scale: 8 = `DEFAULT`, 12 = `md`, 16 = `lg`,
-24 = `xl`, 999 = `full` (chips).
+`AtomicTheme.light()/dark()` map these onto Material 3 (every component
+theme set; elevation 0; radius 4; 1 dp ink rule under app bars; 2 dp ink
+input and control borders; 28 dp sheet tops with a drag handle). Dark
+follows system §13.9: ink background, `#1E2026` cards, paper text,
+signal-light accent. Because Material uses `primary` both as text and as
+a fill, the dark `primary` is signal-light with ink on it (docs/05 DS-16).
 
-### 14.3 Semantic colours (identical in both themes)
+Contrast of every text role on every surface, in both themes, is tested
+(`test/design/atomic_theme_test.dart`), as are the system's two traps
+(Signal text on ink, orange text on paper).
 
-| Meaning | Colour |
-|---|---|
-| Priority low / medium / high | `#64748B` / `#F59E0B` / `#EF4444` |
-| Status todo / in progress / done | `#94A3B8` / `#6366F1` / `#10B981` |
-| Session focus / short break / long break | `#6366F1` / `#06B6D4` / `#8B5CF6` |
-| Feedback error / valid / overdue | `#F87171` / `#34D399` / `#FB7185` (defined, unused) |
+### 14.3 Status, priority and session colour
+
+There are no extra hues (system rule "one signal"). Priority and status
+are mono caps tags whose weight carries the meaning (`AtomicTag`): HIGH is
+ink-filled, MEDIUM ink-outlined, LOW hairline; IN PROGRESS is the one
+Signal-filled status. Overdue is `danger` text plus the word. Focus
+sessions draw in the accent, breaks in ink.
 
 ### 14.4 Typography
 
-The design tokens specify **Space Grotesk** (display/headline) and
-**Inter** (body/label). Neither font is bundled yet, so the app uses the
-Material default (Roboto) with the M3 type scale. Large numerals use
-`displaySmall` bold (timer) and `headlineSmall` bold (stat cards).
+**Bebas Neue** (display: titles, big numbers, app buttons; caps-only
+glyphs), **Hanken Grotesk** (400/500/700, body) and **JetBrains Mono**
+(400/500/700, labels) are bundled under `assets/fonts` (SIL OFL 1.1,
+licences on the Licenses page). `AtomicText.mono` upper-cases labels for
+display and keeps the written words as the semantics label for screen
+readers.
 
 ### 14.5 Theme mode
 
-`ThemeMode.system` is hard-coded. There is no in-app theme switch and no
-dynamic colour (the spec's Appearance screen isn't built).
+System / Light / Dark, chosen in Settings → Appearance and stored in
+`app_settings`. No dynamic colour.
 
 ### 14.6 States matrix (as built)
 
 | Screen | Empty | Loading | Error | Success |
 |---|---|---|---|---|
-| Today | "No tasks yet" + Add Task | spinner | raw error text | timeline |
-| Task Detail | "No subtasks yet." | spinner | raw error text | detail |
-| Focus | idle view (always ready) | spinner | raw error text | idle / running / paused |
-| Assistant | "Connect an AI provider" / "Ask me anything" | spinner; progress bar while sending | error **bubble** in the thread | thread |
-| Insights | "Complete a session to see stats" | spinner | raw error text | stat cards + chart |
-| AI Providers | (all four always listed) | spinner | raw error text | cards |
+Since Phase C every state uses the Atomic components: loading is a mono
+line naming what loads plus a 2 dp ink bar (no spinners), empty is a
+surface module with one sentence and a next step, errors are plain words
+with Retry (`ErrorView` → `AtomicErrorState`, K9/R14), destructive actions
+confirm in a sheet that states the effect.
+
+| Screen | Empty | Loading | Error | Success |
+|---|---|---|---|---|
+| Today | "No tasks yet" module + Add Task | "LOADING THE DAY…" | plain message + Retry | timeline |
+| Task Detail | "No subtasks yet." / "No focus sessions yet." | "LOADING THE TASK…" | plain message + Retry | detail |
+| Focus | idle view with the atom mark | "LOADING THE TIMER…" | plain message + Retry | idle / running / paused |
+| Assistant | "Connect an AI provider" / "Ask me anything" | "LOADING THE CONVERSATION…"; ink bar while sending | warning card in the thread | thread |
+| Insights | "Complete a session to see stats" | "LOADING YOUR WEEK…" | plain message + Retry | stat panels + chart |
+| AI Providers | (all four always listed) | "LOADING PROVIDERS…" | plain message + Retry | cards; the active one selected |
 
 ### 14.7 Accessibility status
 
@@ -1072,7 +1418,7 @@ complete  : only if completedAt IS NULL
   view model credits the subtask's sprint (focus type, not ended early,
   subtask linked) and cancels the notification only then. Racing calls
   therefore credit once — this is covered by a test.
-- `FlowlineApp` calls `completeIfElapsed()` after the first frame and on
+- `AtomicAssistApp` calls `completeIfElapsed()` after the first frame and on
   every resume.
 
 ### 15.2 Overlap detection
@@ -1163,11 +1509,11 @@ assessment of each.
 | D1 | Use Case layer between view models and repositories (`01`, `03`) | View models call repositories directly | Intentional (README) | Keep |
 | D2 | Google Calendar sync, locked external events (`03` §1, §5) | Not built; model fields exist | Intentional deferral | Keep deferred |
 | D3 | AI Monitoring / voice (`03` §6) | Not built | Planned future | Keep deferred |
-| D4 | README "Full CRUD … schedule blocks" | Create only in the UI; repository edit/delete unreachable | Incomplete | Build edit/delete UI or fix README |
-| D5 | Spec: Settings icon on every tab | Only on Today (Assistant has AI Providers) | Incomplete | Add to app bars |
-| D6 | Spec: onboarding, splash, Session Summary, Conversation History, Notifications, Appearance, Data & Privacy screens | None built | Incomplete | Roadmap |
-| D7 | Spec: theme mode System / Light / Dark setting | Hard-coded `ThemeMode.system` | Incomplete | Build Appearance |
-| D8 | Tokens: dark `primary` `#C0C1FF`, `surface-container-high` `#1F2430`, light `surface-border` `#E2E8F0`; Space Grotesk + Inter | Dark primary `#6366F1`; container colours seed-derived; light border `#C7C4D8`; Roboto | Unclear / partly intentional | Decide the canonical dark primary, apply container tokens, bundle fonts |
+| D4 | README "Full CRUD … schedule blocks" | Create, edit and delete in the UI | Done (Phase 3a) | — |
+| D5 | Spec: Settings icon on every tab | On every tab's app bar | Done (Phase 3c) | — |
+| D6 | Spec: onboarding, splash, Session Summary, Conversation History, Notifications, Appearance, Data & Privacy screens | All but Conversation History built (Phase 3) | Mostly done | Conversation History in Phase 4 |
+| D7 | Spec: theme mode System / Light / Dark setting | Appearance screen, stored in `app_settings` | Done (Phase 3e) | — |
+| D8 | Tokens: dark `primary` `#C0C1FF`, `surface-container-high` `#1F2430`, light `surface-border` `#E2E8F0`; Space Grotesk + Inter | Dark primary `#C0C1FF`; every container token mapped; Space Grotesk + Inter bundled | Done (Phase 3) | Superseded by the Atomic system (docs/05 Phase A); record in `docs/history/design-tokens/DECISIONS.md` |
 | D9 | `03` §7 model matrix: Claude 3.5 Sonnet, GPT-4o mini, Gemini 1.5 | Same seeded defaults | Likely stale today | Verify live, then update openly |
 | D10 | `03` §8 packages: `drift_flutter`, `freezed`, `json_serializable`, `csv`, `workmanager`, `mocktail` | None used | Intentional — not needed yet | Keep |
 | D11 | README: notification plugin "merges its own manifest requirements" | False since plugin v16; app must declare receivers | Bug (fixed) | README updated in `1f5d597` |
@@ -1240,9 +1586,14 @@ Design decisions:
 | `android:usesCleartextTraffic="true"` | Ollama over plain HTTP on the LAN. |
 | `isCoreLibraryDesugaringEnabled = true` + `desugar_jdk_libs:2.1.4` | The notification plugin is built with desugaring; the release build fails without it. |
 
-Signing: the release build uses the template's **debug key** — fine for
-sideloading, **not** for the Play Store. No keystore or secrets are
-configured in CI.
+Signing (B2, fixed): the release build reads `android/key.properties`,
+which CI writes from the `ANDROID_KEYSTORE_BASE64` /
+`ANDROID_KEYSTORE_PASSWORD` / `ANDROID_KEY_ALIAS` / `ANDROID_KEY_PASSWORD`
+secrets, then checks every APK's certificate against
+`tool/ci/release_cert_sha256.txt`. Without the secrets it signs with a
+throwaway key and says so in the run summary. `versionCode` is the CI run
+number (B27). Auto Backup rules keep the database and exclude
+flutter_secure_storage's preferences (B3).
 
 ---
 
@@ -1266,7 +1617,10 @@ configured in CI.
 | `test/features/insights/insights_screen_test.dart` | widget | empty (light/dark), populated, ended-early counted |
 | `test/tool/android_patches_test.dart` | unit | manifest + Gradle patches against the 3.35.7 templates, idempotence, loud failure |
 
-**87 tests: 86 passing, 1 failing** (CI run `36192781020`).
+**All passing** — 125 tests in CI run `36849191025` (#10); 176 locally after
+the first Phase 1 batch (time helpers, repository guards, error view,
+busy guards, settings validation, DST and rollover tests, code-rule
+tests). See `docs/04-build-and-optimization-plan.md` §6 for what's next.
 
 ### 19.2 Harness
 
@@ -1297,27 +1651,34 @@ Severity: **P0** critical · **P1** major · **P2** moderate · **P3** minor.
 | ID | Sev | Area | Issue | Status |
 |---|---|---|---|---|
 | K1 | P2 | Focus | Ticker leak: pausing/ending within 1 s of (re)start leaked a 1 Hz timer (Riverpod stream provider disposed while loading) | Fixed — widget-owned timer; regression test |
-| K2 | P2 | CI | `dart format` fails on the newest files | Fix available as the CI `format-patch` artifact |
-| K3 | P2 | Schedule intelligence | "Apply suggested time" saves the AI's time without re-checking it for conflicts or the same day | Suspected |
-| K4 | P2 | AI settings | `providerHasKeyProvider` isn't refreshed after saving or removing a key, so the card and radio stay stale until you leave the screen | Suspected |
-| K5 | P2 | AI network | Shared `Dio()` has no connect/receive timeouts and requests can't be cancelled | Confirmed by reading |
-| K6 | P2 | AI config | Seeded default models `claude-3-5-sonnet-20241022` and `gemini-1.5-flash` are probably retired, so first use fails until the model is edited | Unverified against live APIs |
-| K7 | P2 | Time | "Today" windows (Focus footer, Insights 30-day range, Today's initial date) are computed when the provider is created, and tabs stay mounted, so they go stale across midnight while the app stays open | Suspected |
+| K2 | P2 | CI | `dart format` fails on the newest files | Fixed — CI #10 format check green |
+| K3 | P2 | Schedule intelligence | "Apply suggested time" saves the AI's time without re-checking it for conflicts or the same day | Fixed in `d8fcf62`; tests and prompt fixes (B13, B14, B28) in Phase 0 |
+| K4 | P2 | AI settings | `providerHasKeyProvider` isn't refreshed after saving or removing a key, so the card and radio stay stale until you leave the screen | Fixed — key status refreshed after save/remove; test |
+| K5 | P2 | AI network | Shared `Dio()` has no connect/receive timeouts and requests can't be cancelled | Fixed — connect/send/receive timeouts on the shared Dio |
+| K6 | P2 | AI config | Seeded default models `claude-3-5-sonnet-20241022` and `gemini-1.5-flash` are probably retired, so first use fails until the model is edited | Mitigated (Phase 4.2): **Test connection** lists the vendor's live models, the model field offers them, and warns when the saved model isn't in the list. The seeds themselves are still unverified |
+| K7 | P2 | Time | "Today" windows (Focus footer, Insights 30-day range, Today's initial date) are computed when the provider is created, and tabs stay mounted, so they go stale across midnight while the app stays open | Fixed — `currentDayProvider` rolls over at midnight and on resume; tests |
 | K8 | P2 | Performance | Whole Focus `Scaffold` rebuilt every second while running | Fixed — `_Countdown` + `RepaintBoundary` |
-| K9 | P2 | Error states | Screens show "Something went wrong: $error" with no retry; AI "unexpected error" messages include the raw exception | Confirmed by reading |
+| K9 | P2 | Error states | Screens show "Something went wrong: $error" with no retry; AI "unexpected error" messages include the raw exception | Fixed — `ErrorView` with Retry; raw exception text never shown; tests |
 | K10 | P2 | AI | Full conversation history is sent on every message (unbounded payload) | Confirmed by reading |
 | K11 | P3 | Insights | Streak caps at 30 days (query window) | Confirmed by reading |
-| K12 | P3 | Insights | Focus footer buckets by `startedAt`, Insights by `completedAt`, so sessions that cross midnight are counted on different days | Confirmed by reading |
-| K13 | P3 | Accessibility | Unlabelled icon buttons (see §14.7); no timer semantics; 200% font untested | Open |
-| K14 | P3 | UX | Remove key and subtask delete have no confirmation | Open |
+| K12 | P3 | Insights | Focus footer buckets by `startedAt`, Insights by `completedAt`, so sessions that cross midnight are counted on different days | Fixed — every day window and bucket uses `completedAt` |
+| K13 | P3 | Accessibility | Unlabelled icon buttons (see §14.7); no timer semantics; 200% font untested | Fixed — tooltips, timer semantics, 200% text tests on a 360 dp screen (found and fixed overflows on Today, Insights, Focus) |
+| K14 | P3 | UX | Remove key and subtask delete have no confirmation | Fixed — shared confirmation dialog |
 | K15 | P3 | UX | "Edit times" on the conflict sheet just closes it | Known (README) |
-| K16 | P3 | Memory | `TextEditingController` in the "New subtask" dialog is never disposed | Confirmed by reading |
+| K16 | P3 | Memory | `TextEditingController` in the "New subtask" dialog is never disposed | Fixed — dialog widget owns and disposes its controller |
 | K17 | P3 | Data | Enum index storage: reordering an enum corrupts stored rows | Design risk |
-| K18 | P3 | Android | Drift's recommended `sqlite3.tempDirectory` workaround isn't set; large sorts could fail on Android | Unverified |
-| K19 | — | Release | APK signed with the debug key | By design for sideloading |
-| K20 | — | Design | Space Grotesk / Inter not bundled | Known (README) |
+| K18 | P3 | Android | Drift's recommended `sqlite3.tempDirectory` workaround isn't set; large sorts could fail on Android | Fixed — `sqlite3.tempDirectory` set on Android |
+| K19 | — | Release | APK signed with the debug key | Fixed (B2) — stable release key from CI secrets |
+| K20 | — | Design | Space Grotesk / Inter not bundled | Fixed (Phase 3): bundled under `assets/fonts`, OFL licences on the Licenses page |
 
-Fixed during the current QA pass (all verified by CI): never-compiled DB
+New defects found in the full read for the forward plan are tracked as
+**B1–B30** in `docs/04-build-and-optimization-plan.md` §3. Fixed so far:
+B1 (DST-safe calendar math), B2, B3, B4, B5, B6, B7, B8, B9, B11, B12,
+B13, B14, B15, B16, B17, B19, B20, B21, B22, B23, B25, B26, B27,
+B28, B29, B30, and B31 (new: error bubbles were sent to the vendor as
+history). Schema is now v4 (see §7.3 and `drift_schemas/`).
+
+Fixed during the earlier QA pass (all verified by CI): never-compiled DB
 layer and API mismatches; nonexistent `flutter_timezone` version; missing
 lint include; FK enforcement off (orphaned subtasks); tasks vanishing on
 block delete; missing release `INTERNET` permission; missing notification
@@ -1357,10 +1718,22 @@ from the latest successful run on a phone and check:
 
 ## 22. Roadmap
 
-Near term (QA stop conditions from the continuation brief):
-1. Diagnose K1, apply the format patch (K2), get CI fully green.
-2. Fix K3–K10 with regression tests; accessibility labels (K13).
-3. Add an emulator job for launch, task, schedule and focus flows.
+The forward plan is `docs/05-atomic-assist-plan.md` (Phases A–J: the
+Atomic design system and UI rebuild, AI contract v3 with tools, the
+assistant core with its ledger and Inbox, reminders, people, lists,
+voice, proactive suggestions, memory, money, travel). None of it is
+built yet. It folds in the open items of `docs/04-build-and-optimization-plan.md`
+(Phases 0–7 with exit gates, plus a release track), whose status follows.
+Phase 4 is done through 4.3 (AIClient v2, model registry, streaming). Phase 0 is done apart
+from the owner-only step (adding the signing secrets) and the device
+checklist; Phase 1 is done (237 tests; 92% line coverage of domain + data);
+Phase 2 (Flutter 3.47 / Riverpod 3 / Drift 2.35) is done; Phase 3 is in
+progress (block editing, task form, settings, Session Summary, onboarding
+and splash, fonts and design tokens, l10n scaffolding, adaptive layout, backlog paging and the single-query
+timeline, recurring blocks, subtask reorder are done). The list
+below is the original scope
+roadmap, kept for reference.
+
 
 Then, per `03-scope…` §10 and the UX spec:
 - Schedule block edit/delete UI; due dates; block picker in the task form.

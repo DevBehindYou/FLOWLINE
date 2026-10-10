@@ -14,14 +14,13 @@ permissions:
   contents: read
 
 # Pinned for determinism — CI is the only place this project builds and
-# tests (no local Flutter SDK). 3.35.x is deliberate, not stale: its Dart
-# 3.9 is the newest SDK the pinned codegen stack's `analyzer` 7.x can
-# parse. Flutter 3.38+ ships Dart 3.10, whose own SDK source uses dot
-# shorthands; analyzer 7.x crashes on those ("Missing implementation of
-# visitDotShorthandPropertyAccess") and build_runner then hangs. Only bump
-# this together with riverpod_generator/drift_dev/build_runner.
+# tests. Bump it only together with the code-generation stack
+# (riverpod_generator, drift_dev, build_runner and the analyzer they
+# share), and re-check tool/ci/android_patches.dart against the new
+# Android template: on 3.35 the pinned analyzer crashed on a newer SDK and
+# build_runner hung for 5.5 hours (see docs/04, rule R19).
 env:
-  FLUTTER_VERSION: "3.35.7"
+  FLUTTER_VERSION: "3.47.5"
 
 jobs:
   analyze:
@@ -30,9 +29,6 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
-
-      - name: Install host sqlite3 (Drift in-memory DB for widget tests)
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq libsqlite3-dev
 
       - uses: subosito/flutter-action@v2
         with:
@@ -49,7 +45,7 @@ jobs:
       - name: Generate Drift + Riverpod code
         id: codegen
         timeout-minutes: 10
-        run: dart run build_runner build --delete-conflicting-outputs
+        run: dart run build_runner build
 
       # Tracked files only: build_runner output is formatted by its own
       # bundled dart_style and must not fail this check.
@@ -70,12 +66,35 @@ jobs:
         timeout-minutes: 10
         run: flutter test --coverage --reporter expanded
 
+      # The runner is UTC, which has no daylight-saving changes, so DST
+      # bugs (B1: 23/25-hour days) can't fail there. Re-run the suites that
+      # do calendar math under a DST zone.
+      - name: Time-sensitive tests under a DST timezone
+        if: ${{ !cancelled() && steps.codegen.outcome == 'success' }}
+        timeout-minutes: 5
+        env:
+          TZ: America/New_York
+        run: flutter test test/domain test/core test/data/repositories test/assistant
+
       - name: Upload coverage
         if: ${{ !cancelled() && steps.test.outcome != 'skipped' }}
         uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: coverage/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      # Golden tests (test/goldens) run in the test step above. On a
+      # mismatch flutter_test writes the expected, actual and diff images
+      # under test/goldens/failures/; hand them back for review. If the
+      # change is intended: flutter test --update-goldens test/goldens.
+      - name: Upload golden diffs
+        if: ${{ !cancelled() && steps.test.outcome == 'failure' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: golden-failures
+          path: test/goldens/failures/
           retention-days: 14
           if-no-files-found: ignore
 
@@ -95,6 +114,62 @@ jobs:
           name: format-patch
           path: format.patch
           retention-days: 7
+
+  # The real app on an Android emulator: startup, routing from a fresh
+  # install, the SQLite file and the plugins (docs/04 §7). Widget tests
+  # fake all of these.
+  integration:
+    name: Integration tests (Android emulator)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      # Hardware acceleration for the x86_64 emulator.
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Generate and patch android/
+        run: |
+          flutter create --platforms android --org com.devbehindyou .
+          # `flutter create .` re-resolves pubspec.lock (and rewrites
+          # analysis_options.yaml); keep the committed ones, so a new
+          # upstream release can't break the build.
+          git checkout -- pubspec.lock analysis_options.yaml
+          dart run tool/ci/patch_android.dart android
+
+      - name: flutter pub get
+        run: flutter pub get --enforce-lockfile
+
+      - name: Generate Drift + Riverpod code
+        timeout-minutes: 10
+        run: dart run build_runner build
+
+      - name: Run integration_test on an API 34 emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          script: flutter test integration_test --reporter expanded
 
   android-build:
     name: Android release APK
@@ -120,7 +195,12 @@ jobs:
         # android/ is intentionally gitignored (see README "Before you
         # build") so it always comes from the pinned Flutter's template
         # rather than hand-maintained, stale Gradle/AGP files.
-        run: flutter create --platforms android --org com.devbehindyou .
+        # `flutter create .` re-resolves pubspec.lock (and rewrites
+        # analysis_options.yaml); keep the committed ones, so a new
+        # upstream release can't break the build.
+        run: |
+          flutter create --platforms android --org com.devbehindyou .
+          git checkout -- pubspec.lock analysis_options.yaml
 
       - name: Cache Gradle
         uses: actions/cache@v6
@@ -131,18 +211,82 @@ jobs:
           key: gradle-${{ runner.os }}-flutter-${{ env.FLUTTER_VERSION }}-${{ hashFiles('android/**/*.gradle*', 'android/gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: gradle-${{ runner.os }}-flutter-${{ env.FLUTTER_VERSION }}-
 
-      - name: Apply Flowline's manifest + Gradle requirements
+      - name: Apply Atomic Assist's manifest + Gradle requirements
         run: dart run tool/ci/patch_android.dart android
 
       - name: flutter pub get
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
 
       - name: Generate Drift + Riverpod code
         timeout-minutes: 10
-        run: dart run build_runner build --delete-conflicting-outputs
+        run: dart run build_runner build
 
+      # One stable release key (repository secrets) so every CI build can
+      # be installed over the previous one. Without it each fresh runner
+      # signs with a new throwaway debug key, and Android only accepts the
+      # update after an uninstall, which deletes the app's local data.
+      # Without the secrets (forks, PRs from forks, before setup) a
+      # throwaway key is generated instead, so the release signing path is
+      # still exercised on every run, with a warning that the APK can't
+      # update an existing install.
+      - name: Configure release signing
+        id: signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${KEYSTORE_BASE64}" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Release signing not configured::ANDROID_KEYSTORE_BASE64 is not set, so this APK is signed with a throwaway key and cannot be installed over another build. See README > Release signing."
+            KEYSTORE_PASSWORD="$(openssl rand -hex 16)"
+            KEY_PASSWORD="${KEYSTORE_PASSWORD}"
+            KEY_ALIAS="ephemeral"
+            keytool -genkeypair -keystore android/app/atomic-assist-release.jks \
+              -storetype PKCS12 -alias "${KEY_ALIAS}" -keyalg RSA -keysize 2048 \
+              -validity 30 -storepass "${KEYSTORE_PASSWORD}" -keypass "${KEY_PASSWORD}" \
+              -dname "CN=Atomic Assist CI throwaway" > /dev/null
+          else
+            printf '%s' "${KEYSTORE_BASE64}" | base64 --decode > android/app/atomic-assist-release.jks
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+          {
+            echo "storeFile=atomic-assist-release.jks"
+            echo "storePassword=${KEYSTORE_PASSWORD}"
+            echo "keyAlias=${KEY_ALIAS}"
+            echo "keyPassword=${KEY_PASSWORD}"
+          } > android/key.properties
+
+      # The run number makes versionCode increase on every build, which
+      # Android requires for an update to install.
       - name: flutter build apk --release --split-per-abi
-        run: flutter build apk --release --split-per-abi
+        run: flutter build apk --release --split-per-abi --build-number=${{ github.run_number }}
+
+      - name: Verify APK signature and version
+        id: verify
+        run: |
+          set -euo pipefail
+          tools="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)"
+          expected="$(tr -d '[:space:]' < tool/ci/release_cert_sha256.txt)"
+          for apk in build/app/outputs/flutter-apk/app-*-release.apk; do
+            actual="$("${tools}apksigner" verify --print-certs "$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
+            version="$("${tools}aapt2" dump badging "$apk" | sed -n "s/.*versionCode='\([0-9]*\)'.*/\1/p")"
+            # The store identity is permanent once published (see
+            # applicationId in tool/ci/android_patches.dart).
+            package="$("${tools}aapt2" dump badging "$apk" | sed -n "s/^package: name='\([^']*\)'.*/\1/p")"
+            if [ "$package" != "com.devbehindyou.atomicassist" ]; then
+              echo "::error title=Wrong application id::$(basename "$apk") is ${package}, expected com.devbehindyou.atomicassist."
+              exit 1
+            fi
+            echo "$(basename "$apk"): package=${package} versionCode=${version} cert=${actual}"
+            if [ "${{ steps.signing.outputs.configured }}" = "true" ] && [ "$actual" != "$expected" ]; then
+              echo "::error title=Wrong signing key::$(basename "$apk") is signed with ${actual}, expected ${expected} (tool/ci/release_cert_sha256.txt)."
+              exit 1
+            fi
+          done
+          echo "cert=${actual}" >> "$GITHUB_OUTPUT"
 
       - name: Rename APKs with commit SHA
         run: |
@@ -151,27 +295,32 @@ jobs:
           outdir="build/app/outputs/flutter-apk"
           for apk in "$outdir"/app-*-release.apk; do
             base="$(basename "$apk" .apk)"
-            cp "$apk" "$outdir/flowline-${base#app-}-${sha}.apk"
+            cp "$apk" "$outdir/atomic-assist-${base#app-}-${sha}.apk"
           done
           ls -la "$outdir"
 
       - name: Upload APK artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: flowline-release-apks-${{ github.sha }}
-          path: build/app/outputs/flutter-apk/flowline-*-release-*.apk
+          name: atomic-assist-release-apks-${{ github.sha }}
+          path: build/app/outputs/flutter-apk/atomic-assist-*-release-*.apk
           retention-days: 30
 
       - name: Job summary
         if: ${{ !cancelled() }}
         run: |
           {
-            echo "## Flowline Android build"
+            echo "## Atomic Assist Android build"
             echo "- Commit: \`${GITHUB_SHA}\`"
             echo "- Flutter: ${FLUTTER_VERSION}"
-            echo "- Build type: release (signed with the template's debug key — sideload only, not Play Store)"
+            if [ "${{ steps.signing.outputs.configured }}" = "true" ]; then
+              echo "- Signing: release key \`${{ steps.verify.outputs.cert }}\` (installs over earlier builds)"
+            else
+              echo "- Signing: :warning: **throwaway key** \`${{ steps.verify.outputs.cert }}\` — this APK will not install over another build. Add the ANDROID_* secrets (README > Release signing)."
+            fi
+            echo "- Build number (versionCode base): ${{ github.run_number }}"
             echo "- APKs:"
-            ls build/app/outputs/flutter-apk/flowline-*.apk 2>/dev/null | sed 's#.*/#  - #' || echo "  - none (build failed)"
+            ls build/app/outputs/flutter-apk/atomic-assist-*.apk 2>/dev/null | sed 's#.*/#  - #' || echo "  - none (build failed)"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload Android build logs

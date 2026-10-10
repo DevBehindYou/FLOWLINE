@@ -1,17 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
+import '../../../core/async/run_action.dart';
+import '../../../design/atomic.dart';
 import '../../../domain/entities/schedule_block.dart';
 import '../../../domain/services/conflict_resolution_ai.dart';
 import '../../schedule_block_form/viewmodel/add_edit_schedule_block_view_model.dart';
 import '../viewmodel/schedule_intelligence_view_model.dart';
+import '../../../l10n/l10n.dart';
+import '../../../domain/recurrence/recurrence_rule.dart';
+import '../../ai_assistant/viewmodel/assistant_view_model.dart';
+import '../../../domain/ai/ai_contract.dart';
 
 /// Shown instead of saving directly when the pending block overlaps one
 /// or more existing blocks. Three ways out: ask the AI for a suggested
 /// non-overlapping time, go back and edit the times by hand, or save the
 /// overlap anyway (it'll show a conflict indicator on the Today
 /// timeline rather than being hidden).
+///
+/// Pops `true` for "Edit times" (the caller reopens the form with the
+/// pending values), `false` after saving, null when dismissed.
 class ConflictWarningSheet extends ConsumerStatefulWidget {
   const ConflictWarningSheet({
     super.key,
@@ -20,6 +28,7 @@ class ConflictWarningSheet extends ConsumerStatefulWidget {
     required this.pendingEnd,
     required this.conflicts,
     this.existingBlock,
+    this.recurrence,
   });
 
   final String pendingTitle;
@@ -29,6 +38,9 @@ class ConflictWarningSheet extends ConsumerStatefulWidget {
 
   /// Non-null when this conflict came from editing an existing block.
   final ScheduleBlock? existingBlock;
+
+  /// Set when the pending block is a new repeating one.
+  final RecurrenceRule? recurrence;
 
   @override
   ConsumerState<ConflictWarningSheet> createState() =>
@@ -41,14 +53,15 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
   ConflictResolutionSuggestion? _suggestion;
 
   /// Why [_suggestion] can't be applied; null when it passed validation.
-  String? _suggestionProblem;
+  SuggestionProblem? _suggestionProblem;
   String? _aiRawText;
-  String? _aiError;
+  AIFailure? _aiError;
 
   ScheduleIntelligenceViewModel get _viewModel =>
       ref.read(scheduleIntelligenceViewModelProvider.notifier);
 
-  Future<String?> _validate(ConflictResolutionSuggestion suggestion) {
+  Future<SuggestionProblem?> _validate(
+      ConflictResolutionSuggestion suggestion) {
     return _viewModel.validateSuggestion(
       suggestion: suggestion,
       pendingStart: widget.pendingStart,
@@ -71,19 +84,24 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
       pendingStart: widget.pendingStart,
       pendingEnd: widget.pendingEnd,
       conflicts: widget.conflicts,
+      excludeBlockId: widget.existingBlock?.id,
     );
 
     if (!mounted) return;
 
-    if (response.isError) {
-      setState(() {
-        _asking = false;
-        _aiError = response.content;
-      });
-      return;
+    final String text;
+    switch (response) {
+      case AIError(:final failure):
+        setState(() {
+          _asking = false;
+          _aiError = failure;
+        });
+        return;
+      case AIText():
+        text = response.text;
     }
 
-    final parsed = parseConflictSuggestion(response.content);
+    final parsed = parseConflictSuggestion(text);
     final problem = parsed == null ? null : await _validate(parsed);
     if (!mounted) return;
     setState(() {
@@ -92,7 +110,7 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
         _suggestion = parsed;
         _suggestionProblem = problem;
       } else {
-        _aiRawText = response.content;
+        _aiRawText = text;
       }
     });
   }
@@ -117,110 +135,118 @@ class _ConflictWarningSheetState extends ConsumerState<ConflictWarningSheet> {
   Future<void> _commit(DateTime start, DateTime end) async {
     setState(() => _saving = true);
     final viewModel = ref.read(addEditScheduleBlockViewModelProvider.notifier);
-    if (widget.existingBlock != null) {
-      await viewModel.updateBlock(
-        widget.existingBlock!.copyWith(
-            title: widget.pendingTitle, startTime: start, endTime: end),
-      );
+    final saved = await runAction(
+      context,
+      () async {
+        if (widget.existingBlock != null) {
+          await viewModel.updateBlock(
+            widget.existingBlock!.copyWith(
+                title: widget.pendingTitle, startTime: start, endTime: end),
+          );
+        } else {
+          await viewModel.createBlock(
+              title: widget.pendingTitle,
+              startTime: start,
+              endTime: end,
+              recurrence: widget.recurrence);
+        }
+        return true;
+      },
+      failureMessage: context.l10n.saveBlockFailed,
+    );
+    if (!mounted) return;
+    if (saved == true) {
+      Navigator.of(context).pop(false);
     } else {
-      await viewModel.createBlock(
-          title: widget.pendingTitle, startTime: start, endTime: end);
+      setState(() => _saving = false);
     }
-    if (mounted) Navigator.of(context).pop();
   }
 
-  String _fmt(DateTime d) => DateFormat.jm().format(d);
+  String _fmt(DateTime d) => context.l10n.time(d);
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
+    final p = context.atomic.palette;
+    final busy = _asking || _saving;
 
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.warning_amber_rounded, color: scheme.error),
-                const SizedBox(width: 8),
-                Text('Schedule conflict',
-                    style: Theme.of(context).textTheme.titleLarge),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              '"${widget.pendingTitle}" (${_fmt(widget.pendingStart)} \u2013 ${_fmt(widget.pendingEnd)}) '
-              'overlaps:',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 8),
-            for (final conflict in widget.conflicts)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text(
-                  '\u2022 "${conflict.title}" (${_fmt(conflict.startTime)} \u2013 ${_fmt(conflict.endTime)})',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ),
-            const SizedBox(height: 20),
-            if (_suggestion != null)
-              _SuggestionCard(
-                suggestion: _suggestion!,
-                formatTime: _fmt,
-                problem: _suggestionProblem,
-              ),
-            if (_aiRawText != null) _RawAiTextCard(text: _aiRawText!),
-            if (_aiError != null) _ErrorCard(message: _aiError!),
-            const SizedBox(height: 12),
-            if (_suggestion != null) ...[
-              ElevatedButton.icon(
-                onPressed: _saving || _asking || _suggestionProblem != null
-                    ? null
-                    : _applySuggestion,
-                icon: const Icon(Icons.check),
-                label: const Text('Apply suggested time'),
-              ),
-              const SizedBox(height: 8),
-            ],
-            OutlinedButton.icon(
-              onPressed: _asking || _saving ? null : _askAi,
-              icon: _asking
-                  ? const SizedBox(
-                      height: 16,
-                      width: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.auto_awesome),
-              label: Text(
-                _asking
-                    ? 'Asking\u2026'
-                    : _suggestion == null && _aiRawText == null
-                        ? 'Ask AI to help'
-                        : 'Ask again',
+    return AtomicSheetFrame(
+      label: l10n.scheduleConflict,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AtomicText.body(
+            l10n.conflictOverlaps(widget.pendingTitle,
+                _fmt(widget.pendingStart), _fmt(widget.pendingEnd)),
+            style: AtomicType.body.copyWith(color: p.danger),
+          ),
+          const SizedBox(height: AtomicSpace.xs),
+          for (final conflict in widget.conflicts)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AtomicSpace.xxs),
+              child: AtomicText.mono(
+                l10n.conflictItem(conflict.title, _fmt(conflict.startTime),
+                    _fmt(conflict.endTime)),
+                style: AtomicType.caption,
               ),
             ),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: _saving ? null : () => Navigator.of(context).pop(),
-              icon: const Icon(Icons.edit_outlined),
-              label: const Text('Edit times'),
+          const SizedBox(height: AtomicSpace.m),
+          if (_suggestion != null)
+            _SuggestionCard(
+              suggestion: _suggestion!,
+              formatTime: _fmt,
+              problem: _suggestionProblem,
             ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: _saving ? null : _saveAnyway,
-              child: _saving
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Save anyway (overlap allowed)'),
+          if (_aiRawText != null) _RawAiTextCard(text: _aiRawText!),
+          if (_aiError != null)
+            AtomicWarningBox(
+              title: l10n.aiCouldNotHelp,
+              message: l10n.aiFailure(
+                  _aiError!, ref.watch(activeAiProviderProvider).value),
             ),
+          const SizedBox(height: AtomicSpace.s),
+          if (_suggestion != null) ...[
+            AtomicButton(
+              label: l10n.applySuggestedTime,
+              icon: AtomicIcons.check,
+              expand: true,
+              onPressed:
+                  busy || _suggestionProblem != null ? null : _applySuggestion,
+            ),
+            const SizedBox(height: AtomicSpace.s),
           ],
-        ),
+          AtomicButton(
+            label: _suggestion == null && _aiRawText == null
+                ? l10n.askAiToHelp
+                : l10n.askAgain,
+            busyLabel: l10n.asking,
+            busy: _asking,
+            icon: AtomicIcons.ai,
+            variant: AtomicButtonVariant.ghost,
+            expand: true,
+            onPressed: _saving ? null : _askAi,
+          ),
+          const SizedBox(height: AtomicSpace.s),
+          AtomicButton(
+            label: l10n.editTimes,
+            icon: AtomicIcons.edit,
+            variant: AtomicButtonVariant.ghost,
+            expand: true,
+            // true = reopen the form with these values (K15).
+            onPressed: _saving ? null : () => Navigator.of(context).pop(true),
+          ),
+          const SizedBox(height: AtomicSpace.xs),
+          Center(
+            child: AtomicButton(
+              label: l10n.saveAnyway,
+              busyLabel: l10n.saving,
+              busy: _saving,
+              variant: AtomicButtonVariant.text,
+              onPressed: _asking ? null : _saveAnyway,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -235,48 +261,45 @@ class _SuggestionCard extends StatelessWidget {
 
   final ConflictResolutionSuggestion suggestion;
   final String Function(DateTime) formatTime;
-  final String? problem;
+  final SuggestionProblem? problem;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.only(bottom: 4),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Suggested: ${formatTime(suggestion.newStartTime)} \u2013 ${formatTime(suggestion.newEndTime)}',
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-          const SizedBox(height: 4),
-          Text(suggestion.reason, style: Theme.of(context).textTheme.bodySmall),
-          if (problem != null) ...[
-            const SizedBox(height: 8),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.block,
-                    size: 16, color: Theme.of(context).colorScheme.error),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    "Can't apply: $problem",
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(color: Theme.of(context).colorScheme.error),
-                  ),
-                ),
-              ],
+    final l10n = context.l10n;
+    final p = context.atomic.palette;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AtomicSpace.xs),
+      child: AtomicCard(
+        kind: problem == null ? AtomicCardKind.selected : AtomicCardKind.panel,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AtomicText.display(
+              l10n.suggestedTime(formatTime(suggestion.newStartTime),
+                  formatTime(suggestion.newEndTime)),
+              style: AtomicType.rowTitle,
             ),
+            const SizedBox(height: AtomicSpace.xxs),
+            AtomicText.body(suggestion.reason),
+            if (problem != null) ...[
+              const SizedBox(height: AtomicSpace.xs),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(AtomicIcons.blocked,
+                      size: AtomicSize.iconTiny, color: p.danger),
+                  const SizedBox(width: AtomicSpace.iconLabelGap),
+                  Expanded(
+                    child: AtomicText.body(
+                      l10n.cantApply(_problemText(l10n, problem!)),
+                      style: AtomicType.bodySmall.copyWith(color: p.danger),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -289,46 +312,30 @@ class _RawAiTextCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.only(bottom: 4),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Couldn't turn that into a specific time automatically:",
-            style: Theme.of(context).textTheme.labelMedium,
-          ),
-          const SizedBox(height: 4),
-          Text(text, style: Theme.of(context).textTheme.bodySmall),
-        ],
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AtomicSpace.xs),
+      child: AtomicCard(
+        kind: AtomicCardKind.panel,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AtomicText.mono(context.l10n.aiRawTextIntro,
+                style: AtomicType.caption),
+            const SizedBox(height: AtomicSpace.xxs),
+            AtomicText.body(text),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _ErrorCard extends StatelessWidget {
-  const _ErrorCard({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.only(bottom: 4),
-      decoration: BoxDecoration(
-        color: scheme.errorContainer,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(message, style: TextStyle(color: scheme.onErrorContainer)),
-    );
-  }
-}
+String _problemText(AppLocalizations l10n, SuggestionProblem problem) =>
+    switch (problem) {
+      SuggestionEndNotAfterStart() => l10n.problemEndNotAfterStart,
+      SuggestionNotSameDay() => l10n.problemNotSameDay,
+      SuggestionLengthChanged(:final got, :final wanted) =>
+        l10n.problemLengthChanged(got, wanted),
+      SuggestionStillOverlaps(:final blockTitle) =>
+        l10n.problemStillOverlaps(blockTitle),
+    };

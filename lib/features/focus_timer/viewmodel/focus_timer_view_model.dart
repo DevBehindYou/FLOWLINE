@@ -1,17 +1,15 @@
 import 'package:clock/clock.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart' show Ref;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../core/notifications/notification_service.dart';
 import '../../../core/providers.dart';
+import '../../../core/time/current_day.dart';
 import '../../../domain/entities/focus_session.dart';
+import '../../../domain/services/session_planner.dart';
+import '../../../domain/time/calendar_day.dart';
+import '../../../l10n/l10n.dart';
 
 part 'focus_timer_view_model.g.dart';
-
-const _durationBySessionType = {
-  FocusSessionType.focus: 1500, // 25 min
-  FocusSessionType.shortBreak: 300, // 5 min
-  FocusSessionType.longBreak: 900, // 15 min
-};
 
 @riverpod
 Stream<FocusSession?> activeFocusSession(Ref ref) {
@@ -20,12 +18,13 @@ Stream<FocusSession?> activeFocusSession(Ref ref) {
 
 @riverpod
 Stream<({int totalSeconds, int sessionCount})> todaysFocusSummary(Ref ref) {
+  final day = dayRange(ref.watch(currentDayProvider));
   return ref
       .watch(focusSessionRepositoryProvider)
-      .watchTodaysSessions()
+      .watchCompletedSessionsInRange(day.start, day.end)
       .map((sessions) {
     final completedFocusSessions = sessions.where(
-      (s) => s.sessionType == FocusSessionType.focus && s.completedAt != null,
+      (s) => s.sessionType == FocusSessionType.focus,
     );
     final total = completedFocusSessions.fold<int>(
       0,
@@ -33,6 +32,37 @@ Stream<({int totalSeconds, int sessionCount})> todaysFocusSummary(Ref ref) {
     );
     return (totalSeconds: total, sessionCount: completedFocusSessions.length);
   });
+}
+
+/// How a session that just ended went, and what to do next. Published by
+/// [FocusTimerViewModel.complete] only for the call that actually
+/// completed the session; the Focus screen shows it as the Session
+/// Summary sheet and then clears it.
+class SessionOutcome {
+  const SessionOutcome({
+    required this.session,
+    required this.actualSec,
+    required this.endedEarly,
+    required this.next,
+    required this.focusSessionsToday,
+  });
+
+  final FocusSession session;
+  final int actualSec;
+  final bool endedEarly;
+  final FocusSessionType next;
+  final int focusSessionsToday;
+}
+
+// keepAlive: written by the view model when nothing may be watching (the
+// session can end while another tab is open) and read when Focus shows.
+@Riverpod(keepAlive: true)
+class LastSessionOutcome extends _$LastSessionOutcome {
+  @override
+  SessionOutcome? build() => null;
+
+  void publish(SessionOutcome outcome) => state = outcome;
+  void clear() => state = null;
 }
 
 @riverpod
@@ -46,7 +76,11 @@ class SelectedSessionType extends _$SelectedSessionType {
 /// Staged task/subtask to attach to the *next* session that gets started —
 /// set from the Today or Task Detail screens before jumping to the Focus
 /// tab, consumed (and cleared) once a session actually starts.
-@riverpod
+///
+/// keepAlive because it's a hand-off: it's written while nothing watches
+/// it (the Focus tab may never have been built yet), and an auto-dispose
+/// provider could drop the link before the Focus screen reads it (B9).
+@Riverpod(keepAlive: true)
 class PendingFocusLink extends _$PendingFocusLink {
   @override
   ({int taskId, int? subtaskId, String label})? build() => null;
@@ -58,7 +92,11 @@ class PendingFocusLink extends _$PendingFocusLink {
   void clear() => state = null;
 }
 
-@riverpod
+// keepAlive (rule R11): an action surface whose methods use `ref` after
+// an `await`. Auto-dispose would let it be disposed mid-action (the sheet
+// or screen that called it closes), and Riverpod 3 throws on any use of a
+// disposed Ref.
+@Riverpod(keepAlive: true)
 class FocusTimerViewModel extends _$FocusTimerViewModel {
   @override
   void build() {}
@@ -68,20 +106,23 @@ class FocusTimerViewModel extends _$FocusTimerViewModel {
     int? taskId,
     int? subtaskId,
   }) async {
+    // Read fresh rather than from the stream provider, so a session started
+    // right after changing a duration in Settings uses the new value.
+    final settings = await ref.read(appSettingsRepositoryProvider).get();
+    final plannedSec = settings.minutesFor(type) * 60;
     await ref.read(focusSessionRepositoryProvider).startSession(
           sessionType: type,
-          plannedDurationSec: _durationBySessionType[type]!,
+          plannedDurationSec: plannedSec,
           taskId: taskId,
           subtaskId: subtaskId,
         );
     ref.read(pendingFocusLinkProvider.notifier).clear();
-    await _scheduleNotification(type, _durationBySessionType[type]!);
+    await _scheduleNotification(type, plannedSec);
   }
 
   Future<void> pause(FocusSession session) async {
     await ref.read(focusSessionRepositoryProvider).pauseSession(session.id);
-    final notifier = await ref.read(notificationServiceProvider.future);
-    await notifier.cancelSessionNotification();
+    await _notify((service) => service.cancelSessionNotification());
   }
 
   Future<void> resume(FocusSession session) async {
@@ -108,9 +149,9 @@ class FocusTimerViewModel extends _$FocusTimerViewModel {
     // than once around zero): crediting again would double-count sprints.
     if (!completedNow) return;
 
-    final notifier = await ref.read(notificationServiceProvider.future);
-    await notifier.cancelSessionNotification();
-
+    // Data first: completeSession already returned true, so this is the
+    // only chance to credit the sprint. A notification failure below must
+    // not be able to skip it.
     final shouldCountSprint = !endedEarly &&
         session.sessionType == FocusSessionType.focus &&
         session.subtaskId != null;
@@ -119,6 +160,33 @@ class FocusTimerViewModel extends _$FocusTimerViewModel {
           .read(taskRepositoryProvider)
           .incrementSubtaskCompletedSprints(session.subtaskId!);
     }
+
+    await _notify((service) => service.cancelSessionNotification());
+    await _publishOutcome(session, endedEarly: endedEarly);
+  }
+
+  Future<void> _publishOutcome(FocusSession session,
+      {required bool endedEarly}) async {
+    final sessions = ref.read(focusSessionRepositoryProvider);
+    final today = dayRange(clock.now());
+    final completed =
+        await sessions.getCompletedSessionsInRange(today.start, today.end);
+    // By id: a session that ran out overnight was completed yesterday.
+    final finished = await sessions.getSession(session.id);
+    final focusToday =
+        completed.where((s) => s.sessionType == FocusSessionType.focus).length;
+    final settings = await ref.read(appSettingsRepositoryProvider).get();
+    ref.read(lastSessionOutcomeProvider.notifier).publish(SessionOutcome(
+          session: finished ?? session,
+          actualSec: finished?.actualDurationSec ?? 0,
+          endedEarly: endedEarly,
+          focusSessionsToday: focusToday,
+          next: suggestNextSession(
+            finished: session.sessionType,
+            focusSessionsCompletedToday: focusToday,
+            longBreakEvery: settings.longBreakEvery,
+          ),
+        ));
   }
 
   /// Completes the active session if its time already ran out while
@@ -133,17 +201,50 @@ class FocusTimerViewModel extends _$FocusTimerViewModel {
     await complete(session, endedEarly: false);
   }
 
+  /// The end-of-session alert for a session started outside this screen
+  /// (by the assistant), and its cancellation when that start is undone.
+  Future<void> alertForStartedSession(int sessionId) async {
+    final session =
+        await ref.read(focusSessionRepositoryProvider).getSession(sessionId);
+    if (session == null || !session.isRunning) return;
+    await _scheduleNotification(session.sessionType, session.remainingSec);
+  }
+
+  Future<void> cancelAlert() =>
+      _notify((service) => service.cancelSessionNotification());
+
   Future<void> _scheduleNotification(
       FocusSessionType type, int inSeconds) async {
-    final notifier = await ref.read(notificationServiceProvider.future);
-    await notifier.scheduleSessionComplete(
-      fireAt: clock.now().add(Duration(seconds: inSeconds)),
-      title: switch (type) {
-        FocusSessionType.focus => 'Focus session complete',
-        FocusSessionType.shortBreak => 'Short break over',
-        FocusSessionType.longBreak => 'Long break over',
-      },
-      body: 'Tap to see what\'s next.',
+    final settings = await ref.read(appSettingsRepositoryProvider).get();
+    if (!settings.sessionAlerts) return;
+    await _notify((service) => service.requestPermission());
+    final l10n = deviceLocalizations();
+    return _notify(
+      (service) => service.scheduleSessionComplete(
+        fireAt: clock.now().add(Duration(seconds: inSeconds)),
+        title: switch (type) {
+          FocusSessionType.focus => l10n.notifyFocusComplete,
+          FocusSessionType.shortBreak => l10n.notifyShortBreakOver,
+          FocusSessionType.longBreak => l10n.notifyLongBreakOver,
+        },
+        body: l10n.notifyBody,
+      ),
     );
+  }
+
+  /// Notifications are a convenience on top of the timer, never part of
+  /// its correctness: the session state is already persisted by the time
+  /// this runs. A failing plugin (permission revoked, unknown timezone,
+  /// OEM quirk) must not turn a successful start/pause/complete into an
+  /// error, so failures are swallowed here.
+  Future<void> _notify(
+    Future<void> Function(NotificationService service) action,
+  ) async {
+    try {
+      final service = await ref.read(notificationServiceProvider.future);
+      await action(service);
+    } catch (_) {
+      // Deliberately ignored; see above.
+    }
   }
 }

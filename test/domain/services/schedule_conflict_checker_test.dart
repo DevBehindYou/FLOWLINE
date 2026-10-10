@@ -1,5 +1,5 @@
-import 'package:flowline/domain/entities/schedule_block.dart';
-import 'package:flowline/domain/services/schedule_conflict_checker.dart';
+import 'package:atomic_assist/domain/entities/schedule_block.dart';
+import 'package:atomic_assist/domain/services/schedule_conflict_checker.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 DateTime _t(int hour, [int minute = 0]) => DateTime(2026, 1, 1, hour, minute);

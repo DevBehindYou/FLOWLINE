@@ -1,7 +1,7 @@
+import '../ai/ai_contract.dart';
 import '../entities/ai_conversation.dart';
 import '../entities/ai_message.dart';
 import '../entities/ai_provider_config.dart';
-import '../entities/ai_response.dart';
 
 abstract interface class AIRepository {
   Stream<List<AIProviderConfig>> watchProviders();
@@ -20,6 +20,15 @@ abstract interface class AIRepository {
   /// reachability matters, which isn't checked here).
   Future<bool> hasKey(AIProviderId id);
 
+  /// "Test connection": the models [id] offers, using [apiKey] if given
+  /// (typed but not saved yet), else the saved key, and [baseUrl] for
+  /// Ollama. Throws [AIFailureException] with what went wrong.
+  Future<List<AIModelInfo>> listModels({
+    required AIProviderId id,
+    String? apiKey,
+    String? baseUrl,
+  });
+
   Stream<List<AIConversation>> watchConversations();
   Stream<List<AIMessage>> watchMessages(int conversationId);
   Future<int> createConversation(
@@ -29,12 +38,52 @@ abstract interface class AIRepository {
   /// Persists the user's message, calls the active client, and persists
   /// the reply (or a visible error message) — see
   /// `AIRepositoryImpl.sendMessage` for the exact sequencing.
-  Future<void> sendMessage(
-      {required int conversationId, required String prompt});
+  /// [cancel] stops the request; the reply then reads "Stopped".
+  Future<void> sendMessage({
+    required int conversationId,
+    required String prompt,
+    AICancelToken? cancel,
+  });
 
   /// A single request/response with no conversation history and nothing
   /// persisted to Drift — for features (like schedule conflict
   /// resolution) that need a one-off AI answer without adding noise to
   /// the user's visible Assistant chat.
-  Future<AIResponse> completeOnce({required String prompt});
+  Future<AICompletion> completeOnce({
+    required String prompt,
+    String? system,
+    AIResponseFormat format = AIResponseFormat.text,
+  });
+
+  /// Completed exchanges of [conversationId], windowed (K10): the history
+  /// an assistant turn sends with its request.
+  Future<List<AIMessage>> chatHistory(int conversationId);
+
+  /// Writes the user's message and a pending reply for an assistant turn
+  /// (ledger group [groupId]) in one transaction; returns the reply id.
+  /// The pending row turns into an error if the app dies first (B23).
+  Future<int> beginTurnReply({
+    required int conversationId,
+    required String prompt,
+    required String groupId,
+  });
+
+  /// Fills the pending reply: [text] (may be empty when the turn's actions
+  /// say it all), or [failure].
+  Future<void> finishTurnReply(int replyId,
+      {String text = '', AIFailure? failure});
+
+  /// One round of a request with tools, against the active provider, with
+  /// nothing persisted (the orchestrator keeps its own ledger). When the
+  /// model or server refuses tools, it retries once asking for a JSON plan
+  /// and returns the plan's actions as calls (docs/05 §8.2).
+  Future<AIToolTurnResult> completeWithTools({
+    required String prompt,
+    required List<AIToolSpec> tools,
+    String? system,
+    List<AIMessage> history = const [],
+    List<AITurn> continuation = const [],
+    AIToolChoice toolChoice = AIToolChoice.auto,
+    AICancelToken? cancel,
+  });
 }

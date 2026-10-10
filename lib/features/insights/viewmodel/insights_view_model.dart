@@ -1,9 +1,10 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart' show Ref;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/providers.dart';
+import '../../../core/time/current_day.dart';
 import '../../../domain/entities/focus_session.dart';
 import '../../../domain/services/focus_stats_calculator.dart';
+import '../../../domain/time/calendar_day.dart';
 
 part 'insights_view_model.g.dart';
 
@@ -12,14 +13,13 @@ const _statsWindowDays =
 
 @riverpod
 Stream<List<FocusSession>> recentFocusSessions(Ref ref) {
-  final now = DateTime.now();
-  final start = DateTime(now.year, now.month, now.day)
-      .subtract(const Duration(days: _statsWindowDays - 1));
-  final end =
-      DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+  final day = ref.watch(currentDayProvider);
   return ref
       .watch(focusSessionRepositoryProvider)
-      .watchSessionsInRange(start, end);
+      .watchCompletedSessionsInRange(
+        addDays(day, -(_statsWindowDays - 1)),
+        addDays(day, 1),
+      );
 }
 
 // Derived synchronously from the one session stream (Riverpod 2.6

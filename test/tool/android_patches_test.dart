@@ -1,15 +1,17 @@
+import 'package:atomic_assist/design/atomic.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../tool/ci/android_patches.dart';
 
-// Flutter 3.35.7's templates (packages/flutter_tools/templates/app/
+// Flutter 3.47.5's templates (packages/flutter_tools/templates/app/
 // android*.tmpl) rendered for this project, with comments and attributes
 // the patches never touch trimmed. Every anchor the patches rely on is
 // kept verbatim; refresh these when CI's pinned Flutter version changes.
 const _manifestTemplate = '''
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="flowline"
+        android:label="atomic_assist"
         android:name="\${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -41,28 +43,37 @@ const _manifestTemplate = '''
 const _gradleTemplate = '''
 plugins {
     id("com.android.application")
-    id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
 }
 
 android {
-    namespace = "com.devbehindyou.flowline"
+    namespace = "com.devbehindyou.atomic_assist"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+    defaultConfig {
+        applicationId = "com.devbehindyou.atomic_assist"
+        minSdk = flutter.minSdkVersion
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
     }
 
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("debug")
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
 
@@ -88,6 +99,43 @@ void main() {
       }
     });
 
+    test('lets the app see the speech recogniser and TTS engines', () {
+      final queries = patched.substring(
+          patched.indexOf('<queries>'), patched.indexOf('</queries>'));
+      expect(
+          queries,
+          contains(
+              '<action android:name="android.speech.RecognitionService"/>'));
+      expect(
+          queries,
+          contains(
+              '<action android:name="android.intent.action.TTS_SERVICE"/>'));
+      // The template's own query stays.
+      expect(queries, contains('android.intent.action.PROCESS_TEXT'));
+    });
+
+    test('MainActivity opens the listen deep link and has the shortcut', () {
+      final activity = patched.substring(
+          patched.indexOf('<activity'), patched.indexOf('</activity>'));
+      expect(activity, contains('android:scheme="atomicassist"'));
+      expect(activity, contains('android:host="app"'));
+      expect(activity, contains('android.intent.action.VIEW'));
+      expect(activity, contains('android:resource="@xml/atomic_shortcuts"'));
+      // The launcher filter is still there, before it.
+      expect(activity.indexOf('android.intent.category.LAUNCHER'),
+          lessThan(activity.indexOf('android:scheme')));
+    });
+
+    test('registers the Quick Settings tile inside <application>', () {
+      final applicationBody = patched.substring(
+          patched.indexOf('<application'), patched.indexOf('</application>'));
+      expect(applicationBody, contains('android:name=".ListenTileService"'));
+      expect(applicationBody,
+          contains('android.permission.BIND_QUICK_SETTINGS_TILE'));
+      expect(applicationBody,
+          contains('android.service.quicksettings.action.QS_TILE'));
+    });
+
     test('allows cleartext traffic on the <application> tag for Ollama', () {
       final applicationTag = patched.substring(
           patched.indexOf('<application'), patched.indexOf('<activity'));
@@ -102,9 +150,40 @@ void main() {
       expect(applicationBody, contains('ScheduledNotificationBootReceiver"'));
     });
 
+    test('keeps the receivers aligned with </application>', () {
+      expect(patched, contains('\n        <receiver\n'));
+      expect(patched, contains('\n    </application>'));
+    });
+
+    test('points both backup attributes at the bundled rule files', () {
+      final applicationTag = patched.substring(
+          patched.indexOf('<application'), patched.indexOf('<activity'));
+      expect(applicationTag,
+          contains('android:fullBackupContent="@xml/atomic_backup_rules"'));
+      expect(
+          applicationTag,
+          contains('android:dataExtractionRules='
+              '"@xml/atomic_data_extraction_rules"'));
+      for (final name in [
+        'atomic_backup_rules',
+        'atomic_data_extraction_rules'
+      ]) {
+        expect(
+          backupResourceFiles.keys,
+          contains('app/src/main/res/xml/$name.xml'),
+        );
+      }
+    });
+
+    test('names the app "Atomic Assist" on the launcher', () {
+      expect(patched, contains('android:label="Atomic Assist"'));
+      expect(patched, isNot(contains('android:label="atomic_assist"')));
+    });
+
     test('is idempotent', () {
       expect(patchManifest(patched), patched);
       expect(_count(patched, 'android.permission.INTERNET'), 1);
+      expect(_count(patched, 'android:fullBackupContent'), 1);
     });
 
     test('fails loudly when the template has no <application> tag', () {
@@ -121,9 +200,23 @@ void main() {
     test('enables core library desugaring inside compileOptions', () {
       final compileOptions = patched.substring(
         patched.indexOf('compileOptions {'),
-        patched.indexOf('kotlinOptions {'),
+        patched.indexOf('defaultConfig {'),
       );
       expect(compileOptions, contains('isCoreLibraryDesugaringEnabled = true'));
+    });
+
+    test('sets the store application id, keeping the Kotlin namespace', () {
+      expect(
+          patched, contains('applicationId = "com.devbehindyou.atomicassist"'));
+      expect(patched, contains('namespace = "com.devbehindyou.atomic_assist"'));
+    });
+
+    test('fails loudly when applicationId is missing', () {
+      expect(
+        () => patchAppGradleKts(_gradleTemplate.replaceFirst(
+            RegExp(r'applicationId = "[^"]*"'), '')),
+        throwsA(isA<AndroidPatchException>()),
+      );
     });
 
     test('adds the desugar_jdk_libs dependency at top level', () {
@@ -136,11 +229,140 @@ void main() {
       expect(patchAppGradleKts(patched), patched);
     });
 
+    test(
+        'signs release builds with the release config when key.properties '
+        'exists, falling back to the debug key otherwise', () {
+      expect(patched, isNot(contains(templateReleaseSigning)));
+      expect(patched, contains(atomicReleaseSigning));
+      expect(
+        patched.indexOf('val keystorePropertiesFile'),
+        lessThan(patched.indexOf('android {')),
+        reason: 'the properties must be declared before android {} uses them',
+      );
+      final signingConfigs = patched.indexOf('signingConfigs {');
+      expect(signingConfigs, greaterThan(patched.indexOf('android {')));
+      expect(signingConfigs, lessThan(patched.indexOf('buildTypes {')));
+      expect(patched, contains('create("release")'));
+    });
+
+    test('puts the Kotlin imports first, before plugins {}', () {
+      // A fully qualified java.util.Properties() doesn't compile inside a
+      // .kts build script (`java` is Gradle's extension there).
+      expect(
+          patched,
+          startsWith('import java.io.FileInputStream\n'
+              'import java.util.Properties\n'));
+      expect(patched.indexOf('import java.util.Properties'),
+          lessThan(patched.indexOf('plugins {')));
+      expect(patched, isNot(contains('java.util.Properties()')));
+      expect(_count(patched, 'import java.util.Properties'), 1);
+    });
+
+    test('fails loudly when the release signingConfig line is missing', () {
+      expect(
+        () => patchAppGradleKts(_gradleTemplate.replaceFirst(
+            templateReleaseSigning, 'signingConfig = null')),
+        throwsA(isA<AndroidPatchException>()),
+      );
+    });
+
     test('fails loudly when compileOptions is missing', () {
       expect(
         () => patchAppGradleKts('android {\n}\n'),
         throwsA(isA<AndroidPatchException>()),
       );
+    });
+  });
+
+  group('backup rules', () {
+    for (final entry in backupResourceFiles.entries) {
+      test('${entry.key} excludes every secure-storage preferences file', () {
+        for (final prefs in secureStoragePrefsFiles) {
+          expect(
+            entry.value,
+            contains('<exclude domain="sharedpref" path="$prefs"/>'),
+          );
+        }
+        // Include rules would turn the backup into an allow-list and drop
+        // the database; only excludes are allowed here.
+        expect(entry.value, isNot(contains('<include')));
+      });
+    }
+
+    test('Android 12+ rules cover both cloud backup and device transfer', () {
+      expect(dataExtractionRulesXml, contains('<cloud-backup>'));
+      expect(dataExtractionRulesXml, contains('<device-transfer>'));
+    });
+  });
+
+  group('launch screen', () {
+    String hex(Color c) =>
+        '#${(c.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
+
+    test('matches the app theme surfaces, so launch has no colour jump', () {
+      expect(splashColorLight, hex(AtomicTheme.light().colorScheme.surface));
+      expect(splashColorDark, hex(AtomicTheme.dark().colorScheme.surface));
+    });
+
+    test('every file is well-formed and uses the shared colour', () {
+      for (final entry in splashResourceFiles.entries) {
+        final xml = entry.value;
+        expect(xml, startsWith('<?xml'), reason: entry.key);
+        if (!entry.key.contains('atomic_colors')) {
+          expect(xml, contains('@color/atomic_splash_background'),
+              reason: entry.key);
+        }
+      }
+    });
+
+    test('Android 12+ themes set the splash background, light and night', () {
+      for (final (path, parent) in [
+        ('values-v31', 'Theme.Light.NoTitleBar'),
+        ('values-night-v31', 'Theme.Black.NoTitleBar'),
+      ]) {
+        final xml = splashResourceFiles['app/src/main/res/$path/styles.xml']!;
+        expect(xml, contains('name="LaunchTheme"'));
+        expect(xml, contains('parent="@android:style/$parent"'));
+        expect(xml, contains('android:windowSplashScreenBackground'));
+      }
+    });
+  });
+
+  group('voice shortcuts', () {
+    test('the tile service is in the generated Kotlin package', () {
+      final kt = voiceShortcutFiles[
+          'app/src/main/kotlin/com/devbehindyou/atomic_assist/ListenTileService.kt']!;
+      expect(kt, contains('package com.devbehindyou.atomic_assist'));
+      expect(kt, contains('class ListenTileService : TileService()'));
+      expect(kt, contains('"atomicassist://app/assistant?listen=1"'));
+      expect(kt, contains('startActivityAndCollapse'));
+    });
+
+    test('the launcher shortcut targets the store id and MainActivity', () {
+      final xml =
+          voiceShortcutFiles['app/src/main/res/xml/atomic_shortcuts.xml']!;
+      expect(xml,
+          contains('android:targetPackage="com.devbehindyou.atomicassist"'));
+      expect(
+          xml,
+          contains(
+              'android:targetClass="com.devbehindyou.atomic_assist.MainActivity"'));
+      expect(xml,
+          contains('android:data="atomicassist://app/assistant?listen=1"'));
+    });
+
+    test('every resource the manifest and shortcut name exists', () {
+      final files = voiceShortcutFiles.keys;
+      expect(files, contains('app/src/main/res/drawable/atomic_ic_mic.xml'));
+      final strings =
+          voiceShortcutFiles['app/src/main/res/values/atomic_strings.xml']!;
+      expect(strings, contains('name="atomic_listen_tile"'));
+      expect(strings, contains('name="atomic_listen_short"'));
+      for (final entry in voiceShortcutFiles.entries) {
+        if (!entry.key.endsWith('.xml')) continue;
+        expect(entry.value, startsWith('<?xml'), reason: entry.key);
+        expect(entry.value.trim(), endsWith('>'), reason: entry.key);
+      }
     });
   });
 }

@@ -1,6 +1,6 @@
 // Usage: dart run tool/ci/patch_android.dart <android dir>
 //
-// Applies Flowline's requirements to a freshly generated `flutter create`
+// Applies Atomic Assist's requirements to a freshly generated `flutter create`
 // Android project. See android_patches.dart for what and why.
 import 'dart:io';
 
@@ -16,6 +16,16 @@ void main(List<String> args) {
   try {
     _patchFile('$androidDir/app/src/main/AndroidManifest.xml', patchManifest);
     _patchFile('$androidDir/app/build.gradle.kts', patchAppGradleKts);
+    <String, String>{
+      ...backupResourceFiles,
+      ...splashResourceFiles,
+      ...voiceShortcutFiles,
+    }.forEach((relativePath, content) {
+      final file = File('$androidDir/$relativePath');
+      file.parent.createSync(recursive: true);
+      file.writeAsStringSync(content);
+      stdout.writeln('Wrote:     ${file.path}');
+    });
   } on AndroidPatchException catch (e) {
     stderr.writeln(e);
     exit(1);
