@@ -1,0 +1,1029 @@
+{
+  "@@locale": "en",
+  "appTitle": "Atomic Assist",
+  "errorNetwork": "Couldn't reach the server — check your connection.",
+  "errorStorage": "Couldn't read your data on this phone.",
+  "errorGeneric": "Something went wrong.",
+  "retry": "Retry",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "confirmSheetLabel": "Confirm",
+  "@confirmSheetLabel": {"description": "Mono label at the top of a destructive confirmation sheet."},
+  "settings": "Settings",
+  "navToday": "Today",
+  "navFocus": "Focus",
+  "navAssistant": "Assistant",
+  "navInsights": "Insights",
+  "onboardingSaveFailed": "Couldn't save your progress — please try again.",
+  "onboardingWelcomeTitle": "Plan the day. Focus. See where time went.",
+  "onboardingWelcomeBody": "Atomic Assist keeps your tasks, time blocks and focus sessions on this phone. No account, no sync, nothing leaves the device unless you export it.",
+  "onboardingNext": "Next",
+  "onboardingNotificationsTitle": "Know when a session ends",
+  "onboardingNotificationsBody": "Atomic Assist uses notifications only for focus session and break alerts, so you can put the phone down. You can change this any time in Settings.",
+  "onboardingAllowNotifications": "Allow notifications",
+  "onboardingNotNow": "Not now",
+  "onboardingAiTitle": "Connect an AI assistant (optional)",
+  "onboardingAiBody": "Bring your own API key from OpenAI, Anthropic, Gemini, or run Ollama locally. Keys are stored in the Android Keystore and never backed up. Everything else works without one.",
+  "onboardingConnectProvider": "Connect a provider",
+  "onboardingSkipForNow": "Skip for now",
+  "onboardingStep": "Step {current} of {total}",
+  "@onboardingStep": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingSkip": "Skip",
+  "settingSaveFailed": "Couldn't save the setting — please try again.",
+  "settingsAppearance": "Appearance",
+  "appearanceTheme": "Theme",
+  "appearanceSystem": "System",
+  "appearanceLight": "Light",
+  "appearanceDark": "Dark",
+  "appearanceSystemHint": "System follows your phone’s dark mode setting.",
+  "settingsFocusTimer": "Focus timer",
+  "sessionFocus": "Focus",
+  "sessionShortBreak": "Short break",
+  "sessionLongBreak": "Long break",
+  "focusSettingsLongBreakAfter": "Long break after",
+  "focusSessionCount": "{count, plural, =1{1 focus session} other{{count} focus sessions}}",
+  "@focusSessionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "focusSettingsHint": "New lengths apply to the next session you start.",
+  "minutesShort": "{minutes} min",
+  "@minutesShort": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "decreaseSetting": "Decrease {setting}",
+  "@decreaseSetting": {
+    "placeholders": {
+      "setting": {
+        "type": "String"
+      }
+    }
+  },
+  "increaseSetting": "Increase {setting}",
+  "@increaseSetting": {
+    "placeholders": {
+      "setting": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsNotifications": "Notifications",
+  "notificationsSessionAlerts": "Session alerts",
+  "notificationsSessionAlertsHint": "A notification when a focus session or break ends",
+  "clearAllDataTitle": "Clear all data?",
+  "clearAllDataMessage": "Deletes every task, block, focus session, conversation and saved API key on this phone. This can’t be undone.",
+  "clearAllDataConfirm": "Clear everything",
+  "clearAllDataFailed": "Couldn't clear your data — please try again.",
+  "settingsDataPrivacy": "Data & privacy",
+  "dataWhereTitle": "Where your data lives",
+  "dataWhereBody": "Everything you create is stored only on this phone. There is no Atomic Assist account, server or analytics.\n\nAPI keys are kept in Android’s secure Keystore and are only ever sent to the AI provider they belong to. When you use the Assistant, your message and the conversation so far go directly from this phone to the provider you chose.\n\nYour Android backup includes your Atomic Assist data but never your API keys.",
+  "clearAllData": "Clear all data",
+  "openSourceLicences": "Open-source licences",
+  "allDataCleared": "All data cleared",
+  "removeKeyTitle": "Remove {provider} key?",
+  "@removeKeyTitle": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "removeKeyMessage": "The key is deleted from this phone. Your saved conversations stay, but new messages won't work until you add a key again.",
+  "remove": "Remove",
+  "saveFailed": "Couldn't save — please try again.",
+  "apiKey": "API key",
+  "apiKeySavedHint": "A key is saved. Leave empty to keep it.",
+  "apiKeyStorageHint": "Stored only on this phone, in the Android Keystore.",
+  "showKey": "Show key",
+  "hideKey": "Hide key",
+  "serverUrl": "Server URL",
+  "serverUrlHint": "On a phone, \"localhost\" means the phone itself — use your computer's LAN IP if Ollama runs there.",
+  "model": "Model",
+  "save": "Save",
+  "removeKey": "Remove key",
+  "aiFieldModelEmpty": "Enter a model name",
+  "aiFieldModelHasSpaces": "Model names have no spaces",
+  "aiFieldUrlNeedsScheme": "Start with http:// or https://, e.g. http://192.168.1.20:11434",
+  "aiFieldUrlNeedsHost": "Add the computer's address after http://",
+  "aiFieldUrlHasPath": "Use only the server address, e.g. http://192.168.1.20:11434",
+  "aiFieldKeyEmpty": "Paste your API key",
+  "aiFieldKeyHasSpaces": "The key contains spaces — paste it again",
+  "settingsAiProviders": "AI Providers",
+  "settingsAiProvidersHint": "Connect Anthropic, OpenAI, Gemini, or a local Ollama server",
+  "settingsFocusTimerHint": "Session and break lengths",
+  "settingsAppearanceHint": "Light, dark or system",
+  "settingsDataPrivacyHint": "Where your data lives, clear all data",
+  "providerConnected": "Connected • {model}",
+  "@providerConnected": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "providerNotConnected": "Not connected",
+  "providerStatusUnknown": "Unknown",
+  "edit": "Edit",
+  "assistantNoProviderTitle": "Connect an AI provider",
+  "assistantNoProviderMessage": "Quick commands work without one: “remind me at 6pm to call Mum”, “add milk to shopping”. Add an API key in Settings for everything else.",
+  "assistantGoToProviders": "Go to AI Providers",
+  "assistantSendFailed": "Couldn't send — your message is back in the box.",
+  "assistantEmptyTitle": "Ask me anything",
+  "assistantEmptyMessage": "Try asking about your schedule, or just say hello.",
+  "assistantInputHint": "Ask the assistant…",
+  "send": "Send",
+  "assistantWaiting": "Waiting for a reply",
+  "assistantThinking": "Thinking…",
+  "todayEmptyTitle": "No tasks yet",
+  "todayEmptyMessage": "Add your first task to start planning today.",
+  "addTask": "Add Task",
+  "previousDay": "Previous day",
+  "jumpToToday": "Jump to today",
+  "aiErrorToolsUnsupported": "{model} can't take actions directly, so AA will ask it for a plan instead.",
+  "@aiErrorToolsUnsupported": {"description": "Shown when a model rejects tool calling.", "placeholders": {"model": {"type": "String"}}},
+  "exporting": "Exporting…",
+  "@exporting": {"description": "Mono caps line while an export is being built."},
+  "loadingProviders": "Loading providers…",
+  "@loadingProviders": {"description": "Mono caps loading line on AI Providers."},
+  "testingConnection": "Testing…",
+  "@testingConnection": {"description": "Busy label on Test connection."},
+  "dangerZone": "Danger zone",
+  "@dangerZone": {"description": "Section label above destructive settings."},
+  "clearAllDataWarning": "This deletes every task, block and focus session on this phone. It can't be undone.",
+  "@clearAllDataWarning": {"description": "Warning sentence above the Clear all data button."},
+  "clearingData": "Clearing…",
+  "@clearingData": {"description": "Busy label while all data is being cleared."},
+  "loadingInsights": "Loading your week…",
+  "@loadingInsights": {"description": "Mono caps loading line on Insights."},
+  "loadingAssistant": "Loading the assistant…",
+  "@loadingAssistant": {"description": "Mono caps loading line on Assist."},
+  "loadingConversation": "Loading the conversation…",
+  "@loadingConversation": {"description": "Mono caps loading line for a chat."},
+  "providerAndModel": "{provider} · {model}",
+  "@providerAndModel": {"description": "Which provider and model answer in the chat.", "placeholders": {"provider": {"type": "String"}, "model": {"type": "String"}}},
+  "loadingFocus": "Loading the timer…",
+  "@loadingFocus": {"description": "Mono caps loading line on Focus."},
+  "loadingTask": "Loading the task…",
+  "@loadingTask": {"description": "Mono caps loading line on Task Detail."},
+  "loadingDay": "Loading the day…",
+  "@loadingDay": {"description": "Mono caps loading line on Today."},
+  "nextDay": "Next day",
+  "addScheduleBlock": "Add schedule block",
+  "unscheduled": "Unscheduled",
+  "timeRange": "{start} – {end}",
+  "@timeRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "blockOptions": "Block options",
+  "editBlock": "Edit block",
+  "deleteBlock": "Delete block",
+  "addTaskToBlock": "Add task to this block",
+  "overlapsAnotherBlock": "Overlaps another block",
+  "blockEmpty": "No tasks in this block yet.",
+  "priorityLow": "Low",
+  "priorityMedium": "Medium",
+  "priorityHigh": "High",
+  "statusTodo": "Todo",
+  "statusInProgress": "In Progress",
+  "statusDone": "Done",
+  "deleteTaskFailed": "Couldn't delete the task — please try again.",
+  "markNotDone": "Mark as not done",
+  "markDone": "Mark as done",
+  "startFocusSession": "Start focus session",
+  "markedDone": "Marked \"{title}\" done",
+  "@markedDone": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "undo": "Undo",
+  "priorityOption": "Priority: {priority}",
+  "@priorityOption": {
+    "placeholders": {
+      "priority": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteTaskTitle": "Delete task?",
+  "deleteTaskMessage": "\"{title}\" will be removed permanently.",
+  "@deleteTaskMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "dueOverdue": "Overdue · {date}",
+  "@dueOverdue": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "dueToday": "Due today {time}",
+  "@dueToday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "dueOn": "Due {date}",
+  "@dueOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "taskTitle": "Task",
+  "editTask": "Edit task",
+  "deleteTask": "Delete task",
+  "deleteTaskWithSubtasksMessage": "This removes the task and its subtasks permanently.",
+  "taskMissing": "This task no longer exists.",
+  "startFocusSessionButton": "Start Focus Session",
+  "subtasks": "Subtasks",
+  "addSubtask": "Add subtask",
+  "focusHistory": "Focus history",
+  "newSubtask": "New subtask",
+  "titleField": "Title",
+  "add": "Add",
+  "subtasksEmpty": "No subtasks yet.",
+  "subtaskSprints": "{completed} of {planned} pomodoros logged",
+  "@subtaskSprints": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "planned": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteSubtask": "Delete subtask",
+  "deleteSubtaskTitle": "Delete subtask?",
+  "deleteSubtaskMessage": "\"{title}\" and its logged pomodoro count will be removed.",
+  "@deleteSubtaskMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "focusHistoryEmpty": "No focus sessions yet.",
+  "focusHistorySummary": "{count, plural, =1{1 session} other{{count} sessions}} · {minutes} min total",
+  "@focusHistorySummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "dateTime": "{date} {time}",
+  "@dateTime": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "minutesEndedEarly": "{minutes} min · ended early",
+  "@minutesEndedEarly": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "dueOverdueAt": "Overdue · {date} {time}",
+  "@dueOverdueAt": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "dueAt": "Due {date} {time}",
+  "@dueAt": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "titleRequired": "Title is required",
+  "saveTaskFailed": "Couldn't save the task — please try again.",
+  "deleteTaskAndSubtasksMessage": "\"{title}\" and its subtasks will be removed permanently.",
+  "@deleteTaskAndSubtasksMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "editTaskTitle": "Edit Task",
+  "notesField": "Notes",
+  "priorityField": "Priority",
+  "statusField": "Status",
+  "formStatusTodo": "To do",
+  "formStatusDoing": "Doing",
+  "saveChanges": "Save Changes",
+  "saving": "Saving…",
+  "@saving": {"description": "Busy label on a save button while it works."},
+  "deleteTaskButton": "Delete task",
+  "scheduleBlockField": "Schedule block",
+  "keepCurrentBlock": "Keep current block",
+  "blockOption": "{title} · {time}",
+  "@blockOption": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "noDueDate": "No due date",
+  "removeDueDate": "Remove due date",
+  "unlinkTask": "Unlink task",
+  "start": "Start",
+  "timerPaused": "Paused",
+  "end": "End",
+  "skip": "Skip",
+  "resume": "Resume",
+  "pause": "Pause",
+  "addFiveMinutes": "+5 min",
+  "timerLabelFocus": "Focus",
+  "timerLabelShortBreak": "Short break",
+  "timerLabelLongBreak": "Long break",
+  "selectorFocus": "Focus ({minutes}m)",
+  "@selectorFocus": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "selectorShortBreak": "Short ({minutes}m)",
+  "@selectorShortBreak": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "selectorLongBreak": "Long ({minutes}m)",
+  "@selectorLongBreak": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "durationHoursMinutes": "{hours}h {minutes}m",
+  "@durationHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "durationMinutes": "{minutes}m",
+  "@durationMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "todaysFocus": "Today's Focus",
+  "focusFooterSummary": "{duration} • {count, plural, =1{1 session} other{{count} sessions}}",
+  "@focusFooterSummary": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "summaryEndedEarly": "Session ended early",
+  "summaryBreakSkipped": "Break skipped",
+  "summaryFocusComplete": "Focus session complete",
+  "summaryBreakOver": "Break over",
+  "summaryLoggedEarly": "{minutes} min of focus logged. Every bit counts.",
+  "@summaryLoggedEarly": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "summaryLogged": "{minutes} min of focus logged.",
+  "@summaryLogged": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "summaryOnTask": "On: {title}",
+  "@summaryOnTask": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "summarySessionsToday": "{count, plural, =1{1 focus session today} other{{count} focus sessions today}}",
+  "@summarySessionsToday": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "startFocusMinutes": "Start focus session ({minutes}m)",
+  "@startFocusMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "startShortBreakMinutes": "Start short break ({minutes}m)",
+  "@startShortBreakMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "startLongBreakMinutes": "Start long break ({minutes}m)",
+  "@startLongBreakMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "backToToday": "Back to Today",
+  "timer": "Timer",
+  "timerRemaining": "{minutes, plural, =1{1 minute} other{{minutes} minutes}} {seconds, plural, =1{1 second} other{{seconds} seconds}} remaining",
+  "@timerRemaining": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "exportThisWeek": "Export this week",
+  "insightsEmptyTitle": "Complete a session to see stats",
+  "insightsEmptyMessage": "Focus-time trends and streaks show up here once you’ve logged a session.",
+  "dayStreak": "Day streak",
+  "thisWeek": "This week",
+  "last7Days": "Last 7 days",
+  "weekSessionCount": "{count, plural, =1{1 focus session this week} other{{count} focus sessions this week}}",
+  "@weekSessionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportFailed": "Couldn't create the export — please try again.",
+  "exportDescription": "Focus session history for the last 7 days, generated on-device — nothing is sent anywhere to produce it.",
+  "exportPdf": "PDF summary",
+  "exportCsv": "CSV (spreadsheet)",
+  "exportJson": "JSON (raw data)",
+  "saveBlockFailed": "Couldn't save the block — please try again.",
+  "scheduleConflict": "Schedule conflict",
+  "conflictOverlaps": "\"{title}\" ({start} – {end}) overlaps:",
+  "@conflictOverlaps": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictItem": "• \"{title}\" ({start} – {end})",
+  "@conflictItem": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "applySuggestedTime": "Apply suggested time",
+  "asking": "Asking…",
+  "askAiToHelp": "Ask AI to help",
+  "aiCouldNotHelp": "AI couldn't help",
+  "@aiCouldNotHelp": {"description": "Title of the warning box when the AI request for a conflict fix failed."},
+  "askAgain": "Ask again",
+  "editTimes": "Edit times",
+  "saveAnyway": "Save anyway (overlap allowed)",
+  "suggestedTime": "Suggested: {start} – {end}",
+  "@suggestedTime": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "cantApply": "Can't apply: {reason}",
+  "@cantApply": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "aiRawTextIntro": "Couldn't turn that into a specific time automatically:",
+  "problemEndNotAfterStart": "The suggested end time is not after its start.",
+  "problemNotSameDay": "The suggested time is not on the same day.",
+  "problemLengthChanged": "The suggestion changes the length to {got} min (expected {wanted} min).",
+  "@problemLengthChanged": {
+    "placeholders": {
+      "got": {
+        "type": "int"
+      },
+      "wanted": {
+        "type": "int"
+      }
+    }
+  },
+  "problemStillOverlaps": "That time still overlaps \"{title}\".",
+  "@problemStillOverlaps": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "endAfterStart": "End time must be after start time",
+  "checkScheduleFailed": "Couldn't check your schedule — please try again.",
+  "editScheduleBlock": "Edit Schedule Block",
+  "addScheduleBlockTitle": "Add Schedule Block",
+  "blockTitleField": "Block title",
+  "startAt": "Start: {time}",
+  "@startAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "endAt": "End: {time}",
+  "@endAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "addBlock": "Add Block",
+  "deleteBlockTitle": "Delete \"{title}\"?",
+  "@deleteBlockTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteBlockMessage": "Its tasks stay and move to Unscheduled.",
+  "deleteBlockFailed": "Couldn't delete the block — please try again.",
+  "notifyFocusComplete": "Focus session complete",
+  "notifyShortBreakOver": "Short break over",
+  "notifyLongBreakOver": "Long break over",
+  "notifyBody": "Tap to see what's next.",
+  "showMore": "Show more",
+  "showCompleted": "Show completed ({count})",
+  "@showCompleted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hideCompleted": "Hide completed ({count})",
+  "@hideCompleted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "repeat": "Repeat",
+  "repeatNone": "Does not repeat",
+  "repeatDaily": "Every day",
+  "repeatWeekdays": "Every weekday (Mon–Fri)",
+  "repeatWeekly": "Weekly on…",
+  "editRepeatingTitle": "Edit repeating block",
+  "editThisOccurrence": "Only this day",
+  "editAllOccurrences": "All days",
+  "deleteRepeatingTitle": "Delete repeating block",
+  "deleteThisOccurrence": "Only this day",
+  "deleteThisAndFollowing": "This day and all after it",
+  "repeatingBlock": "Repeating block",
+  "reorderSubtask": "Drag to reorder",
+  "aiProviderGeneric": "the AI provider",
+  "aiErrorInvalidKey": "That API key was rejected by {vendor}.",
+  "@aiErrorInvalidKey": {
+    "placeholders": {
+      "vendor": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrorRateLimited": "{vendor} rate-limited this request — try again shortly.",
+  "@aiErrorRateLimited": {
+    "placeholders": {
+      "vendor": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrorServer": "{vendor} returned an error (HTTP {status}).",
+  "@aiErrorServer": {
+    "placeholders": {
+      "vendor": {
+        "type": "String"
+      },
+      "status": {
+        "type": "int"
+      }
+    }
+  },
+  "aiErrorUnreachable": "Couldn't reach {vendor} — check your connection.",
+  "@aiErrorUnreachable": {
+    "placeholders": {
+      "vendor": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrorOllamaUnreachable": "Couldn't reach Ollama at {url}. If it's running on a computer, use that computer's LAN IP here, not \"localhost\" — on a phone, localhost means the phone itself.",
+  "@aiErrorOllamaUnreachable": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrorEmpty": "{vendor} returned an empty response.",
+  "@aiErrorEmpty": {
+    "placeholders": {
+      "vendor": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrorModelNotFound": "Ollama responded, but that model isn't pulled yet. Run: ollama pull {model}",
+  "@aiErrorModelNotFound": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrorMissingKey": "No API key saved for {vendor} yet — add one in Settings.",
+  "@aiErrorMissingKey": {
+    "placeholders": {
+      "vendor": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrorNoProvider": "No AI provider is active — connect one in Settings.",
+  "aiStopped": "Stopped.",
+  "assistantCutOff": "Cut off: the reply reached its length limit.",
+  "@assistantCutOff": {
+    "description": "Under an AI reply that stopped at the maximum length (B18)."
+  },
+  "aiErrorInterrupted": "No reply — Atomic Assist was closed before it arrived. Send your message again.",
+  "aiErrorUnknown": "Something went wrong talking to {vendor}. Please try again.",
+  "@aiErrorUnknown": {
+    "placeholders": {
+      "vendor": {
+        "type": "String"
+      }
+    }
+  },
+  "testConnection": "Test connection",
+  "chooseModel": "Choose a model",
+  "connectionOk": "Connected — {count, plural, =1{1 model} other{{count} models}} available.",
+  "@connectionOk": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "modelNotListed": "Not in {vendor}'s list for this key. It may be retired; pick one from the list.",
+  "@modelNotListed": {
+    "placeholders": {
+      "vendor": {
+        "type": "String"
+      }
+    }
+  },
+  "stop": "Stop",
+  "actionCreateTask": "Created task",
+  "actionUpdateTask": "Changed task",
+  "actionCompleteTask": "Marked done",
+  "actionScheduleTask": "Scheduled",
+  "actionCreateBlock": "Added block",
+  "actionMoveBlock": "Moved block",
+  "actionStartFocus": "Started focus",
+  "actionBreakDown": "Added steps",
+  "actionDeleteTask": "Deleted task",
+  "actionDeleteBlock": "Deleted block",
+  "actionRead": "Looked it up",
+  "actionUndone": "Undone",
+  "actionFailed": "Failed",
+  "actionChangedSince": "Changed since. Not undone.",
+  "actionNothingToUndo": "Nothing left to undo.",
+  "actionFocusMinutes": "{minutes} min",
+  "@actionFocusMinutes": {"placeholders": {"minutes": {"type": "int"}}},
+  "turnNothingDone": "Nothing to do. Try saying it another way.",
+  "turnStoppedRounds": "Stopped: that took too many steps. Try a smaller request.",
+  "turnStoppedCalls": "Stopped: that was too many changes at once. Nothing more was done.",
+  "turnStoppedTimeout": "Stopped: no answer in time.",
+  "confirmActionTitle": "Do this?",
+  "confirmActionMessage": "{action}: {detail}",
+  "@confirmActionMessage": {"placeholders": {"action": {"type": "String"}, "detail": {"type": "String"}}},
+  "confirmDeleteTaskMessage": "{count, plural, =0{\"{title}\" will be deleted.} =1{\"{title}\" and its subtask will be deleted.} other{\"{title}\" and its {count} subtasks will be deleted.}} You can undo this.",
+  "@confirmDeleteTaskMessage": {"placeholders": {"count": {"type": "int"}, "title": {"type": "String"}}},
+  "confirmDeleteBlockMessage": "{count, plural, =0{\"{title}\" will be deleted.} =1{\"{title}\" will be deleted. Its task stays, unscheduled.} other{\"{title}\" will be deleted. Its {count} tasks stay, unscheduled.}} You can undo this.",
+  "@confirmDeleteBlockMessage": {"placeholders": {"count": {"type": "int"}, "title": {"type": "String"}}},
+  "confirmDo": "Do it",
+  "navInbox": "Inbox",
+  "navLibrary": "Library",
+  "inboxTitle": "Inbox",
+  "inboxSuggested": "Suggested",
+  "inboxDoneToday": "Done by AA today",
+  "inboxAllActivity": "All activity",
+  "inboxEmptyTitle": "You're clear",
+  "inboxEmptyMessage": "AA will put suggestions here.",
+  "loadingInbox": "Checking…",
+  "proposalAccept": "Accept",
+  "proposalDismiss": "Dismiss",
+  "proposalNoLongerPossible": "No longer possible. Things changed since it was suggested.",
+  "proposalYouSaid": "You said: {text}",
+  "@proposalYouSaid": {"placeholders": {"text": {"type": "String"}}},
+  "reasonCommitment": "From something you said",
+  "reasonMeetingWithoutPrep": "Meeting coming up",
+  "reasonUpcomingDate": "Date coming up",
+  "reasonOverdueDrift": "Keeps slipping",
+  "reasonBillDue": "Bill due",
+  "reasonFreeGapForTasks": "Free time today",
+  "reasonDayOverbooked": "Day is full",
+  "reasonFollowUpDue": "Follow-up due",
+  "reasonDocumentExpiring": "Document expiring",
+  "reasonPattern": "You keep doing this",
+  "activityTitle": "Activity",
+  "activityEmptyTitle": "Nothing yet",
+  "activityEmptyMessage": "Everything AA does shows here, with undo.",
+  "loadingActivity": "Reading the log…",
+  "originSaid": "You asked",
+  "originCommitment": "From what you said",
+  "originContext": "Noticed",
+  "originPattern": "From a pattern",
+  "originRoutine": "Routine",
+  "actionTimeOrigin": "{time} · {origin}",
+  "@actionTimeOrigin": {"placeholders": {"time": {"type": "String"}, "origin": {"type": "String"}}},
+  "libraryTitle": "Library",
+  "libraryReview": "Review",
+  "libraryReviewHint": "Your focus over the week",
+  "actionCreateReminder": "Reminder set",
+  "actionSnoozeReminder": "Snoozed",
+  "actionCompleteReminder": "Reminder done",
+  "remindersTitle": "Reminders",
+  "remindersHint": "What AA will remind you about",
+  "remindersEmptyTitle": "No reminders",
+  "remindersEmptyMessage": "Say \"remind me to call Mum at 7\" in Assist.",
+  "loadingReminders": "Loading reminders…",
+  "reminderDone": "Done",
+  "reminderSnooze10": "Snooze 10 min",
+  "reminderTomorrow": "Tomorrow",
+  "reminderOverdue": "Missed",
+  "reminderNotificationChannel": "Reminders",
+  "reminderNotificationChannelDescription": "Reminders you asked Atomic Assist for",
+  "actionAddListItems": "Added to list",
+  "actionCheckListItem": "Ticked",
+  "actionUncheckListItem": "Unticked",
+  "actionClearChecked": "Cleared ticked items",
+  "confirmClearCheckedMessage": "{count, plural, =1{1 ticked item will be removed from {list}.} other{{count} ticked items will be removed from {list}.}} You can undo this.",
+  "@confirmClearCheckedMessage": {"placeholders": {"count": {"type": "int"}, "list": {"type": "String"}}},
+  "listsTitle": "Lists",
+  "listsHint": "Shopping, errands, packing",
+  "listsEmptyTitle": "No lists",
+  "listsEmptyMessage": "Say \"add milk to shopping\" in Assist.",
+  "loadingLists": "Loading lists…",
+  "listCounter": "{open} / {total}",
+  "@listCounter": {"placeholders": {"open": {"type": "int"}, "total": {"type": "int"}}},
+  "listEmptyMessage": "Nothing on this list yet.",
+  "listAddHint": "Add an item",
+  "listAdd": "Add",
+  "listClearChecked": "Clear ticked",
+  "actionAddBirthday": "Birthday saved",
+  "actionAddAnniversary": "Anniversary saved",
+  "actionAddPersonDate": "Date saved",
+  "actionCreateFollowUp": "Follow-up set",
+  "actionCompleteFollowUp": "Followed up",
+  "peopleTitle": "People",
+  "peopleHint": "Birthdays, anniversaries, follow-ups",
+  "peopleEmptyTitle": "No one yet",
+  "peopleEmptyMessage": "Say \"Priya's birthday is 9 October\" in Assist.",
+  "loadingPeople": "Loading people…",
+  "personDates": "Dates",
+  "personFollowUps": "Follow-ups",
+  "personNoDates": "No dates saved.",
+  "personNoFollowUps": "No open follow-ups.",
+  "personDateToday": "Today",
+  "personDateInDays": "{days, plural, =1{Tomorrow} other{In {days} days}}",
+  "@personDateInDays": {"placeholders": {"days": {"type": "int"}}},
+  "personTurnsAge": "turns {age}",
+  "@personTurnsAge": {"placeholders": {"age": {"type": "int"}}},
+  "followUpReplied": "Replied",
+  "dateKindBirthday": "Birthday",
+  "dateKindAnniversary": "Anniversary",
+  "dateKindOther": "Date",
+  "repeatEvery": "Every {days}",
+  "@repeatEvery": {"placeholders": {"days": {"type": "String"}}},
+  "repeatNextDue": "Next {when}",
+  "@repeatNextDue": {"placeholders": {"when": {"type": "String"}}},
+  "markedDoneNext": "Marked \"{title}\" done. Next {when}",
+  "@markedDoneNext": {"placeholders": {"title": {"type": "String"}, "when": {"type": "String"}}},
+  "taskRepeats": "Repeats: {rule}",
+  "@taskRepeats": {"placeholders": {"rule": {"type": "String"}}},
+  "assistantLocalHint": "Try: remind me at 6pm to call Mum",
+  "localNeedsProvider": "That needs an AI provider.",
+  "localRejected": "AA couldn’t do that. Check the name or time and try again.",
+  "voiceSheetLabel": "Voice",
+  "voiceListening": "Listening",
+  "voiceHeard": "Understood",
+  "voiceThinking": "Working on it",
+  "voiceReviewHint": "Check what AA heard, then do it.",
+  "voiceStartListening": "Start listening",
+  "voiceStopListening": "Stop listening",
+  "voiceTryAgain": "Try again",
+  "voiceGrantMicrophone": "Grant microphone",
+  "voiceErrorNoPermission": "AA needs the microphone to listen.",
+  "voiceErrorNoEngine": "Speech recognition isn’t available on this phone.",
+  "voiceErrorNoSpeech": "Didn’t catch that.",
+  "voiceErrorNetwork": "Speech recognition needs a connection right now.",
+  "voiceErrorBusy": "The recogniser is busy. Try again in a moment.",
+  "voiceErrorModelMissing": "This language isn’t installed for speech recognition.",
+  "voiceNeedsConfirm": "Check the screen to confirm.",
+  "voiceTurnFailed": "That didn’t work. Try again, or type it.",
+  "voiceListeningIn": "Listening · {language}",
+  "@voiceListeningIn": {"placeholders": {"language": {"type": "String"}}},
+  "voiceDone": "Done",
+  "settingsVoice": "Voice",
+  "settingsVoiceHint": "Speaking replies, speed, keep listening",
+  "voiceSpeakReplies": "Speak replies",
+  "speakRepliesOff": "Off",
+  "speakRepliesWhenISpoke": "When I spoke",
+  "speakRepliesAlways": "Always",
+  "voiceSpeechRate": "Speaking speed",
+  "voiceKeepListening": "Keep listening",
+  "voiceKeepListeningHint": "After each reply, listen again until you stop or go quiet.",
+  "voicePrivacyNote": "Speech is recognised by your phone’s speech service, which may send audio to its provider. Replies are spoken on the phone.",
+  "percentValue": "{value}%",
+  "@percentValue": {"placeholders": {"value": {"type": "int"}}},
+  "scanReminderBirthday": "{name}’s birthday",
+  "@scanReminderBirthday": {"placeholders": {"name": {"type": "String"}}},
+  "scanReminderAnniversary": "{name}’s anniversary",
+  "@scanReminderAnniversary": {"placeholders": {"name": {"type": "String"}}},
+  "scanReminderDate": "{name}: {label}",
+  "@scanReminderDate": {"placeholders": {"name": {"type": "String"}, "label": {"type": "String"}}},
+  "settingsAssistant": "Assistant",
+  "settingsAssistantHint": "How much AA does on its own, suggestions",
+  "assistantSuggestions": "Suggestions",
+  "assistantSuggestionsHint": "AA looks at your tasks, day and people and suggests things in the Inbox. Nothing runs until you tap.",
+  "assistantAutonomy": "How much AA does on its own",
+  "autonomyCareful": "Careful",
+  "autonomyBalanced": "Balanced",
+  "autonomyHandsOff": "Hands-off",
+  "autonomyCarefulHint": "AA asks before every change, even ones you asked for.",
+  "autonomyBalancedHint": "AA does what you ask, with Undo. What it notices waits in the Inbox.",
+  "autonomyHandsOffHint": "AA also does what it notices, with Undo. Deleting always asks first.",
+  "briefingMorning": "Morning",
+  "briefingCheckIn": "Check-in",
+  "briefingShutdown": "Shutdown",
+  "briefingWeekly": "Weekly review",
+  "briefingEyebrow": "{kind} · {date}",
+  "@briefingEyebrow": {"placeholders": {"kind": {"type": "String"}, "date": {"type": "String"}}},
+  "briefingMorningHeadline": "{blocks, plural, =0{A clear day.} =1{One block today.} other{{blocks} blocks today.}}",
+  "@briefingMorningHeadline": {"placeholders": {"blocks": {"type": "int"}}},
+  "briefingStartWith": "Start with {title}.",
+  "@briefingStartWith": {"placeholders": {"title": {"type": "String"}}},
+  "briefingNothingDue": "Nothing due.",
+  "briefingShutdownHeadline": "{minutes, plural, =0{No focus today.} =1{1 minute of focus.} other{{minutes} minutes of focus.}}",
+  "@briefingShutdownHeadline": {"placeholders": {"minutes": {"type": "int"}}},
+  "briefingTomorrowStarts": "Tomorrow starts at {time}.",
+  "@briefingTomorrowStarts": {"placeholders": {"time": {"type": "String"}}},
+  "briefingTomorrowClear": "Tomorrow is clear.",
+  "briefingFirstUp": "First up",
+  "briefingTopTasks": "Top tasks",
+  "briefingComingUp": "Coming up",
+  "briefingSuggestions": "Suggestions",
+  "briefingDoneToday": "Done today",
+  "briefingDoneByAa": "Done by AA",
+  "briefingUnfinished": "Unfinished",
+  "briefingWaitingOn": "Waiting on",
+  "briefingTomorrow": "Tomorrow",
+  "briefingBlocksLine": "{count, plural, =0{Nothing scheduled} =1{1 block · {minutes} min} other{{count} blocks · {minutes} min}}",
+  "@briefingBlocksLine": {"placeholders": {"count": {"type": "int"}, "minutes": {"type": "int"}}},
+  "briefingSuggestionsLine": "{count, plural, =1{1 suggestion in the Inbox} other{{count} suggestions in the Inbox}}",
+  "@briefingSuggestionsLine": {"placeholders": {"count": {"type": "int"}}},
+  "briefingDoneLine": "{sessions, plural, =0{No focus sessions} =1{1 focus session · {minutes} min} other{{sessions} focus sessions · {minutes} min}}",
+  "@briefingDoneLine": {"placeholders": {"sessions": {"type": "int"}, "minutes": {"type": "int"}}},
+  "briefingByAaLine": "{count, plural, =1{AA did 1 thing on its own. Undo it in Activity.} other{AA did {count} things on its own. Undo any in Activity.}}",
+  "@briefingByAaLine": {"placeholders": {"count": {"type": "int"}}},
+  "briefingNothingYet": "Nothing scheduled yet.",
+  "briefingOpenInbox": "Open Inbox",
+  "briefingMoveUnfinished": "Move unfinished to tomorrow",
+  "briefingReadAloud": "Read aloud",
+  "briefingMoved": "{count, plural, =1{Moved 1 task to tomorrow} other{Moved {count} tasks to tomorrow}}",
+  "@briefingMoved": {"placeholders": {"count": {"type": "int"}}},
+  "briefingNotificationMorning": "Your morning briefing",
+  "briefingNotificationShutdown": "Time to wrap up the day",
+  "briefingNotificationBody": "Tap to see your day at a glance.",
+  "briefingChannel": "Briefings",
+  "briefingChannelDescription": "The morning and end-of-day briefings",
+  "loadingBriefing": "Loading briefing",
+  "assistantBriefings": "Briefings",
+  "assistantBriefingsHint": "A morning briefing at 07:30 and a shutdown at 18:30.",
+  "planMyDay": "Plan my day",
+  "planIntro": "AA puts your open tasks into today's free time, most urgent first. Nothing changes until you apply it.",
+  "planNothing": "Nothing to plan: every open task already has a block, or today has no free time left.",
+  "planApply": "Apply plan",
+  "planDone": "{count, plural, =1{Planned 1 task} other{Planned {count} tasks}}",
+  "@planDone": {"placeholders": {"count": {"type": "int"}}},
+  "loadingPlan": "Planning",
+  "reasonBlockEnded": "A block ended with this still open"
+}
